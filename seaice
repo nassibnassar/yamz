@@ -31,8 +31,7 @@ def accessible_by_group_or_world(file):
   st = os.stat(file)
   return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
 
-def get_config():
-  config_file = os.environ['HOME'] + '/.seaice'
+def get_config(config_file = os.environ['HOME'] + '/.seaice'):
   if accessible_by_group_or_world(config_file):
     print ('ERROR: config file ' + config_file +
       ' has group or world ' +
