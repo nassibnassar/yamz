@@ -2,6 +2,10 @@
 # Copyright (c) 2013, Christopher Patton
 # All rights reserved.
 # 
+# TODO
+# Created/Modified timestamps
+# Import/Export/delete
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #   * Redistributions of source code must retain the above copyright
@@ -23,6 +27,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import sys
 import json, MySQLdb as mdb
 
 class SeaIceDb: 
@@ -126,3 +131,33 @@ class SeaIceDb:
   # 
     pass
 
+
+
+  def Export(self, outf=None):
+  # 
+  # Export database in JSON format to "outf". If no file name 
+  # provided, dump to standard out.  
+  #
+    if outf: 
+      fd = open(outf, 'w')
+    else:
+      fd = sys.stdout
+
+    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur.execute("select * from Terms")
+    rows = cur.fetchall()
+    for row in rows:
+      print row
+      for (key, value) in row.iteritems():
+        row[key] = str(value)
+    print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
+      
+
+  def Import(self, inf): 
+  #
+  # Import database from JSON formated "inf". 
+  # TODO handle dates!
+  #
+    fd = open(inf, 'r')
+    for row in json.loads(fd.read()):
+      self.add(row) 

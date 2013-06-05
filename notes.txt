@@ -8,3 +8,25 @@ sudo pip install configparser
 
 SeaIceDb.cur attribute? The quesiton is whether MySQL serializes
 transactions across cursors or only within one. 
+
+Here are the development stages: 
+
+1. Basic functionality: add/delete/look-up term. Database, API, command-line UI. 
+
+2. Web UI, term ownership, user credentials. Term population, browse terms. 
+
+3. Term discovery via definition search, edit definition form. 
+
+4. Term comment history. 
+
+5. add/delete/look-up relations, discovery via related terms. 
+
+6. Basic scoring (up/down vote), rank search results by score and last
+modified. 
+
+7. Vernacular, canon, and archive. Call for votes (term frozen) period.
+
+8. "Elder" nomination (What is an Elder?), refinements to voting scheme.
+
+9. Catch-up and clean up. If time, enhanced term discovery via NLP.  
+
