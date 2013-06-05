@@ -23,50 +23,47 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, stat, sys, configparser, MySQLdb as mdb
+import json, MySQLdb as mdb
 
-## local db configuration $HOME/.seaice ## 
+class SeaIceDb: 
+  
+  def __init__ (self, host, user, password, db):
+    self.con = mdb.connect(host, user, password, db)
 
-def accessible_by_group_or_world(file):
-  st = os.stat(file)
-  return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
+    self.cur = self.con.cursor()
+    self.cur.execute("SELECT VERSION()")
 
-def get_config(config_file = os.environ['HOME'] + '/.seaice'):
-  if accessible_by_group_or_world(config_file):
-    print ('ERROR: config file ' + config_file +
-      ' has group or world ' +
-      'access; permissions should be set to u=rw')
-    sys.exit(1)
-  config = configparser.RawConfigParser()
-  config.read(config_file)
-  return config
+    self.ver = self.cur.fetchone()
 
-config = get_config()
+    print "Database version : %s " % self.ver
 
+  def create(self):
+    self.cur.execute(
+      """create table if not exists Term
+      (
+        id integer auto_increment, 
+        termString text not null, 
+        definition text not null,
+        contactInfo text not null, 
+        score integer not null,
+        created timestamp not null, 
+        modified timestamp not null, 
+        primary key (id)
+      )"""
+    )
 
-## Establish connection to MySQL db ##
+  def destroy(self): 
+    self.cur.execute("drop table if exists Term")
+    
+  def add(self, term): pass
 
-try:
-  con = mdb.connect( 'localhost', 
-                     config.get('default', 'user'),
-                     config.get('default', 'password'),
-                     config.get('default', 'dbname')
-                   )
+  def delete(self, termString): pass
 
-  cur = con.cursor()
-  cur.execute("SELECT VERSION()")
+  def searchByTerm(self, termString): pass
 
-  ver = cur.fetchone()
+  def searchByDef(self, string): pass 
 
-  print "Database version : %s " % ver
+  def __del__(self): 
+    self.con.close()
 
-except mdb.Error, e:
-
-  print "Error %d: %s" % (e.args[0],e.args[1])
-  sys.exit(1)
-
-finally:    
-
-  if con:    
-    con.close()
 
