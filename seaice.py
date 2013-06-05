@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2013, Christopher Patton, Nassib Nassar
+# Copyright (c) 2013, Christopher Patton
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,102 @@ import json, MySQLdb as mdb
 
 class SeaIceDb: 
   
-  def __init__ (self, host, user, password, db):
+  def __init__(self, host, user, password, db):
+  #
+  # Establish connection to database. 
+  # 
+  
     self.con = mdb.connect(host, user, password, db)
+    cur = self.con.cursor()
+    cur.execute("SELECT VERSION(); begin")
+    ver = cur.fetchone()
+    print "Database version : %s " % ver
 
-    self.cur = self.con.cursor()
-    self.cur.execute("SELECT VERSION()")
+  def createTable(self):
+  #
+  # Create Terms table if it doesn't exist.
+  # TODO relations.
+  #
 
-    self.ver = self.cur.fetchone()
-
-    print "Database version : %s " % self.ver
-
-  def create(self):
-    self.cur.execute(
-      """create table if not exists Term
+    cur = self.con.cursor()
+    cur.execute(
+      """create table if not exists Terms
       (
-        id integer auto_increment, 
-        termString text not null, 
-        definition text not null,
-        contactInfo text not null, 
-        score integer not null,
-        created timestamp not null, 
-        modified timestamp not null, 
-        primary key (id)
-      )"""
+        Id integer primary key auto_increment, 
+        TermString text not null, 
+        Definition text not null,
+        ContactInfo text not null, 
+        Score integer not null,
+        Created timestamp not null, 
+        Modified timestamp not null 
+      );"""
     )
-
-  def destroy(self): 
-    self.cur.execute("drop table if exists Term")
-    
-  def add(self, term): pass
-
-  def delete(self, termString): pass
-
-  def searchByTerm(self, termString): pass
-
-  def searchByDef(self, string): pass 
-
+  
   def __del__(self): 
     self.con.close()
 
+  def destroyTable(self): 
+  #
+  # Destroy Terms table if it exists. 
+  #
+    cur = self.con.cursor()
+    cur.execute("drop table if exists Terms")
+
+  def commit(self): 
+  #
+  # Commit changes to database made while the connection was open. 
+  #
+    cur = self.con.cursor()
+    cur.execute("commit")
+    
+  def add(self, term): 
+  #
+  # Add a term to the database. Expects a dictionary type.
+  # TODO probably want to be able to specify Id and Score. 
+  #
+    cur = self.con.cursor()
+    cur.execute(
+      """insert into Terms(termString, definition, contactInfo, score) 
+          values('%s', '%s', '%s', 0) 
+      """ % (term['TermString'], term['Definition'], term['ContactInfo']))
+
+  def dump(self): 
+  #
+  # Dump all terms in the table in JSON format (TODO).
+  #
+    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur.execute("select * from Terms")
+    rows = cur.fetchall()
+    for row in rows:
+      print row
+
+  def delete(self, Id):
+  #
+  # Remove term from the database. 
+  #
+    pass
+
+  def getTerm(self, Id): 
+  # 
+  # Retrieve term by Id. 
+  # 
+    pass
+
+  def searchByTerm(self, TermString): 
+  #
+  # Search table by term string. 
+  #
+    pass
+
+  def searchByDef(self, string): 
+  #
+  # Search table by definition. 
+  #
+    pass 
+
+  def updateDef(self, Id, Definition): 
+  #
+  # Modify a term's definition
+  # 
+    pass
 

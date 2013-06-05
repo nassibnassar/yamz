@@ -55,8 +55,17 @@ try:
                           config.get('default', 'dbname')
                        )
 
-  sea.destroy()
-  sea.create()
+  sea.destroyTable()
+  sea.createTable()
+  # TODO import JSON
+  sea.add({ "TermString" : 'guy',
+            "Definition" : 'fella', 
+            "ContactInfo" : "439-0116" })
+  #sea.add({ "termString" : 'guy',
+  #          "definition" : 'fella', 
+  #          "contactInfo" : "439-0116" })
+  sea.dump()
+  sea.commit()
 
 except mdb.Error, e:
   print "Error %d: %s" % (e.args[0],e.args[1])
