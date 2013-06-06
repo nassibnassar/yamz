@@ -65,7 +65,7 @@ try:
   #          "definition" : 'fella', 
   #          "contactInfo" : "439-0116" })
   sea.Import("terms.json")
-  sea.Export("oh")
+  sea.Export()
   #sea.commit()
 
 except mdb.Error, e:

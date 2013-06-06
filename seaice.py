@@ -86,9 +86,15 @@ class SeaIceDb:
   # TODO probably want to be able to specify Id and Score. 
   #
     cur = self.con.cursor()
+    
     cur.execute(
-      """insert into Terms(termString, definition, contactInfo, score) 
-          values('%s', '%s', '%s', 0) 
+      """insert into Terms( TermString, 
+                            Definition, 
+                            ContactInfo, 
+                            Score,
+                            Created,
+                            Modified ) 
+          values('%s', '%s', '%s', 0, current_timestamp, current_timestamp) 
       """ % (term['TermString'], term['Definition'], term['ContactInfo']))
 
   def dump(self): 
