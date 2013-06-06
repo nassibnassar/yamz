@@ -2,10 +2,6 @@
 # Copyright (c) 2013, Christopher Patton
 # All rights reserved.
 # 
-# TODO
-# Created/Modified timestamps
-# Import/Export/delete
-# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #   * Redistributions of source code must retain the above copyright
@@ -27,8 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys
-import json, MySQLdb as mdb
+import sys, json, MySQLdb as mdb
 
 class SeaIceDb: 
   
@@ -42,11 +37,13 @@ class SeaIceDb:
     cur.execute("SELECT VERSION(); begin")
     ver = cur.fetchone()
     print "Database version : %s " % ver
+  
+  def __del__(self): 
+    self.con.close()
 
   def createTable(self):
   #
   # Create Terms table if it doesn't exist.
-  # TODO relations.
   #
 
     cur = self.con.cursor()
@@ -64,9 +61,6 @@ class SeaIceDb:
       alter table Terms auto_increment=1001"""
     )
   
-  def __del__(self): 
-    self.con.close()
-
   def destroyTable(self): 
   #
   # Destroy Terms table if it exists. 
@@ -80,13 +74,31 @@ class SeaIceDb:
   #
     cur = self.con.cursor()
     cur.execute("commit")
-    
+
+
+
   def add(self, term): 
   #
   # Add a term to the database. Expects a dictionary type.
-  # TODO probably want to be able to specify Id and Score. 
   #
     cur = self.con.cursor()
+
+    # Default values for table entries.  
+    defTerm = { 
+      "Id" : "default",
+      "TermString" : "<nil>", 
+      "Definition" : "<nil>", 
+      "ContactInfo" : "<nil>", 
+      "Score" : "default", 
+      "Created" : "current_timestamp", 
+      "Modified" : "current_timestamp"
+    }
+
+    for (key, value) in term.iteritems():
+      if key == "Created" or key == "Modified": 
+        defTerm[key] = "'" + str(value) + "'"
+      else: 
+        defTerm[key] = str(value)
     
     cur.execute(
       """insert into Terms( Id, 
@@ -96,18 +108,9 @@ class SeaIceDb:
                             Score,
                             Created,
                             Modified ) 
-          values(default, '%s', '%s', '%s', default, current_timestamp, current_timestamp) 
-      """ % (term['TermString'], term['Definition'], term['ContactInfo']))
-
-  def dump(self): 
-  #
-  # Dump all terms in the table in JSON format (TODO).
-  #
-    cur = self.con.cursor(mdb.cursors.DictCursor)
-    cur.execute("select * from Terms")
-    rows = cur.fetchall()
-    for row in rows:
-      print row
+          values(%s, '%s', '%s', '%s', %s, %s, %s) 
+      """ % (defTerm['Id'], defTerm['TermString'], defTerm['Definition'], defTerm['ContactInfo'],
+             defTerm['Score'], defTerm['Created'], defTerm['Modified']))
 
   def delete(self, Id):
   #
@@ -157,16 +160,13 @@ class SeaIceDb:
     for row in rows:
       row['Modified'] = str(row['Modified'])
       row['Created'] = str(row['Created'])
-      #for (key, value) in row.iteritems():
-      #  row[key] = str(value)
     print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
       
 
   def Import(self, inf): 
   #
   # Import database from JSON formated "inf". 
-  # TODO handle dates!
   #
     fd = open(inf, 'r')
     for row in json.loads(fd.read()):
-      self.add(row) 
+      self.add(row)

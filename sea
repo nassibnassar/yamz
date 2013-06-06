@@ -55,8 +55,8 @@ try:
                           config.get('default', 'dbname')
                        )
 
-  sea.destroyTable()
-  sea.createTable()
+  #sea.destroyTable()
+  #sea.createTable()
   # TODO import JSON
   #sea.add({ "TermString" : 'guy',
   #          "Definition" : 'fella', 
@@ -64,7 +64,7 @@ try:
   #sea.add({ "termString" : 'guy',
   #          "definition" : 'fella', 
   #          "contactInfo" : "439-0116" })
-  sea.Import("terms.json")
+  sea.Import("oh")
   sea.Export()
   #sea.commit()
 
