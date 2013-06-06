@@ -57,14 +57,8 @@ try:
 
   #sea.destroyTable()
   #sea.createTable()
-  # TODO import JSON
-  #sea.add({ "TermString" : 'guy',
-  #          "Definition" : 'fella', 
-  #          "ContactInfo" : "439-0116" })
-  #sea.add({ "termString" : 'guy',
-  #          "definition" : 'fella', 
-  #          "contactInfo" : "439-0116" })
   sea.Import("oh")
+  sea.updateDef(94, "this is a fella guy technically speaking!")
   sea.Export()
   #sea.commit()
 

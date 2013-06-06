@@ -55,8 +55,11 @@ class SeaIceDb:
         Definition text not null,
         ContactInfo text not null, 
         Score integer default 0 not null,
-        Created timestamp not null, 
-        Modified timestamp not null 
+        Created timestamp default 0 not null, 
+        Modified timestamp 
+          default 0 on 
+          update current_timestamp 
+          not null 
       ); 
       alter table Terms auto_increment=1001"""
     )
@@ -70,14 +73,14 @@ class SeaIceDb:
 
   def commit(self): 
   #
-  # Commit changes to database made while the connection was open. 
+  # Commit changes to database made while the connection was open. This 
+  # should be called before the class destructor is called in order to 
+  # save changes. 
   #
     cur = self.con.cursor()
     cur.execute("commit")
 
-
-
-  def add(self, term): 
+  def insert(self, term): 
   #
   # Add a term to the database. Expects a dictionary type.
   #
@@ -94,6 +97,7 @@ class SeaIceDb:
       "Modified" : "current_timestamp"
     }
 
+    # Format entries for db query
     for (key, value) in term.iteritems():
       if key == "Created" or key == "Modified": 
         defTerm[key] = "'" + str(value) + "'"
@@ -112,23 +116,28 @@ class SeaIceDb:
       """ % (defTerm['Id'], defTerm['TermString'], defTerm['Definition'], defTerm['ContactInfo'],
              defTerm['Score'], defTerm['Created'], defTerm['Modified']))
 
-  def delete(self, Id):
+  def remove(self, Id):
   #
   # Remove term from the database. 
   #
-    pass
+    cur = self.con.cursor()
+    cur.execute("delete from Terms where Id=%d" % Id)
 
   def getTerm(self, Id): 
   # 
-  # Retrieve term by Id. 
+  # Retrieve term by Id. Return dictionary structure or None. 
   # 
-    pass
+    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur.execute("select * from Terms where Id=%d" % Id)
+    return cur.fetchone()
 
   def searchByTerm(self, TermString): 
   #
-  # Search table by term string. 
+  # Search table by term string and return a list of dictionary structures
   #
-    pass
+    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur.execute("select * from Terms where TermString='%s'" % TermString)
+    return list(cur.fetchall())
 
   def searchByDef(self, string): 
   #
@@ -140,9 +149,8 @@ class SeaIceDb:
   #
   # Modify a term's definition
   # 
-    pass
-
-
+    cur = self.con.cursor()
+    cur.execute("update Terms set Definition='%s' where Id=%d" % (Definition, Id))
 
   def Export(self, outf=None):
   # 
@@ -169,4 +177,4 @@ class SeaIceDb:
   #
     fd = open(inf, 'r')
     for row in json.loads(fd.read()):
-      self.add(row)
+      self.insert(row)
