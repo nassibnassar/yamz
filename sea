@@ -27,7 +27,7 @@ import os, stat, sys, configparser, optparse
 import json, MySQLdb as mdb
 import seaice
 
-## Parse command line options ##
+## Parse command line options. ##
 
 parser = optparse.OptionParser()
 
@@ -45,7 +45,7 @@ parser.description = description
 parser.add_option("-d", "--dump", action="store_true", dest="dump", default=False,
                   help="Display the contents of the dictionary in the terminal.")
 
-parser.add_option("--db-config", dest="config_file", metavar="FILE", 
+parser.add_option("--config", dest="config_file", metavar="FILE", 
                   help="User credentials for local MySQL database (defaults to '$HOME/.seaice').",
                   default=(os.environ['HOME'] + '/.seaice'))
 
@@ -80,7 +80,7 @@ parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=Fa
 (options, args) = parser.parse_args()
 
 
-## local db configuration $HOME/.seaice ## 
+## Local db configuration $HOME/.seaice ## 
 
 def accessible_by_group_or_world(file):
   st = os.stat(file)
@@ -88,7 +88,7 @@ def accessible_by_group_or_world(file):
 
 def get_config(config_file = os.environ['HOME'] + '/.seaice'):
   if accessible_by_group_or_world(config_file):
-    print ('ERROR: config file ' + config_file +
+    print ('error: config file ' + config_file +
       ' has group or world ' +
       'access; permissions should be set to u=rw')
     sys.exit(1)
@@ -101,7 +101,12 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
 ## Establish connection to MySQL db ##
 
 try:
-  config = get_config(options.config_file)
+  
+  try: 
+    config = get_config(options.config_file)
+  except OSError: 
+    print >>sys.stderr, "error: config file '%s' not found" % options.config_file
+    sys.exit(1)
 
   sea = seaice.SeaIceDb( 'localhost', 
                           config.get('default', 'user'),
@@ -109,23 +114,24 @@ try:
                           config.get('default', 'dbname')
                        )
   
-
+  ## Run specified queries. ##
 
   if options.remove_id:
-    sea.remove(int(options.remove_id))
-    # TODO not found
+    if not sea.remove(int(options.remove_id)):
+      print >>sys.stderr, "sea: no such term (Id=%s not found)" % options.remove_id
 
   if options.import_file:
-    # TODO duplicate id's
     sea.Import(options.import_file)
 
   if options.export_file:
     sea.Export(options.export_file)
   
   if options.drop_table:
-    if not options.quiet and \
-     raw_input("warning: this will erase all terms. Are you sure? [y/n]" ) \
-     in ['y', 'yes', 'Y']: 
+    if not options.quiet:
+      print >>sys.stderr, "warning: this will erase all terms. Are you sure? [y/n]",
+      if raw_input() in ['y', 'yes', 'Y']: 
+        sea.destroyTable()
+    else:
       sea.destroyTable()
         
   if options.create_table: 
@@ -141,13 +147,20 @@ try:
     terms = sea.searchByTerm(options.search_term)
     if options.json: 
       seaice.printAsJSObject(terms)
-    else: 
-      seaice.printPretty(terms)
+    elif len(terms) == 0: 
+      print >>sys.stderr, "sea: no matches for '%s'" % options.search_term
+    else: seaice.printPretty(terms)
 
+  ## Commit database mutations. ##
   sea.commit()
 
 except mdb.Error, e:
-  print "Error %d: %s" % (e.args[0],e.args[1])
+  print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
   sys.exit(1)
 
+except IOError:
+  print >>sys.stderr, "error: file not found"
+  sys.exit(1)
 
+except ValueError: 
+  print >>sys.stderr, "error: incorrect paramater type(s)"

@@ -110,7 +110,8 @@ class SeaIceDb:
 
   def insert(self, term): 
   #
-  # Add a term to the database. Expects a dictionary type.
+  # Add a term to the database and return number of rows affected (1 or 0. 
+  # Expects a dictionary type.
   #
     cur = self.con.cursor()
 
@@ -132,24 +133,31 @@ class SeaIceDb:
       else: 
         defTerm[key] = str(value)
     
-    cur.execute(
-      """insert into Terms( Id, 
-                            TermString, 
-                            Definition, 
-                            ContactInfo, 
-                            Score,
-                            Created,
-                            Modified ) 
-          values(%s, '%s', '%s', '%s', %s, %s, %s) 
-      """ % (defTerm['Id'], defTerm['TermString'], defTerm['Definition'], defTerm['ContactInfo'],
-             defTerm['Score'], defTerm['Created'], defTerm['Modified']))
+    try:
+      return cur.execute(
+        """insert into Terms( Id, 
+                              TermString, 
+                              Definition, 
+                              ContactInfo, 
+                              Score,
+                              Created,
+                              Modified ) 
+            values(%s, '%s', '%s', '%s', %s, %s, %s) 
+        """ % (defTerm['Id'], defTerm['TermString'], defTerm['Definition'], defTerm['ContactInfo'],
+               defTerm['Score'], defTerm['Created'], defTerm['Modified']))
+    except mdb.Error, e:
+      if e.args[0] == 1062: # Duplicate primary key
+        print >>sys.stderr, "warning (%d): %s (ignoring)" % (e.args[0],e.args[1])
+        return 0
+      else:
+        raise e
 
   def remove(self, Id):
   #
-  # Remove term from the database. 
+  # Remove term from the database and return number of rows affected (1 or 0). 
   #
     cur = self.con.cursor()
-    cur.execute("delete from Terms where Id=%d" % Id)
+    return cur.execute("delete from Terms where Id=%d" % Id)
 
   def getTerm(self, Id): 
   # 
