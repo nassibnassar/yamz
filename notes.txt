@@ -9,6 +9,9 @@ sudo pip install configparser
 SeaIceDb.cur attribute? The quesiton is whether MySQL serializes
 transactions across cursors or only within one. 
 
+The API handles db entries as dictionaries. I'll prboably do this with tuples
+instead, since this is more efficient. 
+
 Here are the development stages: 
 
 1. Basic functionality: add/delete/look-up term. Database, API, command-line UI. 

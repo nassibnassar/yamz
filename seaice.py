@@ -25,6 +25,34 @@
 
 import sys, json, MySQLdb as mdb
 
+def printAsJSObject(rows, fd = sys.stdout):
+#
+# Write table rows in JSON format to 'fd'. 
+#
+  for row in rows:
+    row['Modified'] = str(row['Modified'])
+    row['Created'] = str(row['Created'])
+  print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
+
+def printPretty(rows):
+#
+# Print table rows to the terminal. 
+#
+  for row in rows:
+    print "Term: %-26s Id No. %-7d Created: %s" % ("%s (%d)" % (row['TermString'], 
+                                                                row["Score"]),
+                                                   row['Id'],
+                                                   row['Created']) 
+
+    print " " * 42 + "Last Modified: %s" % row['Modified']
+
+    print "\n    Definition: %s" % row['Definition'] # TODO print this out in 
+                                                     # columns of just 60 
+                                                     # characters.
+
+    print "\n    Ownership: %s" % row['ContactInfo']
+    print
+
 class SeaIceDb: 
   
   def __init__(self, host, user, password, db):
@@ -36,7 +64,7 @@ class SeaIceDb:
     cur = self.con.cursor()
     cur.execute("SELECT VERSION(); begin")
     ver = cur.fetchone()
-    print "Database version : %s " % ver
+    #print "Database version : %s " % ver
   
   def __del__(self): 
     self.con.close()
@@ -130,6 +158,14 @@ class SeaIceDb:
     cur = self.con.cursor(mdb.cursors.DictCursor)
     cur.execute("select * from Terms where Id=%d" % Id)
     return cur.fetchone()
+  
+  def getAllTerms(self): 
+  # 
+  # Return a list of all terms (rows) in table. 
+  # 
+    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur.execute("select * from Terms")
+    return cur.fetchall()
 
   def searchByTerm(self, TermString): 
   #
@@ -165,11 +201,8 @@ class SeaIceDb:
     cur = self.con.cursor(mdb.cursors.DictCursor)
     cur.execute("select * from Terms")
     rows = cur.fetchall()
-    for row in rows:
-      row['Modified'] = str(row['Modified'])
-      row['Created'] = str(row['Created'])
-    print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
-      
+    printAsJSObject(rows, fd)
+
 
   def Import(self, inf): 
   #

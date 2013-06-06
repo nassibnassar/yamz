@@ -23,9 +23,62 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, stat, sys, configparser
+import os, stat, sys, configparser, optparse
 import json, MySQLdb as mdb
 import seaice
+
+## Parse command line options ##
+
+parser = optparse.OptionParser()
+
+description="""This program is the command line frontend for the SeaIce metadictionary. SeaIce \
+is a database comprised of a set of user-defined, crowd-sourced terms and relationss. \
+The goal of SeaIce is to develop a succint and complete set of metadata terms to register \
+just about any type of file or data set. 'sea' provides administrative functionality for \
+SeaIce's database. It is distributed under the terms of the BSD license with the hope that it \
+will be useful, but without warranty. You should have received a copy of the BSD license with \
+this program; otherwise, visit http://opensource.org/licenses/BSD-3-Clause.
+"""
+
+parser.description = description
+
+parser.add_option("-d", "--dump", action="store_true", dest="dump", default=False,
+                  help="Display the contents of the dictionary in the terminal.")
+
+parser.add_option("--db-config", dest="config_file", metavar="FILE", 
+                  help="User credentials for local MySQL database (defaults to '$HOME/.seaice').",
+                  default=(os.environ['HOME'] + '/.seaice'))
+
+parser.add_option("--import", dest="import_file",
+                  help="Import JSON-formatted FILE into the dictionary.",
+                  metavar="FILE")
+
+parser.add_option("--export", dest="export_file",
+                  help="Export dictionary as JSON-formatted FILE.",
+                  metavar="FILE")
+
+parser.add_option("-s", "--search", dest="search_term",
+                  help="Search the metadictionary for TERM and return a list of matches.",
+                  metavar="TERM")
+
+parser.add_option("-r", "--remove", dest="remove_id",
+                  help="Remove the metadictionary entry corresponding to ID.",
+                  metavar="ID")
+
+parser.add_option("--drop-db", action="store_true", dest="drop_table", default=False,
+                  help="Drop the metadictionary table from the database. [Dev]")
+
+parser.add_option("--init-db", action="store_true", dest="create_table", default=False,
+                  help="Create new terms table if it doesn't exist. [Dev]")
+
+parser.add_option("-j", "--json", action="store_true", dest="json", default=False,
+                  help="Format terminal output as a JSON structure.")
+
+parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
+                  help="Don't prompt for comfirmation when dropping tables.")
+
+(options, args) = parser.parse_args()
+
 
 ## local db configuration $HOME/.seaice ## 
 
@@ -43,24 +96,55 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
   config.read(config_file)
   return config
 
-config = get_config()
 
 
 ## Establish connection to MySQL db ##
 
 try:
+  config = get_config(options.config_file)
+
   sea = seaice.SeaIceDb( 'localhost', 
                           config.get('default', 'user'),
                           config.get('default', 'password'),
                           config.get('default', 'dbname')
                        )
+  
 
-  #sea.destroyTable()
-  #sea.createTable()
-  sea.Import("oh")
-  sea.updateDef(94, "this is a fella guy technically speaking!")
-  sea.Export()
-  #sea.commit()
+
+  if options.remove_id:
+    sea.remove(int(options.remove_id))
+    # TODO not found
+
+  if options.import_file:
+    # TODO duplicate id's
+    sea.Import(options.import_file)
+
+  if options.export_file:
+    sea.Export(options.export_file)
+  
+  if options.drop_table:
+    if not options.quiet and \
+     raw_input("warning: this will erase all terms. Are you sure? [y/n]" ) \
+     in ['y', 'yes', 'Y']: 
+      sea.destroyTable()
+        
+  if options.create_table: 
+    sea.createTable()
+  
+  if options.dump: 
+    if options.json:
+      sea.Export()
+    else:
+      seaice.printPretty(sea.getAllTerms())
+  
+  if options.search_term:
+    terms = sea.searchByTerm(options.search_term)
+    if options.json: 
+      seaice.printAsJSObject(terms)
+    else: 
+      seaice.printPretty(terms)
+
+  sea.commit()
 
 except mdb.Error, e:
   print "Error %d: %s" % (e.args[0],e.args[1])
