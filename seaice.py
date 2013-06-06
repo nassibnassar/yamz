@@ -25,6 +25,8 @@
 
 import sys, json, MySQLdb as mdb
 
+## Pretty printing ##
+
 def printAsJSObject(rows, fd = sys.stdout):
 #
 # Write table rows in JSON format to 'fd'. 
@@ -34,6 +36,21 @@ def printAsJSObject(rows, fd = sys.stdout):
     row['Created'] = str(row['Created'])
   print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
 
+def printParagraph(text, leftMargin=8, width=60): 
+#
+# Print a nice paragraph. 
+#
+  lineLength = 0
+  print " " * (leftMargin-1), 
+  for word in text.split(" "):
+    if lineLength < width:
+      print word, 
+      lineLength += len(word) + 1
+    else:
+      print "\n" + (" " * (leftMargin-1)),
+      lineLength = 0
+  print
+    
 def printPretty(rows):
 #
 # Print table rows to the terminal. 
@@ -46,12 +63,16 @@ def printPretty(rows):
 
     print " " * 42 + "Last Modified: %s" % row['Modified']
 
-    print "\n    Definition: %s" % row['Definition'] # TODO print this out in 
-                                                     # columns of just 60 
-                                                     # characters.
-
+    print "\n    Definition:\n"    
+    printParagraph(row['Definition'])
+    
     print "\n    Ownership: %s" % row['ContactInfo']
     print
+
+
+
+
+## Interface to database ##
 
 class SeaIceDb: 
   
@@ -149,8 +170,7 @@ class SeaIceDb:
       if e.args[0] == 1062: # Duplicate primary key
         print >>sys.stderr, "warning (%d): %s (ignoring)" % (e.args[0],e.args[1])
         return 0
-      else:
-        raise e
+      else: raise e
 
   def remove(self, Id):
   #

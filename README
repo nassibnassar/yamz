@@ -1,2 +1,37 @@
-seaice
-======
+Thus far, the SeaIce metadictionary consists of a database API and a 
+command line tool called "sea". Before you get started, you need to set 
+up a database and some software packages. On Ubuntu, grab the follwoing:
+  
+  python-flask . . . . . . . simple HTTP server stack.
+
+  mysql-server . . . . . . . We're using MySQL as our database for the 
+                             moment. 
+
+  python-pip . . . . . . . . Package manager for additional Python 
+                             programs. 
+
+We need to download a package from pip that handles configuration files
+nicely. Do: 
+
+  $ sudo pip install configparser
+
+Now set up a database in MySQL: 
+
+  $ mysql --user=USER --password=PASS
+  mysql> create database DBNAME (such as seaice) 
+  mysql> commit
+  mysql> exit
+
+Lastly, create a configuration file for the database and user account
+you set up. Create a file called ~/.seaice like: 
+
+[default]
+dbname = seaice
+user = USER
+password = PASS
+
+Then you should be good to go! To test everything is sane, do: 
+
+  $ ./sea --init-db
+
+Have fun! -Chris
