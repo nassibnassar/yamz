@@ -61,7 +61,7 @@
   },
     
   {
-    "TermString" : "Language", 
+    "TermString" : "Relation", 
     "Definition" : "An identifier of a second resource and its relationship to the present resource.  This element is used to express linkages among related resources.  For the sake of interoperability, relationships should be selected from an enumerated list that is currently under development in the workshop series.",
     "ContactInfo" : "Weibel et al."
   },
@@ -73,6 +73,7 @@
   }
 
 ]
+
 
 
 
