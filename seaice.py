@@ -57,10 +57,11 @@ class SeaIceDb:
         TermString text not null, 
         Definition text not null,
         ContactInfo text not null, 
-        Score integer not null,
+        Score integer default 0 not null,
         Created timestamp not null, 
         Modified timestamp not null 
-      );"""
+      ); 
+      alter table Terms auto_increment=1001"""
     )
   
   def __del__(self): 
@@ -88,13 +89,14 @@ class SeaIceDb:
     cur = self.con.cursor()
     
     cur.execute(
-      """insert into Terms( TermString, 
+      """insert into Terms( Id, 
+                            TermString, 
                             Definition, 
                             ContactInfo, 
                             Score,
                             Created,
                             Modified ) 
-          values('%s', '%s', '%s', 0, current_timestamp, current_timestamp) 
+          values(default, '%s', '%s', '%s', default, current_timestamp, current_timestamp) 
       """ % (term['TermString'], term['Definition'], term['ContactInfo']))
 
   def dump(self): 
@@ -153,9 +155,10 @@ class SeaIceDb:
     cur.execute("select * from Terms")
     rows = cur.fetchall()
     for row in rows:
-      print row
-      for (key, value) in row.iteritems():
-        row[key] = str(value)
+      row['Modified'] = str(row['Modified'])
+      row['Created'] = str(row['Created'])
+      #for (key, value) in row.iteritems():
+      #  row[key] = str(value)
     print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
       
 

@@ -55,8 +55,8 @@ try:
                           config.get('default', 'dbname')
                        )
 
-  #sea.destroyTable()
-  #sea.createTable()
+  sea.destroyTable()
+  sea.createTable()
   # TODO import JSON
   #sea.add({ "TermString" : 'guy',
   #          "Definition" : 'fella', 
