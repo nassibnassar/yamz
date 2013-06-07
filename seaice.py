@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2013, Christopher Patton
+# Copyright (c) 2013, Christopher Patton, Nassib Nassar
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys, json, MySQLdb as mdb
+import os, sys, stat, configparser
+import json, MySQLdb as mdb
 
 ## Pretty printing ##
 
@@ -69,6 +70,22 @@ def printPretty(rows):
     print "\n    Ownership: %s" % row['ContactInfo']
     print
 
+
+## Local db configuration $HOME/.seaice ## 
+
+def accessible_by_group_or_world(file):
+  st = os.stat(file)
+  return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
+
+def get_config(config_file = os.environ['HOME'] + '/.seaice'):
+  if accessible_by_group_or_world(config_file):
+    print ('error: config file ' + config_file +
+      ' has group or world ' +
+      'access; permissions should be set to u=rw')
+    sys.exit(1)
+  config = configparser.RawConfigParser()
+  config.read(config_file)
+  return config
 
 
 
