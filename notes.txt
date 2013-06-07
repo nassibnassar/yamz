@@ -5,11 +5,13 @@ drop the tables.)
 
 propose page 
 
-browse terms
-
 Pool of unused (deleted) IDs
 
 Distinction between ContactInfo and Proposer
+
+There's definitely gonna be a table of contributors. 
+
+
 
 6/4/13
 

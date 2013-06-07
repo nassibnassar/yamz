@@ -43,7 +43,16 @@ def contact():
 
 @app.route("/browse")
 def browse():
-  return render_template("basic_page.html")
+  terms = sea.getAllTerms(sortBy="TermString")
+  result = "<hr>"
+
+  for term in terms: 
+    result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by</i> %s</p>" % (
+      term['Id'], term['TermString'], term['ContactInfo'])
+
+  return render_template("browse.html", title = "Browse", 
+                                        headline = "Browse dictionary",
+                                        content = Markup(result))
 
 
 @app.route("/term=<term_id>")

@@ -225,12 +225,16 @@ class SeaIceDb:
     cur.execute("select * from Terms where Id=%d" % Id)
     return cur.fetchone()
   
-  def getAllTerms(self): 
+  def getAllTerms(self, sortBy=None): 
   # 
   # Return a list of all terms (rows) in table. 
   # 
     cur = self.con.cursor(mdb.cursors.DictCursor)
-    cur.execute("select * from Terms")
+    if sortBy:
+      print ">>>>>>>>>>>>>>>", sortBy
+      cur.execute("select * from Terms order by %s" % sortBy)
+    else:
+      cur.execute("select * from Terms")
     return cur.fetchall()
 
   def searchByTerm(self, TermString): 
