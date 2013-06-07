@@ -25,7 +25,7 @@ except mdb.Error, e:
 
 print "ice: connection to database established."
 
-## Setup HTTP server. ##
+## HTTP request handlers ##
 
 app = Flask(__name__)
 
@@ -47,7 +47,7 @@ def returnQuery():
   if request.method == "POST": 
     terms = sea.searchByTerm(request.form['term_string'])
     if len(terms) == 0: 
-      return render_template("search_page.html", term_string = request.form['term_string'])
+      return render_template("search.html", term_string = request.form['term_string'])
     else: 
       result = "<table>" 
       for term in terms:
@@ -64,11 +64,13 @@ def returnQuery():
         result += "<tr height=16><td></td></tr>"
       result += "</table>"
 
-      return render_template("search_page.html", 
+      return render_template("search.html", 
         term_string = request.form['term_string'], result = Markup(result))
 
   else: # GET
-    return render_template("search_page.html")
+    return render_template("search.html")
+
+## Start HTTP server. ##
 
 if __name__ == '__main__':
     app.debug = True
