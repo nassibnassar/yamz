@@ -2,7 +2,7 @@ Thus far, the SeaIce metadictionary consists of a database API and a
 command line tool called "sea". Before you get started, you need to set 
 up a database and some software packages. On Ubuntu, grab the follwoing:
   
-  python-flask . . . . . . . simple HTTP server stack.
+  python-flask . . . . . . . simple HTTP server.
 
   mysql-server . . . . . . . We're using MySQL as our database for the 
                              moment. 
