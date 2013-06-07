@@ -70,6 +70,27 @@ def printPretty(rows):
     print "\n    Ownership: %s" % row['ContactInfo']
     print
 
+def printAsHTML(rows): 
+#
+# Print table rows as an HTML table. 
+# 
+  string = "<table colpadding=16>" 
+  for row in rows:
+    string += "<tr>"
+    string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
+      repr("70%"), row['TermString'], row['Id'])
+    string += "  <td valign=top><i>Created</i>: %s</td>" % row['Modified']
+    string += "</tr><tr>"
+    string += "  <td valign=top><i>Score</i>: %s</td>" % row['Score']
+    string += "  <td valign=top><i>Last Modified</i>: %s</td>" % row['Modified']
+    string += "</tr><tr>"
+    string += "  <td valign=top><i>Definition:</i> %s</td>" % row['Definition']
+    string += "  <td valign=top><i>Ownership:</i> %s</td></tr>" % row['ContactInfo']
+    string += "<tr height=16><td></td></tr>"
+  string += "</table>"
+  return string
+
+
 
 ## Local db configuration $HOME/.seaice ## 
 
