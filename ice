@@ -41,32 +41,34 @@ def about():
 def about():
   return render_template("basic_page.html")
 
-@app.route("/search")
-def searchByTerm():
-  return render_template("search_by_term.html")
-
-@app.route("/result", methods = ['POST'])
+@app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
-  terms = sea.searchByTerm(request.form['term_string'])
-  if len(terms) == 0: 
-    return render_template("query_result_template.html", term_string = request.form['term_string'])
-  else: 
-    result = "<table>" 
-    for term in terms:
-      result += "<tr>"
-      result += "  <td width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (repr("65%"), term['TermString'], term['Id'])
-      result += "  <td><i>Created</i>: %s</td>" % term['Modified']
-      result += "</tr><tr>"
-      result += "  <td><i>Score</i>: %s</td>" % term['Score']
-      result += "  <td><i>Last Modified</i>: %s</td>" % term['Modified']
-      result += "</tr><tr colspan=2>"
-      result += "  <td><i>Definition:</i> %s</td>" % term['Definition']
-      result += "</tr><tr colspan=2>"
-      result += "  <td><i>Ownership:</i> %s<br><br></td></tr>" % term['ContactInfo']
-    result += "</table>"
 
-    return render_template("query_result_template.html", 
-      term_string = request.form['term_string'], result = Markup(result))
+  if request.method == "POST": 
+    terms = sea.searchByTerm(request.form['term_string'])
+    if len(terms) == 0: 
+      return render_template("search_page.html", term_string = request.form['term_string'])
+    else: 
+      result = "<table>" 
+      for term in terms:
+        result += "<tr>"
+        result += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
+          repr("55%"), term['TermString'], term['Id'])
+        result += "  <td valign=top><i>Created</i>: %s</td>" % term['Modified']
+        result += "</tr><tr>"
+        result += "  <td valign=top><i>Score</i>: %s</td>" % term['Score']
+        result += "  <td valign=top><i>Last Modified</i>: %s</td>" % term['Modified']
+        result += "</tr><tr>"
+        result += "  <td valign=top><i>Definition:</i> %s</td>" % term['Definition']
+        result += "  <td valign=top><i>Ownership:</i> %s</td></tr>" % term['ContactInfo']
+        result += "<tr height=16><td></td></tr>"
+      result += "</table>"
+
+      return render_template("search_page.html", 
+        term_string = request.form['term_string'], result = Markup(result))
+
+  else:
+    return render_template("search_page.html")
 
 if __name__ == '__main__':
     app.debug = True
