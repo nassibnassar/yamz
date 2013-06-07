@@ -1,3 +1,15 @@
+TODO ~ 6/7/13
+
+Different MySQL user account for web server. (One that can do queries but not
+drop the tables.) 
+
+term page template
+
+propose page 
+
+browse terms
+
+
 6/4/13
 
 sudo apt-get install python-flask python-pip mysql-server
