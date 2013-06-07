@@ -35,11 +35,11 @@ def index():
 
 @app.route("/about")
 def about():
-  return render_template("basic_page.html")
+  return render_template("about.html")
 
 @app.route("/contact")
-def about():
-  return render_template("basic_page.html")
+def contact():
+  return render_template("contact.html")
 
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
@@ -53,7 +53,7 @@ def returnQuery():
       for term in terms:
         result += "<tr>"
         result += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
-          repr("55%"), term['TermString'], term['Id'])
+          repr("70%"), term['TermString'], term['Id'])
         result += "  <td valign=top><i>Created</i>: %s</td>" % term['Modified']
         result += "</tr><tr>"
         result += "  <td valign=top><i>Score</i>: %s</td>" % term['Score']
@@ -67,7 +67,7 @@ def returnQuery():
       return render_template("search_page.html", 
         term_string = request.form['term_string'], result = Markup(result))
 
-  else:
+  else: # GET
     return render_template("search_page.html")
 
 if __name__ == '__main__':
