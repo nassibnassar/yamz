@@ -3,7 +3,12 @@
 
   <head>
     <meta charset="utf-8">
-    <title>A basic page
+    <title>
+      {% if title %} 
+        {{ title }} 
+      {% else %} 
+        A basic page
+      {% endif %}
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
@@ -43,6 +48,7 @@
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li><a href="/search">Search</a></li>
+              <li><a href="/browse">Browse</a></li>
               <li><a href="/about">About</a></li>
               <li><a href="/contact">Contact</a></li>
             </ul>
@@ -53,11 +59,25 @@
 
     <div class="container">
 
-      <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">A basic page</h1>
-      <p class="jetstrap-selected" contenteditable="true" style="background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALHRFWHRDcmVhdGlvbiBUaW1lAEZyaSAxMiBOb3YgMjAxMCAxOTowNzowMiArMTIwMOGr8p4AAAAHdElNRQfaCwwGBxwduq16AAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAfJJREFUeNqVkk1vElEUhp87X4CIFhhMG0toMC5K3Lgxbro10bhxY2Jc+CO666Y/oP/DxFVjTKM7l1apTdM0JSU0LSg0WqaUjwE6MDNebGpKBYlndc+55zw5H6/gim2UUd0qs5Uy6VaTa7EYdtOmUN7naHER92q+dtnZ2UFpHTOTXWfuwxrfYlNUHz1lxvdIVyx6MuXHPwFeBLW2z+29Pepr7ziUof7SEq1CibCEmKMAymXH6SD6LrpzRndQPIjNz9P3odu2URlhQ4C+ghcM0JpLEchkzrv7eIDS62JYP2lPBJS2cIMhyrMpwo+fMbW8jLhhc2t3F906pjoK8GcH29vonoenRDk1m5zcvUM6ZuJvZEnmcljT09hbR6iVIuLJw/PxhgAOPOj26Gk1nEQCNWAQ7XS4bxvw8hWuGedeo4iR+/y7+OtfgM1N9OIBwnFQ5SLdZJJ2JML17BdqEuYHgmiahsjnx4zw/i2fslm8dht/YQHx/AWpfI50/ZTKm9d8lykiHkf4/hjA6ipnF++VFRS7T1AoaDejyCEYlHmWNeEKF9YISz30CBkGirxKUIZGamAsQG2hux66BAipi1A6g/5fAM/HkGrUFfmr6wSSiWHJTwQoPrq8hCYEGDoh0xzfwUhyIY9ROkRrNKQ65e1P6uM7+AW+ibcHEM1ixAAAAABJRU5ErkJggg==); background-position: 708px 0px; background-repeat: no-repeat no-repeat;">Use this document as a way to quick start any new project.<br> All you get is this message and a barebones HTML document.</p>
+      {% if headline %} 
+        <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">
+          {{ headline }}</h1>
+      {% endif %}
+        
+      <p class="jetstrap-selected" contenteditable="true" style="background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALHRFWHRDcmVhdGlvbiBUaW1lAEZyaSAxMiBOb3YgMjAxMCAxOTowNzowMiArMTIwMOGr8p4AAAAHdElNRQfaCwwGBxwduq16AAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAfJJREFUeNqVkk1vElEUhp87X4CIFhhMG0toMC5K3Lgxbro10bhxY2Jc+CO666Y/oP/DxFVjTKM7l1apTdM0JSU0LSg0WqaUjwE6MDNebGpKBYlndc+55zw5H6/gim2UUd0qs5Uy6VaTa7EYdtOmUN7naHER92q+dtnZ2UFpHTOTXWfuwxrfYlNUHz1lxvdIVyx6MuXHPwFeBLW2z+29Pepr7ziUof7SEq1CibCEmKMAymXH6SD6LrpzRndQPIjNz9P3odu2URlhQ4C+ghcM0JpLEchkzrv7eIDS62JYP2lPBJS2cIMhyrMpwo+fMbW8jLhhc2t3F906pjoK8GcH29vonoenRDk1m5zcvUM6ZuJvZEnmcljT09hbR6iVIuLJw/PxhgAOPOj26Gk1nEQCNWAQ7XS4bxvw8hWuGedeo4iR+/y7+OtfgM1N9OIBwnFQ5SLdZJJ2JML17BdqEuYHgmiahsjnx4zw/i2fslm8dht/YQHx/AWpfI50/ZTKm9d8lykiHkf4/hjA6ipnF++VFRS7T1AoaDejyCEYlHmWNeEKF9YISz30CBkGirxKUIZGamAsQG2hux66BAipi1A6g/5fAM/HkGrUFfmr6wSSiWHJTwQoPrq8hCYEGDoh0xzfwUhyIY9ROkRrNKQ65e1P6uM7+AW+ibcHEM1ixAAAAABJRU5ErkJggg==); background-position: 708px 0px; background-repeat: no-repeat no-repeat;"></p>
 
+    {% if content %}
+      {{ content }}
+    {% endif %}
+
+
+      <hr>
+
+      <div class="footer">
+        <p>© Regents, University of California. 2013</p>
+      </div>
+    
     </div> <!-- /container -->
-
 
     <style>
 

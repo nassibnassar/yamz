@@ -41,16 +41,27 @@ def about():
 def contact():
   return render_template("contact.html")
 
-@app.route("/term=<term_id>", methods = ['POST', 'GET'])
-def term(term_id = None):
-  term = sea.getTerm(int(term_id))
-  if term:
-    result = seaice.printAsHTML([term])
-    return render_template("term.html", term_id = term_id, result = Markup(result))
-  else: 
-    return render_template("term.html", term_id = term_id)
-    
+@app.route("/browse")
+def browse():
+  return render_template("basic_page.html")
 
+
+@app.route("/term=<term_id>")
+def term(term_id = None):
+  
+  try: 
+    term = sea.getTerm(int(term_id))
+    if term:
+      result = seaice.printAsHTML([term])
+      return render_template("basic_page.html", title = "Term - %s" % term_id, 
+                                                headline = "Term", 
+                                                content = Markup(result))
+  except ValueError: pass
+
+  return render_template("basic_page.html", title = "Term not found",
+                                            headline = "Term", 
+                                            content = Markup("Term <strong>#%s</strong> not found!" % term_id))
+    
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
 
@@ -58,22 +69,8 @@ def returnQuery():
     terms = sea.searchByTerm(request.form['term_string'])
     if len(terms) == 0: 
       return render_template("search.html", term_string = request.form['term_string'])
-    else: 
-      result = "<table colpadding=16>" 
-      for term in terms:
-        result += "<tr>"
-        result += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
-          repr("70%"), term['TermString'], term['Id'])
-        result += "  <td valign=top><i>Created</i>: %s</td>" % term['Modified']
-        result += "</tr><tr>"
-        result += "  <td valign=top><i>Score</i>: %s</td>" % term['Score']
-        result += "  <td valign=top><i>Last Modified</i>: %s</td>" % term['Modified']
-        result += "</tr><tr>"
-        result += "  <td valign=top><i>Definition:</i> %s</td>" % term['Definition']
-        result += "  <td valign=top><i>Ownership:</i> %s</td></tr>" % term['ContactInfo']
-        result += "<tr height=16><td></td></tr>"
-      result += "</table>"
-
+    else:
+      result = seaice.printAsHTML(terms)
       return render_template("search.html", 
         term_string = request.form['term_string'], result = Markup(result))
 
