@@ -56,8 +56,10 @@
           <p class="lead" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">A crowd sourced metadata dictionary. Search for terms, upvote useful ones.</p>
 
         </div>
-
-        <div class="control-group"><label class="control-label"></label><div class="controls"><input type="text" class="input-large search-query" placeholder="Search for a term"></div></div><hr>
+        
+        <form action="result" method="post">
+          <div class="control-group"><label class="control-label"></label><div class="controls"><input name="term_string" type="text" class="input-large search-query" placeholder="Search for a term"></div></div><hr>
+        </form>
 
         <div class="row-fluid marketing">
   <!--         <div class="span6">

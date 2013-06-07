@@ -1,21 +1,31 @@
 #!/usr/bin/python
 from flask import Flask
+from flask import Markup
 from flask import render_template
 from flask import request
 
 app = Flask(__name__)
 
-#@app.route('/create_term')
-#def hello(name = None):
-#    return render_template('create_term.html', name = name)
-
 @app.route("/")
 def index():
-    return render_template("index.html")
+  return render_template("index.html")
 
-#@app.route('/create_term_post', methods = ['POST'])
-#def create_term_post():
-#    return 'Well done, %s!' % request.form['term_string']
+@app.route("/about")
+def about():
+  return render_template("basic_page.html")
+
+@app.route("/contact")
+def about():
+  return render_template("basic_page.html")
+
+@app.route("/search")
+def searchByTerm():
+  return render_template("search_by_term.html")
+
+@app.route("/result", methods = ['POST'])
+def returnQuery():
+  result = Markup("<strong>%s</strong>" % request.form['term_string'])
+  return render_template("query_result_template.html", term_string = result)
 
 if __name__ == '__main__':
     app.debug = True
