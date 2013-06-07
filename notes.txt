@@ -11,6 +11,9 @@ Distinction between ContactInfo and Proposer
 
 There's definitely gonna be a table of contributors. 
 
+As more terms are contributed and there are more active users, it will become
+important make efficient use of the database. I.e., going to the browse page
+should not cause a query everytime ... only if a new term is added. 
 
 
 6/4/13
