@@ -78,6 +78,10 @@ def browse():
                                         headline = "Browse dictionary",
                                         content = Markup(result))
 
+@app.route("/contribute")
+def contribute(): 
+  return render_template("contribute.html", title = "Contribute", 
+                                            headline = "Add a dictionary term")
 
 @app.route("/term=<term_id>")
 def term(term_id = None):

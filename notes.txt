@@ -15,6 +15,13 @@ As more terms are contributed and there are more active users, it will become
 important make efficient use of the database. I.e., going to the browse page
 should not cause a query everytime ... only if a new term is added. 
 
+Three levels of db acces: 
+root - drop/create table, read/write queries
+read - only do read queries
+write - read/write queries
+
+edit button on term page for the owner of the term. 
+
 
 6/4/13
 

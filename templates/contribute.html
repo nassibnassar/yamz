@@ -3,7 +3,12 @@
 
   <head>
     <meta charset="utf-8">
-    <title>Search
+    <title>
+      {% if title %} 
+        {{ title }} 
+      {% else %} 
+        A basic page
+      {% endif %}
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
@@ -42,68 +47,72 @@
           <a class="brand" href="/">Seaice</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active"><a href="/search">Search</a></li>
+              <li><a href="/search">Search</a></li>
               <li><a href="/browse">Browse</a></li>
-              <li><a href="/contribute">Contribute</a></li>
+              <li class="active"><a href="/contribute">Contribute</a></li>
               <li><a href="/about">About</a></li>
               <li><a href="/contact">Contact</a></li>
             </ul>
-            </div><!--/.nav-collapse -->
+          </div><!--/.nav-collapse -->
         </div>
       </div>
     </div>
 
     <div class="container">
 
-      <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">
-        Dictionary search
-      </h1>
-
+      {% if headline %} 
+        <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">
+          {{ headline }}</h1>
+      {% endif %}
+        
       <p class="jetstrap-selected" contenteditable="true" style="background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALHRFWHRDcmVhdGlvbiBUaW1lAEZyaSAxMiBOb3YgMjAxMCAxOTowNzowMiArMTIwMOGr8p4AAAAHdElNRQfaCwwGBxwduq16AAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAfJJREFUeNqVkk1vElEUhp87X4CIFhhMG0toMC5K3Lgxbro10bhxY2Jc+CO666Y/oP/DxFVjTKM7l1apTdM0JSU0LSg0WqaUjwE6MDNebGpKBYlndc+55zw5H6/gim2UUd0qs5Uy6VaTa7EYdtOmUN7naHER92q+dtnZ2UFpHTOTXWfuwxrfYlNUHz1lxvdIVyx6MuXHPwFeBLW2z+29Pepr7ziUof7SEq1CibCEmKMAymXH6SD6LrpzRndQPIjNz9P3odu2URlhQ4C+ghcM0JpLEchkzrv7eIDS62JYP2lPBJS2cIMhyrMpwo+fMbW8jLhhc2t3F906pjoK8GcH29vonoenRDk1m5zcvUM6ZuJvZEnmcljT09hbR6iVIuLJw/PxhgAOPOj26Gk1nEQCNWAQ7XS4bxvw8hWuGedeo4iR+/y7+OtfgM1N9OIBwnFQ5SLdZJJ2JML17BdqEuYHgmiahsjnx4zw/i2fslm8dht/YQHx/AWpfI50/ZTKm9d8lykiHkf4/hjA6ipnF++VFRS7T1AoaDejyCEYlHmWNeEKF9YISz30CBkGirxKUIZGamAsQG2hux66BAipi1A6g/5fAM/HkGrUFfmr6wSSiWHJTwQoPrq8hCYEGDoh0xzfwUhyIY9ROkRrNKQ65e1P6uM7+AW+ibcHEM1ixAAAAABJRU5ErkJggg==); background-position: 708px 0px; background-repeat: no-repeat no-repeat;"></p>
 
-      <div class="container">
-        <table cellpadding=16> 
-          <tr width="30%">
-          <td>
-            <form action="search" method="post">
-              <div class="control-group"><label class="control-label"></label><div class="controls"><input name="term_string" type="text" class="input-large search-query" placeholder="Search for a term"></div></div>
-            </form>
+      <p>
+        Here you can propose a new term. You can help us maintain a high-quality metadictionary
+        and minimize redundancies by <a href="/search">searching</a> for your term. Take a look 
+        at our community <a href="/guidelines">guidelines</a> for best practice tips. 
+      </p>
+
+      <form action="add_term" method="post">
+        <table cellpadding=12>
+          <tr>
+            <td valign=top width="40%">Term string:</td>
+            <td><input type="text" name="term_string"></td>
+          </tr>
+          <tr>
+            <td valign=top>ContactInfo [dev]:</td>
+            <td><input type="text" name="contact_info"></td>
+          </tr>
+          <tr>
+            <td valign=top>Definition:</td>
+            <td><textarea cols=80 rows=12 type="text" name="definition">Definition</textarea></td>
+          </tr>
+          <tr><td></td>
+            <td align=right><input type="submit" value="Submit"><td>
           </td>
-          <td>
-            <p>
-             Not finding what you're looking for? You can always <a href="/contribute">propose</a> 
-             a new term. Take a look at our <a href="/guidelines">community guidelines</a> page 
-             for tips and suggestions on contributing to the metadictionary. 
-            </p>
-          </td>
-          </tr>      
         </table>
+      </form>
+
+      <hr>
+      
+      <form action="delete_term" method="post">
+        <table cellpadding=12>
+          <tr>
+            <td valign=top width="40%">Delete Id [dev]:</td>
+            <td><input type="text" name="term_id"></td>
+          </tr>
+          <tr><td></td>
+            <td align=right><input type="submit" value="Submit"><td>
+          </td>
+        </table>
+      </form>
+
       <hr>
 
+      <div class="footer">
+        <p>© Regents, University of California. 2013</p>
       </div>
-
-      <!-- Query return template -->
-      {% if term_string %} 
-
-        {% if result %} 
-        
-          <p>Results for term <strong>{{ term_string }}</strong>:</p>
-         <div class="container">{{ result }}</div>
-
-        {% else %}
-        
-          <p>No entries found for term <strong>{{ term_string }}</strong></p>
-  
-       {% endif %}
-
-    {% endif %} 
-  
-    <hr>
-
-    <div class="footer">
-      <p>© Regents, University of California. 2013</p>
-    </div>
-
+    
     </div> <!-- /container -->
 
     <style>
