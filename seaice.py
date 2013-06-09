@@ -241,6 +241,7 @@ class SeaIceDb:
   #
   # Search table by term string and return a list of dictionary structures
   #
+    TermString = TermString.replace("'", "\\'")
     cur = self.con.cursor(mdb.cursors.DictCursor)
     cur.execute("select * from Terms where TermString='%s'" % TermString)
     return list(cur.fetchall())
