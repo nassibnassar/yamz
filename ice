@@ -78,10 +78,21 @@ def browse():
                                         headline = "Browse dictionary",
                                         content = Markup(result))
 
-@app.route("/contribute")
+@app.route("/contribute", methods = ['POST', 'GET'])
 def contribute(): 
-  return render_template("contribute.html", title = "Contribute", 
-                                            headline = "Add a dictionary term")
+  if request.method == "POST": 
+    term = { 'TermString' : request.form['term_string'],
+             'Definition' : request.form['definition'],
+             'ContactInfo' : request.form['contact_info'] }
+    sea.insert(term)
+    return render_template("basic_page.html", title = "Contribute",
+                                              headline = "Contribute", 
+                                              content = Markup(
+        """<strong>%s</strong> has been added to the metadictionary.
+        Thank you for your contribution!""" % request.form['term_string']))
+  
+  else: return render_template("contribute.html", title = "Contribute", 
+                                                  headline = "Add a dictionary term")
 
 @app.route("/term=<term_id>")
 def term(term_id = None):

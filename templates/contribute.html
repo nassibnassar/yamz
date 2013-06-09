@@ -73,7 +73,14 @@
         at our community <a href="/guidelines">guidelines</a> for best practice tips. 
       </p>
 
-      <form action="add_term" method="post">
+      {% if term_string %} 
+
+        Thanks for your contribution! <strong>{{ term_string }}</strong> has been added to the 
+        dictionary. 
+
+      {% else %}
+
+      <form action="contribute" method="post">
         <table cellpadding=12>
           <tr>
             <td valign=top width="40%">Term string:</td>
@@ -93,19 +100,7 @@
         </table>
       </form>
 
-      <hr>
-      
-      <form action="delete_term" method="post">
-        <table cellpadding=12>
-          <tr>
-            <td valign=top width="40%">Delete Id [dev]:</td>
-            <td><input type="text" name="term_id"></td>
-          </tr>
-          <tr><td></td>
-            <td align=right><input type="submit" value="Submit"><td>
-          </td>
-        </table>
-      </form>
+      {% endif %}
 
       <hr>
 

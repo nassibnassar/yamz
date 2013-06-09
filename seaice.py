@@ -190,7 +190,7 @@ class SeaIceDb:
       if key == "Created" or key == "Modified": 
         defTerm[key] = "'" + str(value) + "'"
       else: 
-        defTerm[key] = str(value)
+        defTerm[key] = str(value).replace("'", "\\'")
     
     try:
       return cur.execute(
