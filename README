@@ -1,6 +1,7 @@
-Thus far, the SeaIce metadictionary consists of a database API and a 
-command line tool called "sea". Before you get started, you need to set 
-up a database and some software packages. On Ubuntu, grab the follwoing:
+Thus far, the SeaIce metadictionary consists of a database API, a 
+command line tool called "sea", and an HTTP server frontend called "ice". 
+Before you get started, you need to set up a database and some software 
+packages. On Ubuntu, grab the follwoing:
   
   python-flask . . . . . . . simple HTTP server.
 
@@ -34,4 +35,8 @@ Then you should be good to go! To test everything is sane, do:
 
   $ ./sea --init-db
 
-Have fun! -Chris
+To run the WebUI, do 
+ 
+  $ ./ice
+  
+Open your browser and go to "localhost:5000". Have fun! -Chris
