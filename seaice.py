@@ -130,7 +130,7 @@ class SeaIceDb:
   def __del__(self): 
     self.con.close()
 
-  def createTable(self):
+  def createTerms(self):
   #
   # Create Terms table if it doesn't exist.
   #
@@ -152,13 +152,27 @@ class SeaIceDb:
       ); 
       alter table Terms auto_increment=1001"""
     )
+
+  def createUsers(self):
+  #
+  # Create Users table if it doesn't exist.
+  #
+    cur = self.con.cursor()
+    cur.execute(
+      """create table if not exists Users
+      (
+        Id integer primary key auto_increment,
+        Name text not null
+      );
+      alter table Users auto_increment=1001"""
+    )
   
-  def destroyTable(self): 
+  def dropTable(self, table): 
   #
   # Destroy Terms table if it exists. 
   #
     cur = self.con.cursor()
-    cur.execute("drop table if exists Terms")
+    cur.execute("drop table if exists %s" % table)
 
   def commit(self): 
   #
@@ -233,7 +247,6 @@ class SeaIceDb:
   # 
     cur = self.con.cursor(mdb.cursors.DictCursor)
     if sortBy:
-      print ">>>>>>>>>>>>>>>", sortBy
       cur.execute("select * from Terms order by %s" % sortBy)
     else:
       cur.execute("select * from Terms")
