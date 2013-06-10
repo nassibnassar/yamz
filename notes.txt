@@ -3,8 +3,6 @@ TODO ~ 6/7/13
 Different MySQL user account for web server. (One that can do queries but not
 drop the tables.) 
 
-propose page 
-
 Pool of unused (deleted) IDs
 
 Distinction between ContactInfo and Proposer

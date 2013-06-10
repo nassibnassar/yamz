@@ -25,7 +25,7 @@
 
 from flask import Flask
 from flask import Markup
-from flask import render_template
+from flask import render_template, render_template_string
 from flask import request
 
 import sys, MySQLdb as mdb
@@ -100,7 +100,7 @@ def term(term_id = None):
   try: 
     term = sea.getTerm(int(term_id))
     if term:
-      result = seaice.printAsHTML([term])
+      result = render_template_string(seaice.printAsHTML([term]), owner=True)
       return render_template("basic_page.html", title = "Term - %s" % term_id, 
                                                 headline = "Term", 
                                                 content = Markup(result))

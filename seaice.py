@@ -85,7 +85,8 @@ def printAsHTML(rows):
     string += "  <td valign=top><i>Last Modified</i>: %s</td>" % row['Modified']
     string += "</tr><tr>"
     string += "  <td valign=top><i>Definition:</i> %s</td>" % row['Definition']
-    string += "  <td valign=top><i>Ownership:</i> %s</td></tr>" % row['ContactInfo']
+    string += "  <td valign=top><i>Ownership:</i> %s"% row['ContactInfo']
+    string += "{% if owner %} <a href=\"/edit=" + str(row['Id']) + "\">[edit term]</a>{% endif %}</td></tr>"
     string += "<tr height=16><td></td></tr>"
   string += "</table>"
   return string

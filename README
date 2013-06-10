@@ -3,10 +3,12 @@ command line tool called "sea", and an HTTP server frontend called "ice".
 Before you get started, you need to set up a database and some software 
 packages. On Ubuntu, grab the follwoing:
   
-  python-flask . . . . . . . simple HTTP server.
+  python-flask . . . . . . . Simple HTTP server.
 
   mysql-server . . . . . . . We're using MySQL as our database for the 
                              moment. 
+
+  python-mysqldb . . . . . . Python API for MySQL.
 
   python-pip . . . . . . . . Package manager for additional Python 
                              programs. 
@@ -30,6 +32,10 @@ you set up. Create a file called ~/.seaice like:
 dbname = seaice
 user = USER
 password = PASS
+
+Set the correct file permissions with: 
+
+  $ chmod 600 ~/.seaice
 
 Then you should be good to go! To test everything is sane, do: 
 
