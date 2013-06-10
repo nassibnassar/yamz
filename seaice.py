@@ -140,15 +140,16 @@ class SeaIceDb:
       """create table if not exists Terms
       (
         Id integer primary key auto_increment, 
+        OwnerId integer,
         TermString text not null, 
         Definition text not null,
-        ContactInfo text not null, 
         Score integer default 0 not null,
         Created timestamp default 0 not null, 
         Modified timestamp 
           default 0 on 
           update current_timestamp 
-          not null 
+          not null,
+        foreign key (OwnerId) references Users(Id)
       ); 
       alter table Terms auto_increment=1001"""
     )
