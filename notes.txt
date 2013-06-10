@@ -18,8 +18,9 @@ root - drop/create table, read/write queries
 read - only do read queries
 write - read/write queries
 
-edit button on term page for the owner of the term. 
+edit button wherever owner of term appears and session is validated. 
 
+render_template_string(source_string, context)
 
 6/4/13
 

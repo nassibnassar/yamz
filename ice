@@ -79,7 +79,7 @@ def browse():
                                         content = Markup(result))
 
 @app.route("/contribute", methods = ['POST', 'GET'])
-def contribute(): 
+def addTerm(): 
   if request.method == "POST": 
     term = { 'TermString' : request.form['term_string'],
              'Definition' : request.form['definition'],
@@ -94,13 +94,46 @@ def contribute():
   else: return render_template("contribute.html", title = "Contribute", 
                                                   headline = "Add a dictionary term")
 
+@app.route("/edit=<term_id>", methods = ['POST', 'GET'])
+def editTerm(term_id = None): 
+
+  try: 
+    if request.method == "POST":
+      updatedTerm = { 'TermString' : request.form['term_string'],
+                      'Definition' : request.form['definition'],
+                      'ContactInfo' : request.form['contact_info'] } 
+      # TODO verify credentials for term_id
+      sea.updateTerm(int(term_id), updatedTerm)
+
+      return render_template("basic_page.html", title = "Edit",
+                                                headline = "Edit Term", 
+                                                content = Markup(
+          """<strong>%s</strong> has been updated in the metadictionary.
+          Thank you for your contribution!""" % request.form['term_string']))
+  
+    else: 
+      # TODO verify credentials
+        term = sea.getTerm(int(term_id))
+        if term: 
+          return render_template("contribute.html", title = "Edit - %s" % term_id,
+                                                    headline = "Edit term",
+                                                    edit_id = term_id,
+                                                    term_string_edit = term['TermString'],
+                                                    definition_edit = term['Definition'],
+                                                    contact_info_edit = term['ContactInfo'])
+  except ValueError: pass
+
+  return render_template("basic_page.html", title = "Term not found",
+                                            headline = "Term", 
+                                            content = Markup("Term <strong>#%s</strong> not found!" % term_id))
+
 @app.route("/term=<term_id>")
-def term(term_id = None):
+def getTerm(term_id = None):
   
   try: 
     term = sea.getTerm(int(term_id))
     if term:
-      result = render_template_string(seaice.printAsHTML([term]), owner=True)
+      result = seaice.printAsHTML([term])
       return render_template("basic_page.html", title = "Term - %s" % term_id, 
                                                 headline = "Term", 
                                                 content = Markup(result))

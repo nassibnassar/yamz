@@ -70,7 +70,7 @@ def printPretty(rows):
     print "\n    Ownership: %s" % row['ContactInfo']
     print
 
-def printAsHTML(rows): 
+def printAsHTML(rows, owner="any"): 
 #
 # Print table rows as an HTML table. 
 # 
@@ -86,8 +86,9 @@ def printAsHTML(rows):
     string += "</tr><tr>"
     string += "  <td valign=top><i>Definition:</i> %s</td>" % row['Definition']
     string += "  <td valign=top><i>Ownership:</i> %s"% row['ContactInfo']
-    string += "{% if owner %} <a href=\"/edit=" + str(row['Id']) + "\">[edit term]</a>{% endif %}</td></tr>"
-    string += "<tr height=16><td></td></tr>"
+    if owner: #TODO verify 
+      string += " <a href=\"/edit=%d\">[edit term]</a>" % row['Id']
+    string += "</td></tr><tr height=16><td></td></tr>"
   string += "</table>"
   return string
 
@@ -253,12 +254,15 @@ class SeaIceDb:
   #
     pass 
 
-  def updateDef(self, Id, Definition): 
+  def updateTerm(self, Id, term): 
   #
   # Modify a term's definition
   # 
     cur = self.con.cursor()
-    cur.execute("update Terms set Definition='%s' where Id=%d" % (Definition, Id))
+    for (key, value) in term.iteritems():
+      term[key] = str(value).replace("'", "\\'")
+    cur.execute("update Terms set TermString='%s', ContactInfo='%s', Definition='%s' where Id=%d" % (
+      term['TermString'], term['ContactInfo'], term['Definition'], Id))
 
   def Export(self, outf=None):
   # 
