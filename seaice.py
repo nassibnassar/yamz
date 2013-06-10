@@ -79,7 +79,7 @@ def printAsHTML(rows, owner="any"):
     string += "<tr>"
     string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
       repr("70%"), row['TermString'], row['Id'])
-    string += "  <td valign=top><i>Created</i>: %s</td>" % row['Modified']
+    string += "  <td valign=top><i>Created</i>: %s</td>" % row['Created']
     string += "</tr><tr>"
     string += "  <td valign=top><i>Score</i>: %s</td>" % row['Score']
     string += "  <td valign=top><i>Last Modified</i>: %s</td>" % row['Modified']
@@ -133,6 +133,7 @@ class SeaIceDb:
   def createTerms(self):
   #
   # Create Terms table if it doesn't exist.
+  # TODO deprecate ContactInfo. User OwnerId (User.Id) instead. 
   #
 
     cur = self.con.cursor()
@@ -143,6 +144,7 @@ class SeaIceDb:
         OwnerId integer,
         TermString text not null, 
         Definition text not null,
+        ContactInfo text not null, 
         Score integer default 0 not null,
         Created timestamp default 0 not null, 
         Modified timestamp 
@@ -165,7 +167,7 @@ class SeaIceDb:
         Id integer primary key auto_increment,
         Name text not null
       );
-      alter table Users auto_increment=1001"""
+      alter table Users auto_increment=1000"""
     )
   
   def dropTable(self, table): 
