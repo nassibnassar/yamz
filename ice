@@ -79,8 +79,12 @@ def contact():
 def login():
   if 'user_id' not in session: session['user_id'] = 0
   if request.method == 'POST':
-    session['user_id'] = int(request.form['user_id'])
-    return redirect(url_for('index'))
+    if sea.getUserNameById(int(request.form['user_id'])):
+      session['user_id'] = int(request.form['user_id'])
+      return redirect(url_for('index'))
+    else: 
+      return render_template("basic_page.html", title = "Login failed", 
+                                                content = "Account doesn't exist!")
   form = '''
     <p>
       In order to propose new terms or comment on other's, you must first
@@ -112,7 +116,7 @@ def getTerm(term_id = None):
   try: 
     term = sea.getTerm(int(term_id))
     if term:
-      result = sea.printAsHTML([term])
+      result = sea.printAsHTML([term], session['user_id'])
       return render_template("basic_page.html", user_id = session['user_id'], 
                                                 title = "Term - %s" % term_id, 
                                                 headline = "Term", 
@@ -151,7 +155,7 @@ def returnQuery():
       return render_template("search.html", user_id = session['user_id'], 
                                             term_string = request.form['term_string'])
     else:
-      result = sea.printAsHTML(terms)
+      result = sea.printAsHTML(terms, session['user_id'])
       return render_template("search.html", user_id = session['user_id'], 
         term_string = request.form['term_string'], result = Markup(result))
 

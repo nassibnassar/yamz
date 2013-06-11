@@ -168,6 +168,8 @@ class SeaIceDb:
     cur = self.con.cursor()
     return cur.execute("delete from Terms where Id=%d" % Id)
 
+
+
   def getTerm(self, Id): 
   # 
   # Retrieve term by Id. Return dictionary structure or None. 
@@ -204,13 +206,21 @@ class SeaIceDb:
 
   def updateTerm(self, Id, term): 
   #
-  # Modify a term's definition TODO check user id
+  # Modify a term's definition
   # 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = str(value).replace("'", "\\'")
     cur.execute("update Terms set TermString='%s', Definition='%s' where Id=%d" % (
       term['TermString'], term['Definition'], Id))
+  
+  def getUserNameById(self, UserId): 
+  #
+  # Return Users.Name where Users.Id = UserId
+  #
+    cur = self.con.cursor()
+    cur.execute("select Name from Users where Id=%d" % UserId)
+    return cur.fetchone()
 
   def Export(self, outf=None):
   # 
@@ -279,12 +289,12 @@ class SeaIceDb:
       print " " * 42 + "Last Modified: %s" % row['Modified']
 
       print "\n    Definition:\n"    
-      printParagraph(row['Definition'])
+      self.printParagraph(row['Definition'])
       
-      print "\n    Ownership: %s" % row['OwnerId']
+      print "\n    Ownership: %s" % self.getUserNameById(row['OwnerId'])
       print
 
-  def printAsHTML(self, rows, owner="guy"): 
+  def printAsHTML(self, rows, OwnerId=0): 
   #
   # Print table rows as an HTML table. 
   # 
@@ -299,8 +309,8 @@ class SeaIceDb:
       string += "  <td valign=top><i>Last Modified</i>: %s</td>" % row['Modified']
       string += "</tr><tr>"
       string += "  <td valign=top><i>Definition:</i> %s</td>" % row['Definition']
-      string += "  <td valign=top><i>Ownership:</i> %d"% row['OwnerId']
-      if owner: #TODO verify 
+      string += "  <td valign=top><i>Ownership:</i> %s"% self.getUserNameById(row['OwnerId'])
+      if OwnerId == row['OwnerId']:
         string += " <a href=\"/edit=%d\">[edit term]</a>" % row['Id']
       string += "</td></tr><tr height=16><td></td></tr>"
     string += "</table>"
