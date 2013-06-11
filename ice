@@ -57,7 +57,7 @@ print "ice: connection to database established."
 ## HTTP request handlers ##
 
 app = Flask(__name__)
-app.secret_key = "Joseph D. Sanders"
+app.secret_key = "Joseph D. Sanders" # DUMB
 
 @app.route("/")
 def index():
@@ -74,11 +74,12 @@ def contact():
   if 'user_id' not in session: session['user_id'] = None
   return render_template("contact.html", user_id = session['user_id'])
 
+
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
   if 'user_id' not in session: session['user_id'] = None
   if request.method == 'POST':
-    session['user_id'] = request.form['user_id']
+    session['user_id'] = int(request.form['user_id'])
     return redirect(url_for('index'))
   form = '''
     <p>
@@ -102,6 +103,29 @@ def logout():
   session.pop('user_id', None)
   return redirect(url_for('index'))
 
+
+
+@app.route("/term=<term_id>")
+def getTerm(term_id = None):
+  
+  if 'user_id' not in session: session['user_id'] = None
+  try: 
+    term = sea.getTerm(int(term_id))
+    if term:
+      result = sea.printAsHTML([term])
+      return render_template("basic_page.html", user_id = session['user_id'], 
+                                                title = "Term - %s" % term_id, 
+                                                headline = "Term", 
+                                                content = Markup(result))
+  except ValueError: pass
+
+  return render_template("basic_page.html", user_id = session['user_id'], 
+                                            title = "Term not found",
+                                            headline = "Term", 
+                                            content = Markup("Term <strong>#%s</strong> not found!" % term_id))
+
+## Look up terms ##
+
 @app.route("/browse")
 def browse():
   if 'user_id' not in session: session['user_id'] = None
@@ -109,13 +133,34 @@ def browse():
   result = "<hr>"
 
   for term in terms: 
-    result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by</i> %s</p>" % (
-      term['Id'], term['TermString'], term['ContactInfo'])
+    result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by</i> %d</p>" % (
+      term['Id'], term['TermString'], term['OwnerId'])
 
   return render_template("browse.html", user_id = session['user_id'], 
                                         title = "Browse", 
                                         headline = "Browse dictionary",
                                         content = Markup(result))
+
+
+@app.route("/search", methods = ['POST', 'GET'])
+def returnQuery():
+  if 'user_id' not in session: session['user_id'] = None
+  if request.method == "POST": 
+    terms = sea.searchByTerm(request.form['term_string'])
+    if len(terms) == 0: 
+      return render_template("search.html", user_id = session['user_id'], 
+                                            term_string = request.form['term_string'])
+    else:
+      result = sea.printAsHTML(terms)
+      return render_template("search.html", user_id = session['user_id'], 
+        term_string = request.form['term_string'], result = Markup(result))
+
+  else: # GET
+    return render_template("search.html", user_id = session['user_id'])
+
+
+
+## Propose or edit terms ##
 
 @app.route("/contribute", methods = ['POST', 'GET'])
 def addTerm(): 
@@ -125,7 +170,7 @@ def addTerm():
   if request.method == "POST": 
     term = { 'TermString' : request.form['term_string'],
              'Definition' : request.form['definition'],
-             'ContactInfo' : request.form['contact_info'] }
+             'OwnerId' : session['user_id'] }
     sea.insert(term)
     return render_template("basic_page.html", user_id = session['user_id'], 
                                               title = "Contribute",
@@ -138,6 +183,7 @@ def addTerm():
                                                   title = "Contribute", 
                                                   headline = "Add a dictionary term")
 
+
 @app.route("/edit=<term_id>", methods = ['POST', 'GET'])
 def editTerm(term_id = None): 
   if 'user_id' not in session: session['user_id'] = None
@@ -146,7 +192,7 @@ def editTerm(term_id = None):
     if request.method == "POST":
       updatedTerm = { 'TermString' : request.form['term_string'],
                       'Definition' : request.form['definition'],
-                      'ContactInfo' : request.form['contact_info'] } 
+                      'OwnerId' : session['user_id'] } 
       # TODO verify credentials for term_id
       sea.updateTerm(int(term_id), updatedTerm)
 
@@ -166,8 +212,7 @@ def editTerm(term_id = None):
                                                   headline = "Edit term",
                                                   edit_id = term_id,
                                                   term_string_edit = term['TermString'],
-                                                  definition_edit = term['Definition'],
-                                                  contact_info_edit = term['ContactInfo'])
+                                                  definition_edit = term['Definition'])
   except ValueError: pass
 
   return render_template("basic_page.html", user_id = session['user_id'], 
@@ -175,40 +220,13 @@ def editTerm(term_id = None):
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
-@app.route("/term=<term_id>")
-def getTerm(term_id = None):
-  
-  if 'user_id' not in session: session['user_id'] = None
-  try: 
-    term = sea.getTerm(int(term_id))
-    if term:
-      result = seaice.printAsHTML([term])
-      return render_template("basic_page.html", user_id = session['user_id'], 
-                                                title = "Term - %s" % term_id, 
-                                                headline = "Term", 
-                                                content = Markup(result))
-  except ValueError: pass
 
-  return render_template("basic_page.html", user_id = session['user_id'], 
-                                            title = "Term not found",
-                                            headline = "Term", 
-                                            content = Markup("Term <strong>#%s</strong> not found!" % term_id))
-    
-@app.route("/search", methods = ['POST', 'GET'])
-def returnQuery():
-  if 'user_id' not in session: session['user_id'] = None
-  if request.method == "POST": 
-    terms = sea.searchByTerm(request.form['term_string'])
-    if len(terms) == 0: 
-      return render_template("search.html", user_id = session['user_id'], 
-                                            term_string = request.form['term_string'])
-    else:
-      result = seaice.printAsHTML(terms)
-      return render_template("search.html", user_id = session['user_id'], 
-        term_string = request.form['term_string'], result = Markup(result))
 
-  else: # GET
-    return render_template("search.html", user_id = session['user_id'])
+
+@app.route("/temp")
+def temp():
+  sea.addUser()
+  return "got it"
 
 ## Start HTTP server. ##
 

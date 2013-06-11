@@ -26,74 +26,6 @@
 import os, sys, stat, configparser
 import json, MySQLdb as mdb
 
-## Pretty printing ##
-
-def printAsJSObject(rows, fd = sys.stdout):
-#
-# Write table rows in JSON format to 'fd'. 
-#
-  for row in rows:
-    row['Modified'] = str(row['Modified'])
-    row['Created'] = str(row['Created'])
-  print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
-
-def printParagraph(text, leftMargin=8, width=60): 
-#
-# Print a nice paragraph. 
-#
-  lineLength = 0
-  print " " * (leftMargin-1), 
-  for word in text.split(" "):
-    if lineLength < width:
-      print word, 
-      lineLength += len(word) + 1
-    else:
-      print "\n" + (" " * (leftMargin-1)),
-      lineLength = 0
-  print
-    
-def printPretty(rows):
-#
-# Print table rows to the terminal. 
-#
-  for row in rows:
-    print "Term: %-26s Id No. %-7d Created: %s" % ("%s (%d)" % (row['TermString'], 
-                                                                row["Score"]),
-                                                   row['Id'],
-                                                   row['Created']) 
-
-    print " " * 42 + "Last Modified: %s" % row['Modified']
-
-    print "\n    Definition:\n"    
-    printParagraph(row['Definition'])
-    
-    print "\n    Ownership: %s" % row['ContactInfo']
-    print
-
-def printAsHTML(rows, owner="any"): 
-#
-# Print table rows as an HTML table. 
-# 
-  string = "<table colpadding=16>" 
-  for row in rows:
-    string += "<tr>"
-    string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
-      repr("70%"), row['TermString'], row['Id'])
-    string += "  <td valign=top><i>Created</i>: %s</td>" % row['Created']
-    string += "</tr><tr>"
-    string += "  <td valign=top><i>Score</i>: %s</td>" % row['Score']
-    string += "  <td valign=top><i>Last Modified</i>: %s</td>" % row['Modified']
-    string += "</tr><tr>"
-    string += "  <td valign=top><i>Definition:</i> %s</td>" % row['Definition']
-    string += "  <td valign=top><i>Ownership:</i> %s"% row['ContactInfo']
-    if owner: #TODO verify 
-      string += " <a href=\"/edit=%d\">[edit term]</a>" % row['Id']
-    string += "</td></tr><tr height=16><td></td></tr>"
-  string += "</table>"
-  return string
-
-
-
 ## Local db configuration $HOME/.seaice ## 
 
 def accessible_by_group_or_world(file):
@@ -141,10 +73,9 @@ class SeaIceDb:
       """create table if not exists Terms
       (
         Id integer primary key auto_increment, 
-        OwnerId integer,
+        OwnerId integer default 1 not null,
         TermString text not null, 
         Definition text not null,
-        ContactInfo text not null, 
         Score integer default 0 not null,
         Created timestamp default 0 not null, 
         Modified timestamp 
@@ -201,7 +132,8 @@ class SeaIceDb:
       "ContactInfo" : "<nil>", 
       "Score" : "default", 
       "Created" : "current_timestamp", 
-      "Modified" : "current_timestamp"
+      "Modified" : "current_timestamp",
+      "OwnerId" : "default"
     }
 
     # Format entries for db query
@@ -216,13 +148,13 @@ class SeaIceDb:
         """insert into Terms( Id, 
                               TermString, 
                               Definition, 
-                              ContactInfo, 
                               Score,
                               Created,
-                              Modified ) 
+                              Modified,
+                              OwnerId ) 
             values(%s, '%s', '%s', '%s', %s, %s, %s) 
-        """ % (defTerm['Id'], defTerm['TermString'], defTerm['Definition'], defTerm['ContactInfo'],
-               defTerm['Score'], defTerm['Created'], defTerm['Modified']))
+        """ % (defTerm['Id'], defTerm['TermString'], defTerm['Definition'], defTerm['Score'], 
+               defTerm['Created'], defTerm['Modified'], defTerm['OwnerId']))
     except mdb.Error, e:
       if e.args[0] == 1062: # Duplicate primary key
         print >>sys.stderr, "warning (%d): %s (ignoring)" % (e.args[0],e.args[1])
@@ -272,13 +204,13 @@ class SeaIceDb:
 
   def updateTerm(self, Id, term): 
   #
-  # Modify a term's definition
+  # Modify a term's definition TODO check user id
   # 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = str(value).replace("'", "\\'")
-    cur.execute("update Terms set TermString='%s', ContactInfo='%s', Definition='%s' where Id=%d" % (
-      term['TermString'], term['ContactInfo'], term['Definition'], Id))
+    cur.execute("update Terms set TermString='%s', Definition='%s' where Id=%d" % (
+      term['TermString'], term['Definition'], Id))
 
   def Export(self, outf=None):
   # 
@@ -303,3 +235,73 @@ class SeaIceDb:
     fd = open(inf, 'r')
     for row in json.loads(fd.read()):
       self.insert(row)
+    
+  def addUser(self): # DUMB
+    cur = self.con.cursor()
+    cur.execute("insert into Users (Id, Name) values (999, 'Chris')")
+    cur.execute("insert into Users (Id, Name) values (1000, 'Julie')")
+    cur.execute("commit")
+
+  def printAsJSObject(self, rows, fd = sys.stdout):
+  #
+  # Write table rows in JSON format to 'fd'. 
+  #
+    for row in rows:
+      row['Modified'] = str(row['Modified'])
+      row['Created'] = str(row['Created'])
+    print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
+
+  def printParagraph(self, text, leftMargin=8, width=60): 
+  #
+  # Print a nice paragraph. 
+  #
+    lineLength = 0
+    print " " * (leftMargin-1), 
+    for word in text.split(" "):
+      if lineLength < width:
+        print word, 
+        lineLength += len(word) + 1
+      else:
+        print "\n" + (" " * (leftMargin-1)),
+        lineLength = 0
+    print
+      
+  def printPretty(self, rows):
+  #
+  # Print table rows to the terminal. 
+  #
+    for row in rows:
+      print "Term: %-26s Id No. %-7d Created: %s" % ("%s (%d)" % (row['TermString'], 
+                                                                  row["Score"]),
+                                                     row['Id'],
+                                                     row['Created']) 
+
+      print " " * 42 + "Last Modified: %s" % row['Modified']
+
+      print "\n    Definition:\n"    
+      printParagraph(row['Definition'])
+      
+      print "\n    Ownership: %s" % row['OwnerId']
+      print
+
+  def printAsHTML(self, rows, owner="guy"): 
+  #
+  # Print table rows as an HTML table. 
+  # 
+    string = "<table colpadding=16>" 
+    for row in rows:
+      string += "<tr>"
+      string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
+        repr("70%"), row['TermString'], row['Id'])
+      string += "  <td valign=top><i>Created</i>: %s</td>" % row['Created']
+      string += "</tr><tr>"
+      string += "  <td valign=top><i>Score</i>: %s</td>" % row['Score']
+      string += "  <td valign=top><i>Last Modified</i>: %s</td>" % row['Modified']
+      string += "</tr><tr>"
+      string += "  <td valign=top><i>Definition:</i> %s</td>" % row['Definition']
+      string += "  <td valign=top><i>Ownership:</i> %d"% row['OwnerId']
+      if owner: #TODO verify 
+        string += " <a href=\"/edit=%d\">[edit term]</a>" % row['Id']
+      string += "</td></tr><tr height=16><td></td></tr>"
+    string += "</table>"
+    return string

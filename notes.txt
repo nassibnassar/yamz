@@ -20,6 +20,14 @@ write - read/write queries
 
 edit button wherever owner of term appears and session is validated. 
 
+Restructure "sea": 
+
+sea create TABLE
+sea drop TABLE
+sea import TABLE --file=FILE
+sea export TABLE --file=FILE
+
+
 render_template_string(source_string, context)
 
 6/4/13

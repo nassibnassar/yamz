@@ -129,15 +129,15 @@ try:
     if options.json:
       sea.Export()
     else:
-      seaice.printPretty(sea.getAllTerms())
+      sea.printPretty(sea.getAllTerms())
   
   if options.search_term:
     terms = sea.searchByTerm(options.search_term)
     if options.json: 
-      seaice.printAsJSObject(terms)
+      sea.printAsJSObject(terms)
     elif len(terms) == 0: 
       print >>sys.stderr, "sea: no matches for '%s'" % options.search_term
-    else: seaice.printPretty(terms)
+    else: sea.printPretty(terms)
 
   ## Commit database mutations. ##
   sea.commit()
