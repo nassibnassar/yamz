@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # TODO
-# "if 'user_id' not in session: session['user_id'] = None" is pasted to the 
+# "if 'user_id' not in session: session['user_id'] = 0" is pasted to the 
 # beginning of each function to simplify the code. It'd be nice to have 
 # 'user_id' in the defualt session. Investigate how to do this.
 #
@@ -61,23 +61,23 @@ app.secret_key = "Joseph D. Sanders" # DUMB
 
 @app.route("/")
 def index():
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
   return render_template("index.html", user_id = session['user_id'])
 
 @app.route("/about")
 def about():
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
   return render_template("about.html", user_id = session['user_id'])
 
 @app.route("/contact")
 def contact():
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
   return render_template("contact.html", user_id = session['user_id'])
 
 
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
   if request.method == 'POST':
     session['user_id'] = int(request.form['user_id'])
     return redirect(url_for('index'))
@@ -98,7 +98,7 @@ def login():
                                             
 @app.route('/logout')
 def logout():
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
   # remove the user_id from the session if it's there
   session.pop('user_id', None)
   return redirect(url_for('index'))
@@ -108,7 +108,7 @@ def logout():
 @app.route("/term=<term_id>")
 def getTerm(term_id = None):
   
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
   try: 
     term = sea.getTerm(int(term_id))
     if term:
@@ -128,7 +128,7 @@ def getTerm(term_id = None):
 
 @app.route("/browse")
 def browse():
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
   terms = sea.getAllTerms(sortBy="TermString")
   result = "<hr>"
 
@@ -144,7 +144,7 @@ def browse():
 
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
   if request.method == "POST": 
     terms = sea.searchByTerm(request.form['term_string'])
     if len(terms) == 0: 
@@ -186,14 +186,17 @@ def addTerm():
 
 @app.route("/edit=<term_id>", methods = ['POST', 'GET'])
 def editTerm(term_id = None): 
-  if 'user_id' not in session: session['user_id'] = None
+  if 'user_id' not in session: session['user_id'] = 0
 
   try: 
+    term = sea.getTerm(int(term_id))
+    assert term['OwnerId'] == session['user_id']
+    
     if request.method == "POST":
       updatedTerm = { 'TermString' : request.form['term_string'],
                       'Definition' : request.form['definition'],
                       'OwnerId' : session['user_id'] } 
-      # TODO verify credentials for term_id
+
       sea.updateTerm(int(term_id), updatedTerm)
 
       return render_template("basic_page.html", user_id = session['user_id'], 
@@ -203,9 +206,7 @@ def editTerm(term_id = None):
           """<strong>%s</strong> has been updated in the metadictionary.
           Thank you for your contribution!""" % request.form['term_string']))
   
-    else: 
-      # TODO verify credentials
-      term = sea.getTerm(int(term_id))
+    else: # GET 
       if term: 
         return render_template("contribute.html", user_id = session['user_id'], 
                                                   title = "Edit - %s" % term_id,
@@ -213,14 +214,18 @@ def editTerm(term_id = None):
                                                   edit_id = term_id,
                                                   term_string_edit = term['TermString'],
                                                   definition_edit = term['Definition'])
-  except ValueError: pass
+  except ValueError:
+    return render_template("basic_page.html", user_id = session['user_id'], 
+                                              title = "Term not found",
+                                              headline = "Term", 
+                                              content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
-  return render_template("basic_page.html", user_id = session['user_id'], 
-                                            title = "Term not found",
-                                            headline = "Term", 
-                                            content = Markup("Term <strong>#%s</strong> not found!" % term_id))
-
-
+  except AssertionError:
+    return render_template("basic_page.html", user_id = session['user_id'], 
+                                              title = "Term - %s" % term_id, 
+                                              content = 
+              """Error! You may only edit or remove terms and definitions which 
+                 you've contributed. However, you may comment or vote on this term. """)
 
 
 @app.route("/temp")
