@@ -1,7 +1,12 @@
 #!/usr/bin/python
 # Copyright (c) 2013, Christopher Patton
 # All rights reserved.
-# 
+#
+# TODO
+# "if 'user_id' not in session: session['user_id'] = None" is pasted to the 
+# beginning of each function to simplify the code. It'd be nice to have 
+# 'user_id' in the defualt session. Investigate how to do this.
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #   * Redistributions of source code must retain the above copyright
@@ -25,8 +30,8 @@
 
 from flask import Flask
 from flask import Markup
-from flask import render_template, render_template_string
-from flask import request
+from flask import render_template, render_template_string, url_for, redirect
+from flask import request, session
 
 import sys, MySQLdb as mdb
 import seaice
@@ -52,21 +57,54 @@ print "ice: connection to database established."
 ## HTTP request handlers ##
 
 app = Flask(__name__)
+app.secret_key = "Joseph D. Sanders"
 
 @app.route("/")
 def index():
-  return render_template("index.html")
+  if 'user_id' not in session: session['user_id'] = None
+  return render_template("index.html", user_id = session['user_id'])
 
 @app.route("/about")
 def about():
-  return render_template("about.html")
+  if 'user_id' not in session: session['user_id'] = None
+  return render_template("about.html", user_id = session['user_id'])
 
 @app.route("/contact")
 def contact():
-  return render_template("contact.html")
+  if 'user_id' not in session: session['user_id'] = None
+  return render_template("contact.html", user_id = session['user_id'])
+
+@app.route("/login", methods = ['POST', 'GET'])
+def login():
+  if 'user_id' not in session: session['user_id'] = None
+  if request.method == 'POST':
+    session['user_id'] = request.form['user_id']
+    return redirect(url_for('index'))
+  form = '''
+    <p>
+      In order to propose new terms or comment on other's, you must first
+      sign in. 
+    </p>
+    <hr>
+    <form action="" method="post">
+      <p><input type=text name=user_id>
+      <p><input type=submit value=Login>
+    </form>
+    '''
+  return render_template("basic_page.html", title = "Login page", 
+                                            headline = "Login", 
+                                            content = Markup(form))
+                                            
+@app.route('/logout')
+def logout():
+  if 'user_id' not in session: session['user_id'] = None
+  # remove the user_id from the session if it's there
+  session.pop('user_id', None)
+  return redirect(url_for('index'))
 
 @app.route("/browse")
 def browse():
+  if 'user_id' not in session: session['user_id'] = None
   terms = sea.getAllTerms(sortBy="TermString")
   result = "<hr>"
 
@@ -74,28 +112,35 @@ def browse():
     result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by</i> %s</p>" % (
       term['Id'], term['TermString'], term['ContactInfo'])
 
-  return render_template("browse.html", title = "Browse", 
+  return render_template("browse.html", user_id = session['user_id'], 
+                                        title = "Browse", 
                                         headline = "Browse dictionary",
                                         content = Markup(result))
 
 @app.route("/contribute", methods = ['POST', 'GET'])
 def addTerm(): 
+  if 'user_id' not in session or not session['user_id']: 
+    return redirect(url_for('login'))
+
   if request.method == "POST": 
     term = { 'TermString' : request.form['term_string'],
              'Definition' : request.form['definition'],
              'ContactInfo' : request.form['contact_info'] }
     sea.insert(term)
-    return render_template("basic_page.html", title = "Contribute",
+    return render_template("basic_page.html", user_id = session['user_id'], 
+                                              title = "Contribute",
                                               headline = "Contribute", 
                                               content = Markup(
         """<strong>%s</strong> has been added to the metadictionary.
         Thank you for your contribution!""" % request.form['term_string']))
   
-  else: return render_template("contribute.html", title = "Contribute", 
+  else: return render_template("contribute.html", user_id = session['user_id'], 
+                                                  title = "Contribute", 
                                                   headline = "Add a dictionary term")
 
 @app.route("/edit=<term_id>", methods = ['POST', 'GET'])
 def editTerm(term_id = None): 
+  if 'user_id' not in session: session['user_id'] = None
 
   try: 
     if request.method == "POST":
@@ -105,7 +150,8 @@ def editTerm(term_id = None):
       # TODO verify credentials for term_id
       sea.updateTerm(int(term_id), updatedTerm)
 
-      return render_template("basic_page.html", title = "Edit",
+      return render_template("basic_page.html", user_id = session['user_id'], 
+                                                title = "Edit",
                                                 headline = "Edit Term", 
                                                 content = Markup(
           """<strong>%s</strong> has been updated in the metadictionary.
@@ -113,50 +159,56 @@ def editTerm(term_id = None):
   
     else: 
       # TODO verify credentials
-        term = sea.getTerm(int(term_id))
-        if term: 
-          return render_template("contribute.html", title = "Edit - %s" % term_id,
-                                                    headline = "Edit term",
-                                                    edit_id = term_id,
-                                                    term_string_edit = term['TermString'],
-                                                    definition_edit = term['Definition'],
-                                                    contact_info_edit = term['ContactInfo'])
+      term = sea.getTerm(int(term_id))
+      if term: 
+        return render_template("contribute.html", user_id = session['user_id'], 
+                                                  title = "Edit - %s" % term_id,
+                                                  headline = "Edit term",
+                                                  edit_id = term_id,
+                                                  term_string_edit = term['TermString'],
+                                                  definition_edit = term['Definition'],
+                                                  contact_info_edit = term['ContactInfo'])
   except ValueError: pass
 
-  return render_template("basic_page.html", title = "Term not found",
+  return render_template("basic_page.html", user_id = session['user_id'], 
+                                            title = "Term not found",
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
 @app.route("/term=<term_id>")
 def getTerm(term_id = None):
   
+  if 'user_id' not in session: session['user_id'] = None
   try: 
     term = sea.getTerm(int(term_id))
     if term:
       result = seaice.printAsHTML([term])
-      return render_template("basic_page.html", title = "Term - %s" % term_id, 
+      return render_template("basic_page.html", user_id = session['user_id'], 
+                                                title = "Term - %s" % term_id, 
                                                 headline = "Term", 
                                                 content = Markup(result))
   except ValueError: pass
 
-  return render_template("basic_page.html", title = "Term not found",
+  return render_template("basic_page.html", user_id = session['user_id'], 
+                                            title = "Term not found",
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
     
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
-
+  if 'user_id' not in session: session['user_id'] = None
   if request.method == "POST": 
     terms = sea.searchByTerm(request.form['term_string'])
     if len(terms) == 0: 
-      return render_template("search.html", term_string = request.form['term_string'])
+      return render_template("search.html", user_id = session['user_id'], 
+                                            term_string = request.form['term_string'])
     else:
       result = seaice.printAsHTML(terms)
-      return render_template("search.html", 
+      return render_template("search.html", user_id = session['user_id'], 
         term_string = request.form['term_string'], result = Markup(result))
 
   else: # GET
-    return render_template("search.html")
+    return render_template("search.html", user_id = session['user_id'])
 
 ## Start HTTP server. ##
 
