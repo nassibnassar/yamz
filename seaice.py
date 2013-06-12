@@ -46,7 +46,7 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
 
 ## Interface to database ##
 
-class SeaIceDb: 
+class SeaIceConnector: 
   
   def __init__(self, host, user, password, db):
   #

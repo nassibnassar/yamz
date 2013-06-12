@@ -2,11 +2,6 @@
 # Copyright (c) 2013, Christopher Patton
 # All rights reserved.
 #
-# TODO
-# "if 'user_id' not in session: session['user_id'] = 0" is pasted to the 
-# beginning of each function to simplify the code. It'd be nice to have 
-# 'user_id' in the defualt session. Investigate how to do this.
-#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #   * Redistributions of source code must retain the above copyright
@@ -31,77 +26,71 @@
 from flask import Flask
 from flask import Markup
 from flask import render_template, render_template_string, url_for, redirect
-from flask import request, session
+from flask import request, session, g
 
 import sys, MySQLdb as mdb
 import seaice
 
-## Create connection pools to local MySQL databse. ## 
+app = Flask(__name__)
+app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
+
+## Connection pools to local MySQL databse ## 
 
 try: 
 
   config = seaice.get_config()
 
-  viewers = [ seaice.SeaIceConnector('localhost', 
+  viewer  = seaice.SeaIceConnector('localhost', 
                               config.get('viewer', 'user'),
                               config.get('viewer', 'password'),
                               config.get('viewer', 'dbname'))
-              for _ in range(5) ]
 
-  contributors = [ seaice.SeaIceConnector('localhost', 
+  contributor = [ seaice.SeaIceConnector('localhost', 
                                    config.get('contributor', 'user'),
                                    config.get('contributor', 'password'),
                                    config.get('contributor', 'dbname'))
-              for _ in range(5) ]
-
+                  for _ in range(10) ] 
   
-  # TEMP
   sea = seaice.SeaIceConnector('localhost', 
-                         config.get('contributor', 'user'),
-                         config.get('contributor', 'password'),
-                         config.get('contributor', 'dbname'))
+                               config.get('default', 'user'),
+                               config.get('default', 'password'),
+                               config.get('default', 'dbname'))
 
 
 except mdb.Error, e:
   print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
   sys.exit(1)
 
-print "ice: connection to database established."
 
 ## HTTP request handlers ##
 
-app = Flask(__name__)
-app.secret_key = "Joseph D. Sanders" # DUMB
-
 @app.route("/")
 def index():
-  if 'user_id' not in session: session['user_id'] = 0
-  return render_template("index.html", user_id = session['user_id'])
+  return render_template("index.html", user_id = session.get('user_id'))
 
 @app.route("/about")
 def about():
-  if 'user_id' not in session: session['user_id'] = 0
-  return render_template("about.html", user_id = session['user_id'])
+  return render_template("about.html", user_id = session.get('user_id'))
 
 @app.route("/contact")
 def contact():
-  if 'user_id' not in session: session['user_id'] = 0
-  return render_template("contact.html", user_id = session['user_id'])
+  return render_template("contact.html", user_id = session.get('user_id'))
 
 
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
-  if 'user_id' not in session: session['user_id'] = 0
   if request.method == 'POST':
     if sea.getUserNameById(int(request.form['user_id'])):
       session['user_id'] = int(request.form['user_id'])
-      return redirect(url_for('index'))
+
+
+      return render_template('index.html', user_id = session.get('user_id'))
     else: 
       return render_template("basic_page.html", title = "Login failed", 
                                                 content = "Account doesn't exist!")
   form = '''
     <p>
-      In order to propose new terms or comment on other's, you must first
+      In order to propose new terms or comment on others', you must first
       sign in. 
     </p>
     <hr>
@@ -116,7 +105,6 @@ def login():
                                             
 @app.route('/logout')
 def logout():
-  if 'user_id' not in session: session['user_id'] = 0
   # remove the user_id from the session if it's there
   session.pop('user_id', None)
   return redirect(url_for('index'))
@@ -127,25 +115,23 @@ def logout():
 @app.route("/term=<term_id>")
 def getTerm(term_id = None):
   
-  if 'user_id' not in session: session['user_id'] = 0
   try: 
     term = sea.getTerm(int(term_id))
     if term:
       result = sea.printAsHTML([term], session['user_id'])
-      return render_template("basic_page.html", user_id = session['user_id'], 
+      return render_template("basic_page.html", user_id = session.get('user_id'), 
                                                 title = "Term - %s" % term_id, 
                                                 headline = "Term", 
                                                 content = Markup(result))
   except ValueError: pass
 
-  return render_template("basic_page.html", user_id = session['user_id'], 
+  return render_template("basic_page.html", user_id = session.get('user_id'), 
                                             title = "Term not found",
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
 @app.route("/browse")
 def browse():
-  if 'user_id' not in session: session['user_id'] = 0
   terms = sea.getAllTerms(sortBy="TermString")
   result = "<hr>"
 
@@ -153,7 +139,7 @@ def browse():
     result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by</i> %d</p>" % (
       term['Id'], term['TermString'], term['OwnerId'])
 
-  return render_template("browse.html", user_id = session['user_id'], 
+  return render_template("browse.html", user_id = session.get('user_id'), 
                                         title = "Browse", 
                                         headline = "Browse dictionary",
                                         content = Markup(result))
@@ -161,15 +147,14 @@ def browse():
 
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
-  if 'user_id' not in session: session['user_id'] = 0
   if request.method == "POST": 
     terms = sea.searchByTerm(request.form['term_string'])
     if len(terms) == 0: 
-      return render_template("search.html", user_id = session['user_id'], 
+      return render_template("search.html", user_id = session.get('user_id'), 
                                             term_string = request.form['term_string'])
     else:
-      result = sea.printAsHTML(terms, session['user_id'])
-      return render_template("search.html", user_id = session['user_id'], 
+      result = sea.printAsHTML(terms, session.get('user_id'))
+      return render_template("search.html", user_id = session.get('user_id'), 
         term_string = request.form['term_string'], result = Markup(result))
 
   else: # GET
@@ -181,7 +166,7 @@ def returnQuery():
 
 @app.route("/contribute", methods = ['POST', 'GET'])
 def addTerm(): 
-  if 'user_id' not in session or not session['user_id']: 
+  if not session.get('user_id'): 
     return redirect(url_for('login'))
 
   if request.method == "POST": 
@@ -192,25 +177,24 @@ def addTerm():
     sea.insert(term)
     sea.commit()
 
-    return render_template("basic_page.html", user_id = session['user_id'], 
+    return render_template("basic_page.html", user_id = session.get('user_id'), 
                                               title = "Contribute",
                                               headline = "Contribute", 
                                               content = Markup(
         """<strong>%s</strong> has been added to the metadictionary.
         Thank you for your contribution!""" % request.form['term_string']))
   
-  else: return render_template("contribute.html", user_id = session['user_id'], 
+  else: return render_template("contribute.html", user_id = session.get('user_id'), 
                                                   title = "Contribute", 
                                                   headline = "Add a dictionary term")
 
 
 @app.route("/edit=<term_id>", methods = ['POST', 'GET'])
 def editTerm(term_id = None): 
-  if 'user_id' not in session: session['user_id'] = 0
 
   try: 
     term = sea.getTerm(int(term_id))
-    assert term['OwnerId'] == session['user_id']
+    assert session.get('user_id') and term['OwnerId'] == session['user_id']
     
     if request.method == "POST":
       updatedTerm = { 'TermString' : request.form['term_string'],
@@ -236,19 +220,20 @@ def editTerm(term_id = None):
                                                   term_string_edit = term['TermString'],
                                                   definition_edit = term['Definition'])
   except ValueError:
-    return render_template("basic_page.html", user_id = session['user_id'], 
+    return render_template("basic_page.html", user_id = session.get('user_id'), 
                                               title = "Term not found",
                                               headline = "Term", 
                                               content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
   except AssertionError:
-    return render_template("basic_page.html", user_id = session['user_id'], 
+    return render_template("basic_page.html", user_id = session.get('user_id'), 
                                               title = "Term - %s" % term_id, 
                                               content = 
               """Error! You may only edit or remove terms and definitions which 
                  you've contributed. However, you may comment or vote on this term. """)
 
 
+# TEMP
 @app.route("/temp")
 def temp():
   sea.addUser()
@@ -258,5 +243,5 @@ def temp():
 
 if __name__ == '__main__':
     app.debug = True
-    app.run('localhost', 5000)
+    app.run('0.0.0.0', 5000)
 
