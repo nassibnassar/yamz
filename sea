@@ -92,11 +92,10 @@ try:
     print >>sys.stderr, "error: config file '%s' not found" % options.config_file
     sys.exit(1)
 
-  sea = seaice.SeaIceDb( 'localhost', 
-                          config.get('default', 'user'),
-                          config.get('default', 'password'),
-                          config.get('default', 'dbname')
-                       )
+  sea = seaice.SeaIceConnector('localhost', 
+                               config.get('default', 'user'),
+                               config.get('default', 'password'),
+                               config.get('default', 'dbname'))
   
   ## Run specified queries. ##
 

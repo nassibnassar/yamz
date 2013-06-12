@@ -36,17 +36,31 @@ from flask import request, session
 import sys, MySQLdb as mdb
 import seaice
 
-## Connect to local MySQL databse. ## 
+## Create connection pools to local MySQL databse. ## 
 
 try: 
 
   config = seaice.get_config()
+
+  viewers = [ seaice.SeaIceConnector('localhost', 
+                              config.get('viewer', 'user'),
+                              config.get('viewer', 'password'),
+                              config.get('viewer', 'dbname'))
+              for _ in range(5) ]
+
+  contributors = [ seaice.SeaIceConnector('localhost', 
+                                   config.get('contributor', 'user'),
+                                   config.get('contributor', 'password'),
+                                   config.get('contributor', 'dbname'))
+              for _ in range(5) ]
+
   
-  sea = seaice.SeaIceDb( 'localhost', 
-                          config.get('default', 'user'),
-                          config.get('default', 'password'),
-                          config.get('default', 'dbname')
-                       )
+  # TEMP
+  sea = seaice.SeaIceConnector('localhost', 
+                         config.get('contributor', 'user'),
+                         config.get('contributor', 'password'),
+                         config.get('contributor', 'dbname'))
+
 
 except mdb.Error, e:
   print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
