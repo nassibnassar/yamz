@@ -108,6 +108,7 @@ def logout():
   return redirect(url_for('index'))
 
 
+## Look up terms ##
 
 @app.route("/term=<term_id>")
 def getTerm(term_id = None):
@@ -127,8 +128,6 @@ def getTerm(term_id = None):
                                             title = "Term not found",
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
-
-## Look up terms ##
 
 @app.route("/browse")
 def browse():
@@ -175,7 +174,10 @@ def addTerm():
     term = { 'TermString' : request.form['term_string'],
              'Definition' : request.form['definition'],
              'OwnerId' : session['user_id'] }
+
     sea.insert(term)
+    sea.commit()
+
     return render_template("basic_page.html", user_id = session['user_id'], 
                                               title = "Contribute",
                                               headline = "Contribute", 
@@ -202,6 +204,7 @@ def editTerm(term_id = None):
                       'OwnerId' : session['user_id'] } 
 
       sea.updateTerm(int(term_id), updatedTerm)
+      sea.commit()
 
       return render_template("basic_page.html", user_id = session['user_id'], 
                                                 title = "Edit",
