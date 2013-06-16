@@ -1,13 +1,14 @@
-TODO ~ 6/7/13
+TODO ~ 6/16/13
 
-Different MySQL user account for web server. (One that can do queries but not
-drop the tables.) 
+Next week: 
 
-Pool of unused (deleted) IDs
+  1. sea: drop all tables, create all tables.
+  2. db connector per session.
+  3. Pool of unused (deleted) IDs
+  4. logins.
+  5. put on heroku. 
+  6. definition search
 
-Distinction between ContactInfo and Proposer
-
-There's definitely gonna be a table of contributors. 
 
 As more terms are contributed and there are more active users, it will become
 important make efficient use of the database. I.e., going to the browse page
@@ -17,16 +18,6 @@ Three levels of db acces:
 root - drop/create table, read/write queries
 read - only do read queries
 write - read/write queries
-
-edit button wherever owner of term appears and session is validated. 
-
-Restructure "sea": 
-
-sea create TABLE
-sea drop TABLE
-sea import TABLE --file=FILE
-sea export TABLE --file=FILE
-
 
 render_template_string(source_string, context)
 

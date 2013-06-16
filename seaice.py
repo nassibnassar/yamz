@@ -129,7 +129,6 @@ class SeaIceConnector:
       "Id" : "default",
       "TermString" : "<nil>", 
       "Definition" : "<nil>", 
-      "ContactInfo" : "<nil>", 
       "Score" : "default", 
       "Created" : "current_timestamp", 
       "Modified" : "current_timestamp",
