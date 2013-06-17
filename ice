@@ -34,16 +34,17 @@ import seaice
 app = Flask(__name__)
 app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 
-## Connection pools to local MySQL databse ## 
+## Connection local MySQL databse ## 
+
+db_config = seaice.get_config()
 
 try: 
-
-  config = seaice.get_config()
-  
+ 
+  # TEMP
   sea = seaice.SeaIceConnector('localhost', 
-                               config.get('default', 'user'),
-                               config.get('default', 'password'),
-                               config.get('default', 'dbname'))
+                               db_config.get('default', 'user'),
+                               db_config.get('default', 'password'),
+                               db_config.get('default', 'dbname'))
 
 
 except mdb.Error, e:
@@ -63,9 +64,9 @@ def before_request():
   try:
 
     g.db = seaice.SeaIceConnector('localhost', 
-                                config.get(view, 'user'),
-                                config.get(view, 'password'),
-                                config.get(view, 'dbname'))
+                                db_config.get(view, 'user'),
+                                db_config.get(view, 'password'),
+                                db_config.get(view, 'dbname'))
 
   except mdb.Error, e:
     print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
@@ -100,10 +101,6 @@ def login():
   if request.method == 'POST':
     if g.db.getUserNameById(int(request.form['user_id'])):
       session['user_id'] = int(request.form['user_id'])
-      g.db = seaice.SeaIceConnector('localhost', 
-                                    config.get('contributor', 'user'),
-                                    config.get('contributor', 'password'),
-                                    config.get('contributor', 'dbname'))
       return render_template('index.html', user_id = session.get('user_id'))
     else: 
       return render_template("basic_page.html", title = "Login failed", 
@@ -254,15 +251,11 @@ def editTerm(term_id = None):
 
 
 # TEMP
+# Create two users: (Chris, 999), (Julie, 1000)
 @app.route("/temp")
 def temp():
   sea.addUser()
   return "got it"
-
-@app.route("/test")
-def test():
-  g.fella = "guy"
-  return g.fella
 
 ## Start HTTP server. ##
 
