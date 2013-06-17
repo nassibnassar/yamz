@@ -39,17 +39,6 @@ app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 try: 
 
   config = seaice.get_config()
-
-  viewer  = seaice.SeaIceConnector('localhost', 
-                              config.get('viewer', 'user'),
-                              config.get('viewer', 'password'),
-                              config.get('viewer', 'dbname'))
-
-  contributor = [ seaice.SeaIceConnector('localhost', 
-                                   config.get('contributor', 'user'),
-                                   config.get('contributor', 'password'),
-                                   config.get('contributor', 'dbname'))
-                  for _ in range(10) ] 
   
   sea = seaice.SeaIceConnector('localhost', 
                                config.get('default', 'user'),
@@ -60,6 +49,33 @@ try:
 except mdb.Error, e:
   print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
   sys.exit(1)
+
+## Connect to database for each request ##
+
+@app.before_request
+def before_request():
+  if session.get('user_id'): 
+    view = 'contributor'
+  else:
+    view = 'viewer'
+
+  # TODO get from pool instead!
+  try:
+
+    g.db = seaice.SeaIceConnector('localhost', 
+                                config.get(view, 'user'),
+                                config.get(view, 'password'),
+                                config.get(view, 'dbname'))
+
+  except mdb.Error, e:
+    print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
+    sys.exit(1)
+
+@app.teardown_request
+def teardown_request(exception):
+  pass # connection closed when g.db goes out of scope. 
+       # Once we have a connection pool, we'll release 
+       # it to the pool here. TODO
 
 
 ## HTTP request handlers ##
@@ -77,13 +93,17 @@ def contact():
   return render_template("contact.html", user_id = session.get('user_id'))
 
 
+## Login and logout ##
+
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
   if request.method == 'POST':
-    if sea.getUserNameById(int(request.form['user_id'])):
+    if g.db.getUserNameById(int(request.form['user_id'])):
       session['user_id'] = int(request.form['user_id'])
-
-
+      g.db = seaice.SeaIceConnector('localhost', 
+                                    config.get('contributor', 'user'),
+                                    config.get('contributor', 'password'),
+                                    config.get('contributor', 'dbname'))
       return render_template('index.html', user_id = session.get('user_id'))
     else: 
       return render_template("basic_page.html", title = "Login failed", 
@@ -116,9 +136,9 @@ def logout():
 def getTerm(term_id = None):
   
   try: 
-    term = sea.getTerm(int(term_id))
+    term = g.db.getTerm(int(term_id))
     if term:
-      result = sea.printAsHTML([term], session['user_id'])
+      result = g.db.printAsHTML([term], session.get('user_id'))
       return render_template("basic_page.html", user_id = session.get('user_id'), 
                                                 title = "Term - %s" % term_id, 
                                                 headline = "Term", 
@@ -132,12 +152,12 @@ def getTerm(term_id = None):
 
 @app.route("/browse")
 def browse():
-  terms = sea.getAllTerms(sortBy="TermString")
+  terms = g.db.getAllTerms(sortBy="TermString")
   result = "<hr>"
 
   for term in terms: 
     result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
-      term['Id'], term['TermString'], sea.getUserNameById(term['OwnerId']))
+      term['Id'], term['TermString'], g.db.getUserNameById(term['OwnerId']))
 
   return render_template("browse.html", user_id = session.get('user_id'), 
                                         title = "Browse", 
@@ -148,12 +168,12 @@ def browse():
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
   if request.method == "POST": 
-    terms = sea.searchByTerm(request.form['term_string'])
+    terms = g.db.searchByTerm(request.form['term_string'])
     if len(terms) == 0: 
       return render_template("search.html", user_id = session.get('user_id'), 
                                             term_string = request.form['term_string'])
     else:
-      result = sea.printAsHTML(terms, session.get('user_id'))
+      result = g.db.printAsHTML(terms, session.get('user_id'))
       return render_template("search.html", user_id = session.get('user_id'), 
         term_string = request.form['term_string'], result = Markup(result))
 
@@ -174,8 +194,8 @@ def addTerm():
              'Definition' : request.form['definition'],
              'OwnerId' : session['user_id'] }
 
-    sea.insert(term)
-    sea.commit()
+    g.db.insert(term)
+    g.db.commit()
 
     return render_template("basic_page.html", user_id = session.get('user_id'), 
                                               title = "Contribute",
@@ -193,7 +213,7 @@ def addTerm():
 def editTerm(term_id = None): 
 
   try: 
-    term = sea.getTerm(int(term_id))
+    term = g.db.getTerm(int(term_id))
     assert session.get('user_id') and term['OwnerId'] == session['user_id']
     
     if request.method == "POST":
@@ -201,8 +221,8 @@ def editTerm(term_id = None):
                       'Definition' : request.form['definition'],
                       'OwnerId' : session['user_id'] } 
 
-      sea.updateTerm(int(term_id), updatedTerm)
-      sea.commit()
+      g.db.updateTerm(int(term_id), updatedTerm)
+      g.db.commit()
 
       return render_template("basic_page.html", user_id = session['user_id'], 
                                                 title = "Edit",

@@ -225,7 +225,11 @@ class SeaIceConnector:
   #
     cur = self.con.cursor()
     cur.execute("select Name from Users where Id=%d" % UserId)
-    return cur.fetchone()[0]
+    res = cur.fetchone()
+    if res: 
+      return res[0]
+    else: 
+      return None
 
   def Export(self, outf=None):
   # 
