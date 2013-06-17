@@ -65,7 +65,6 @@ class SeaIceConnector:
   def createTerms(self):
   #
   # Create Terms table if it doesn't exist.
-  # TODO deprecate ContactInfo. User OwnerId (User.Id) instead. 
   #
 
     cur = self.con.cursor()
@@ -226,7 +225,7 @@ class SeaIceConnector:
   #
     cur = self.con.cursor()
     cur.execute("select Name from Users where Id=%d" % UserId)
-    return cur.fetchone()
+    return cur.fetchone()[0]
 
   def Export(self, outf=None):
   # 

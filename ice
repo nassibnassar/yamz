@@ -136,8 +136,8 @@ def browse():
   result = "<hr>"
 
   for term in terms: 
-    result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by</i> %d</p>" % (
-      term['Id'], term['TermString'], term['OwnerId'])
+    result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
+      term['Id'], term['TermString'], sea.getUserNameById(term['OwnerId']))
 
   return render_template("browse.html", user_id = session.get('user_id'), 
                                         title = "Browse", 
@@ -158,7 +158,7 @@ def returnQuery():
         term_string = request.form['term_string'], result = Markup(result))
 
   else: # GET
-    return render_template("search.html", user_id = session['user_id'])
+    return render_template("search.html", user_id = session.get('user_id'))
 
 
 
@@ -238,6 +238,11 @@ def editTerm(term_id = None):
 def temp():
   sea.addUser()
   return "got it"
+
+@app.route("/test")
+def test():
+  g.fella = "guy"
+  return g.fella
 
 ## Start HTTP server. ##
 
