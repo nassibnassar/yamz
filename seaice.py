@@ -101,12 +101,19 @@ class SeaIceConnector:
       alter table Users auto_increment=1000"""
     )
   
-  def dropTable(self, table): 
+  def dropTerms(self): 
   #
   # Destroy Terms table if it exists. 
   #
     cur = self.con.cursor()
-    cur.execute("drop table if exists %s" % table)
+    cur.execute("drop table if exists Terms")
+  
+  def dropUsers(self): 
+  #
+  # Destroy Users table if it exists. 
+  #
+    cur = self.con.cursor()
+    cur.execute("drop table if exists Users")
 
   def commit(self): 
   #
@@ -129,7 +136,6 @@ class SeaIceConnector:
       "Id" : "default",
       "TermString" : "<nil>", 
       "Definition" : "<nil>", 
-      "ContactInfo" : "<nil>", 
       "Score" : "default", 
       "Created" : "current_timestamp", 
       "Modified" : "current_timestamp",
