@@ -24,7 +24,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os, sys, stat, configparser
-import json, MySQLdb as mdb
+import json, psycopg2 as pgdb
 
 ## Local db configuration $HOME/.seaice ## 
 
@@ -53,7 +53,7 @@ class SeaIceConnector:
   # Establish connection to database. 
   # 
   
-    self.con = mdb.connect(host, user, password, db)
+    self.con = pgdb.connect(host, db, user, password)
     cur = self.con.cursor()
     cur.execute("SELECT VERSION(); begin")
     ver = cur.fetchone()
@@ -165,11 +165,17 @@ class SeaIceConnector:
             values(%s, '%s', '%s', '%s', %s, %s, %s) 
         """ % (defTerm['Id'], defTerm['TermString'], defTerm['Definition'], defTerm['Score'], 
                defTerm['Created'], defTerm['Modified'], defTerm['OwnerId']))
-    except mdb.Error, e:
-      if e.args[0] == 1062: # Duplicate primary key
-        print >>sys.stderr, "warning (%d): %s (ignoring)" % (e.args[0],e.args[1])
-        return 0
-      else: raise e
+
+
+    except pgdb.DatabaseError, e:
+      print 'Error %s' % e    
+      sys.exit(1)
+      # TODO if duplicate key, output warning. Otherwise raise e
+      # This how it looked before migration to postgres:
+      # if e.args[0] == 1062: # Duplicate primary key
+      #   print >>sys.stderr, "warning (%d): %s (ignoring)" % (e.args[0],e.args[1])
+      #   return 0
+      # else: raise e
 
   def remove(self, Id):
   #
@@ -182,7 +188,7 @@ class SeaIceConnector:
   # 
   # Retrieve term by Id. Return dictionary structure or None. 
   # 
-    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur = self.con.cursor(pgdb.cursors.DictCursor)
     cur.execute("select * from Terms where Id=%d" % Id)
     return cur.fetchone()
   
@@ -190,7 +196,7 @@ class SeaIceConnector:
   # 
   # Return a list of all terms (rows) in table. 
   # 
-    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur = self.con.cursor(pgdb.cursors.DictCursor)
     if sortBy:
       cur.execute("select * from Terms order by %s" % sortBy)
     else:
@@ -202,7 +208,7 @@ class SeaIceConnector:
   # Search table by term string and return a list of dictionary structures
   #
     TermString = TermString.replace("'", "\\'")
-    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur = self.con.cursor(pgdb.cursors.DictCursor)
     cur.execute("select * from Terms where TermString='%s'" % TermString)
     return list(cur.fetchall())
 
@@ -248,7 +254,7 @@ class SeaIceConnector:
     else:
       fd = sys.stdout
 
-    cur = self.con.cursor(mdb.cursors.DictCursor)
+    cur = self.con.cursor(pgdb.cursors.DictCursor)
     cur.execute("select * from Terms")
     rows = cur.fetchall()
     printAsJSObject(rows, fd)

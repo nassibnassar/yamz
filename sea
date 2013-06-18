@@ -24,7 +24,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os, sys, optparse
-import json, MySQLdb as mdb
+import json, psycopg2 as pqdb
 import seaice
 
 ## Parse command line options. ##
@@ -90,8 +90,8 @@ try:
     print >>sys.stderr, "error: config file '%s' not found" % options.config_file
     sys.exit(1)
 
-  sea = seaice.SeaIceConnector('localhost', 
-                               config.get('default', 'user'),
+  sea = seaice.SeaIceConnector("localhost",                       # FIXME
+                               config.get('default', 'user'),       
                                config.get('default', 'password'),
                                config.get('default', 'dbname'))
   
@@ -138,8 +138,8 @@ try:
   ## Commit database mutations. ##
   sea.commit()
 
-except mdb.Error, e:
-  print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
+except pqdb.DatabaseError, e:
+  print 'Error %s' % e    
   sys.exit(1)
 
 except IOError:

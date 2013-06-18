@@ -6,7 +6,9 @@ Next week:
 * 2. db connector per session.
 - 3. Pool of unused (deleted) IDs
   4. logins.
-  5. put on heroku. 
+  5. put on heroku. Subtask: 
+    Migrate to postgres. Working on connector to database (issue with user
+    permissions.) See FIXME in sea. I haven't touched ice yet. 
   6. definition search
 
 As more terms are contributed and there are more active users, it will become
