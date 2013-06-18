@@ -28,10 +28,18 @@ Now set up a database in MySQL:
 Lastly, create a configuration file for the database and user account
 you set up. Create a file called ~/.seaice like: 
 
-[default]
-dbname = seaice
-user = USER
-password = PASS
+  [default]
+  dbname = seaice
+  user = USER
+  password = PASS1
+  [viewer]
+  dbname = seaice
+  user = viewer
+  password = PASS2
+  [contributor]
+  dbname = seaice
+  user = contributor
+  password = PASS3
 
 Set the correct file permissions with: 
 

@@ -65,13 +65,11 @@ parser.add_option("-r", "--remove", dest="remove_id",
                   help="Remove the metadictionary entry corresponding to ID.",
                   metavar="ID")
 
-parser.add_option("--drop", dest="drop_table",
-                  help="Drop the metadictionary table from the database.",
-                  metavar="TABLE")
+parser.add_option("--drop-db", action="store_true", dest="drop_tables", default=False,
+                  help="Drop all metadictionary tables from the database.")
 
-parser.add_option("--create", dest="create_table", 
-                  help="Create new terms table if it doesn't exist.",
-                  metavar="TABLE")
+parser.add_option("--init-db", action="store_true", dest="create_tables", default=False,
+                  help="Create new tables if they don't exist.")
 
 parser.add_option("-j", "--json", action="store_true", dest="json", default=False,
                   help="Format terminal output as a JSON structure.")
@@ -109,20 +107,19 @@ try:
   if options.export_file:
     sea.Export(options.export_file)
   
-  if options.drop_table:
+  if options.drop_tables:
     if not options.quiet:
       print >>sys.stderr, "warning: this will erase all terms. Are you sure? [y/n]",
       if raw_input() in ['y', 'yes', 'Y']: 
-        sea.dropTable(options.drop_table)
+        sea.dropTerms()
+        sea.dropUsers()
     else:
-      sea.dropTable(options.drop_table)
+      sea.dropTerms()
+      sea.dropUsers()
         
-  if options.create_table == "Terms":
-    sea.createTerms()
-  elif options.create_table == "Users": 
+  if options.create_tables:
     sea.createUsers()
-  elif options.create_table:
-    print >>sys.stderr, "warning: table '%s' not defined" % options.create_table
+    sea.createTerms()
   
   if options.dump: 
     if options.json:

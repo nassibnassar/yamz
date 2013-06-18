@@ -62,10 +62,11 @@ class SeaIceConnector:
   def __del__(self): 
     self.con.close()
 
+  ## Alter Schema ##
+
   def createTerms(self):
   #
   # Create Terms table if it doesn't exist.
-  # TODO deprecate ContactInfo. User OwnerId (User.Id) instead. 
   #
 
     cur = self.con.cursor()
@@ -101,12 +102,22 @@ class SeaIceConnector:
       alter table Users auto_increment=1000"""
     )
   
-  def dropTable(self, table): 
+  def dropTerms(self): 
   #
   # Destroy Terms table if it exists. 
   #
     cur = self.con.cursor()
-    cur.execute("drop table if exists %s" % table)
+    cur.execute("drop table if exists Terms")
+  
+  def dropUsers(self): 
+  #
+  # Destroy Users table if it exists. 
+  #
+    cur = self.con.cursor()
+    cur.execute("drop table if exists Users")
+
+
+  ## Queries ##
 
   def commit(self): 
   #
@@ -167,8 +178,6 @@ class SeaIceConnector:
     cur = self.con.cursor()
     return cur.execute("delete from Terms where Id=%d" % Id)
 
-
-
   def getTerm(self, Id): 
   # 
   # Retrieve term by Id. Return dictionary structure or None. 
@@ -199,13 +208,14 @@ class SeaIceConnector:
 
   def searchByDef(self, string): 
   #
-  # Search table by definition. 
+  # Search table by definition. TODO
   #
     pass 
 
   def updateTerm(self, Id, term): 
   #
-  # Modify a term's definition
+  # Modify a term's Definition and/or TermString. 
+  # Note: term ownership authenticated upstream! 
   # 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
@@ -219,7 +229,14 @@ class SeaIceConnector:
   #
     cur = self.con.cursor()
     cur.execute("select Name from Users where Id=%d" % UserId)
-    return cur.fetchone()
+    res = cur.fetchone()
+    if res: 
+      return res[0]
+    else: 
+      return None
+
+
+  ## Import/Export tables ##
 
   def Export(self, outf=None):
   # 
@@ -236,7 +253,6 @@ class SeaIceConnector:
     rows = cur.fetchall()
     printAsJSObject(rows, fd)
 
-
   def Import(self, inf): 
   #
   # Import database from JSON formated "inf". 
@@ -244,13 +260,10 @@ class SeaIceConnector:
     fd = open(inf, 'r')
     for row in json.loads(fd.read()):
       self.insert(row)
-    
-  def addUser(self): # DUMB
-    cur = self.con.cursor()
-    cur.execute("insert into Users (Id, Name) values (999, 'Chris')")
-    cur.execute("insert into Users (Id, Name) values (1000, 'Julie')")
-    cur.execute("commit")
+  
 
+  ## Pretty prints ##
+  
   def printAsJSObject(self, rows, fd = sys.stdout):
   #
   # Write table rows in JSON format to 'fd'. 
@@ -295,7 +308,7 @@ class SeaIceConnector:
 
   def printAsHTML(self, rows, OwnerId=0): 
   #
-  # Print table rows as an HTML table. 
+  # Print table rows as an HTML table (to string) 
   # 
     string = "<table colpadding=16>" 
     for row in rows:
@@ -314,3 +327,13 @@ class SeaIceConnector:
       string += "</td></tr><tr height=16><td></td></tr>"
     string += "</table>"
     return string
+    
+
+  ## For testing purposes ##
+
+  def addUser(self): # TEMP!!!
+    cur = self.con.cursor()
+    cur.execute("insert into Users (Id, Name) values (999, 'Chris')")
+    cur.execute("insert into Users (Id, Name) values (1000, 'Julie')")
+    cur.execute("commit")
+
