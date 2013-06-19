@@ -25,6 +25,7 @@
 
 import os, sys, stat, configparser
 import json, psycopg2 as pgdb
+import psycopg2.extras  
 
 ## Local db configuration $HOME/.seaice ## 
 
@@ -64,27 +65,48 @@ class SeaIceConnector:
 
   ## Alter Schema ##
 
-  def createTerms(self):
+  def createSchema(self):
   #
-  # Create Terms table if it doesn't exist.
+  # TODO
   #
-
+    
     cur = self.con.cursor()
-    cur.execute(
-      """create table if not exists Terms
-      (
-        Id serial primary key, 
-        OwnerId integer default 0 not null,
-        TermString text not null, 
-        Definition text not null,
-        Score integer default 0 not null,
-        Created timestamp default now() not null, 
-        Modified timestamp default now() not null, 
-        foreign key (OwnerId) references Users(Id)
-      ); 
-      alter sequence Terms_Id_seq start with 1001;
 
-      CREATE OR REPLACE FUNCTION upd_timestamp() RETURNS TRIGGER 
+    # Create SI schema. 
+    cur.execute("""
+      create schema SI; 
+      """
+    )
+    
+    # Create Users table if it doesn't exist. 
+    cur.execute("""
+      create table if not exists SI.Users
+        (
+          Id serial primary key,
+          Name text not null
+        );
+      alter sequence SI.Users_Id_seq start with 1001"""
+    )
+
+    # Create Terms table if it doesn't exist.
+    cur.execute("""
+      create table if not exists SI.Terms
+        (
+          Id serial primary key, 
+          OwnerId integer default 0 not null,
+          TermString text not null, 
+          Definition text not null,
+          Score integer default 0 not null,
+          Created timestamp default now() not null, 
+          Modified timestamp default now() not null, 
+          foreign key (OwnerId) references SI.Users(Id)
+        ); 
+      alter sequence SI.Terms_Id_seq start with 1001"""
+    )
+
+    # Create update triggers.
+    cur.execute("""
+      CREATE OR REPLACE FUNCTION SI.upd_timestamp() RETURNS TRIGGER 
         LANGUAGE plpgsql
         AS
          $$
@@ -96,46 +118,34 @@ class SeaIceConnector:
               
       CREATE TRIGGER t_name
         BEFORE UPDATE
-         ON Terms
+         ON SI.Terms
         FOR EACH ROW
-         EXECUTE PROCEDURE upd_timestamp();"""
+         EXECUTE PROCEDURE SI.upd_timestamp();"""
     )
 
-  def createUsers(self):
-  #
-  # Create Users table if it doesn't exist.
-  #
-    cur = self.con.cursor()
-    cur.execute(
-      """create table if not exists Users
-      (
-        Id serial primary key,
-        Name text not null
-      );
-      alter sequence Users_Id_seq start with 1001"""
+    # Set user permissions.
+    cur.execute("""
+      grant usage on schema SI to admin, viewer, contributor;
+      grant select on all tables in schema SI to viewer, contributor; 
+      grant insert, delete, update on SI.Terms to contributor"""
     )
-  
-  def dropTerms(self): 
-  #
-  # Destroy Terms table if it exists. 
-  #
-    cur = self.con.cursor()
-    cur.execute("drop table if exists Terms")
-  
-  def dropUsers(self): 
-  #
-  # Destroy Users table if it exists. 
-  #
-    cur = self.con.cursor()
-    cur.execute("drop table if exists Users")
 
+  
+  def dropSchema(self): 
+  #
+  # TODO
+  #
+  
+    # Destroy Terms table if it exists. 
+    cur = self.con.cursor()
+    cur.execute("drop schema SI cascade")
 
   ## Queries ##
 
   def commit(self): 
   #
   # Commit changes to database made while the connection was open. This 
-  # should be called before the class destructor is called in order to 
+# should be called before the class destructor is called in order to 
   # save changes. 
   #
     cur = self.con.cursor()
@@ -195,25 +205,25 @@ class SeaIceConnector:
   # Remove term from the database and return number of rows affected (1 or 0). 
   #
     cur = self.con.cursor()
-    return cur.execute("delete from Terms where Id=%d" % Id)
+    return cur.execute("delete from SI.Terms where Id=%d" % Id)
 
   def getTerm(self, Id): 
   # 
   # Retrieve term by Id. Return dictionary structure or None. 
   # 
     cur = self.con.cursor(pgdb.cursors.DictCursor)
-    cur.execute("select * from Terms where Id=%d" % Id)
+    cur.execute("select * from SI.Terms where Id=%d" % Id)
     return cur.fetchone()
   
   def getAllTerms(self, sortBy=None): 
   # 
   # Return a list of all terms (rows) in table. 
   # 
-    cur = self.con.cursor(pgdb.cursors.DictCursor)
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     if sortBy:
-      cur.execute("select * from Terms order by %s" % sortBy)
+      cur.execute("select * from SI.Terms order by %s" % sortBy)
     else:
-      cur.execute("select * from Terms")
+      cur.execute("select * from SI.Terms")
     return cur.fetchall()
 
   def searchByTerm(self, TermString): 
@@ -222,7 +232,7 @@ class SeaIceConnector:
   #
     TermString = TermString.replace("'", "\\'")
     cur = self.con.cursor(pgdb.cursors.DictCursor)
-    cur.execute("select * from Terms where TermString='%s'" % TermString)
+    cur.execute("select * from SI.Terms where TermString='%s'" % TermString)
     return list(cur.fetchall())
 
   def searchByDef(self, string): 
@@ -239,7 +249,7 @@ class SeaIceConnector:
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = str(value).replace("'", "\\'")
-    cur.execute("update Terms set TermString='%s', Definition='%s' where Id=%d" % (
+    cur.execute("update SI.Terms set TermString='%s', Definition='%s' where Id=%d" % (
       term['TermString'], term['Definition'], Id))
   
   def getUserNameById(self, UserId): 
@@ -247,7 +257,7 @@ class SeaIceConnector:
   # Return Users.Name where Users.Id = UserId
   #
     cur = self.con.cursor()
-    cur.execute("select Name from Users where Id=%d" % UserId)
+    cur.execute("select Name from SI.Users where Id=%d" % UserId)
     res = cur.fetchone()
     if res: 
       return res[0]
@@ -268,7 +278,7 @@ class SeaIceConnector:
       fd = sys.stdout
 
     cur = self.con.cursor(pgdb.cursors.DictCursor)
-    cur.execute("select * from Terms")
+    cur.execute("select * from SI.Terms")
     rows = cur.fetchall()
     printAsJSObject(rows, fd)
 
@@ -352,7 +362,7 @@ class SeaIceConnector:
 
   def addUser(self): # TEMP!!!
     cur = self.con.cursor()
-    cur.execute("insert into Users (Id, Name) values (999, 'Chris')")
-    cur.execute("insert into Users (Id, Name) values (1000, 'Julie')")
+    cur.execute("insert into SI.Users (Id, Name) values (999, 'Chris')")
+    cur.execute("insert into SI.Users (Id, Name) values (1000, 'Julie')")
     cur.execute("commit")
 

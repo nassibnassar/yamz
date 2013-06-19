@@ -110,15 +110,12 @@ try:
     if not options.quiet:
       print >>sys.stderr, "warning: this will erase all terms. Are you sure? [y/n]",
       if raw_input() in ['y', 'yes', 'Y']: 
-        sea.dropTerms()
-        sea.dropUsers()
+        sea.dropSchema()
     else:
-      sea.dropTerms()
-      sea.dropUsers()
+      sea.dropSchema()
         
   if options.create_tables:
-    sea.createUsers()
-    sea.createTerms()
+    sea.createSchema()
   
   if options.dump: 
     if options.json:
