@@ -48,15 +48,15 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
 
 class SeaIceConnector: 
   
-  def __init__(self, host, user, password, db):
+  def __init__(self, user, password, db):
   #
   # Establish connection to database. 
   # 
   
-    self.con = pgdb.connect(host, db, user, password)
+    self.con = pgdb.connect(database=db, user=user, password=password)
     cur = self.con.cursor()
     cur.execute("SELECT VERSION(); begin")
-    ver = cur.fetchone()
+    #ver = cur.fetchone()
     #print "Database version : %s " % ver
   
   def __del__(self): 
@@ -73,19 +73,32 @@ class SeaIceConnector:
     cur.execute(
       """create table if not exists Terms
       (
-        Id integer primary key auto_increment, 
-        OwnerId integer default 1 not null,
+        Id serial primary key, 
+        OwnerId integer default 0 not null,
         TermString text not null, 
         Definition text not null,
         Score integer default 0 not null,
-        Created timestamp default 0 not null, 
-        Modified timestamp 
-          default 0 on 
-          update current_timestamp 
-          not null,
+        Created timestamp default now() not null, 
+        Modified timestamp default now() not null, 
         foreign key (OwnerId) references Users(Id)
       ); 
-      alter table Terms auto_increment=1001"""
+      alter sequence Terms_Id_seq start with 1001;
+
+      CREATE OR REPLACE FUNCTION upd_timestamp() RETURNS TRIGGER 
+        LANGUAGE plpgsql
+        AS
+         $$
+          BEGIN
+            NEW.Modified = CURRENT_TIMESTAMP;
+            RETURN NEW;
+          END;
+         $$;
+              
+      CREATE TRIGGER t_name
+        BEFORE UPDATE
+         ON Terms
+        FOR EACH ROW
+         EXECUTE PROCEDURE upd_timestamp();"""
     )
 
   def createUsers(self):
@@ -96,10 +109,10 @@ class SeaIceConnector:
     cur.execute(
       """create table if not exists Users
       (
-        Id integer primary key auto_increment,
+        Id serial primary key,
         Name text not null
       );
-      alter table Users auto_increment=1000"""
+      alter sequence Users_Id_seq start with 1001"""
     )
   
   def dropTerms(self): 

@@ -41,8 +41,7 @@ db_config = seaice.get_config()
 try: 
  
   # TEMP
-  sea = seaice.SeaIceConnector('localhost', 
-                               db_config.get('default', 'user'),
+  sea = seaice.SeaIceConnector(db_config.get('default', 'user'),
                                db_config.get('default', 'password'),
                                db_config.get('default', 'dbname'))
 
@@ -63,10 +62,9 @@ def before_request():
   # TODO get from pool instead!
   try:
 
-    g.db = seaice.SeaIceConnector('localhost', 
-                                db_config.get(view, 'user'),
-                                db_config.get(view, 'password'),
-                                db_config.get(view, 'dbname'))
+    g.db = seaice.SeaIceConnector(db_config.get(view, 'user'),
+                                  db_config.get(view, 'password'),
+                                  db_config.get(view, 'dbname'))
 
   except mdb.Error, e:
     print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])

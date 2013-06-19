@@ -90,8 +90,7 @@ try:
     print >>sys.stderr, "error: config file '%s' not found" % options.config_file
     sys.exit(1)
 
-  sea = seaice.SeaIceConnector("localhost",                       # FIXME
-                               config.get('default', 'user'),       
+  sea = seaice.SeaIceConnector(config.get('default', 'user'),       
                                config.get('default', 'password'),
                                config.get('default', 'dbname'))
   
