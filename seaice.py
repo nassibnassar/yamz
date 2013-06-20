@@ -23,7 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, sys, stat, configparser
+import os, sys, stat, configparser, urlparse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
 
@@ -49,12 +49,34 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
 
 class SeaIceConnector: 
   
-  def __init__(self, user, password, db):
+  def __init__(self, user=None, password=None, db=None):
   #
-  # Establish connection to database. 
+  # Establish connection to database. For a local database, this is
+  # specified by the paramters. If the parameters are unspecified, 
+  # then attempt to connect to a foreign database sepcified by the 
+  # environment variable DATABASE_URL. This is to support Heroku's
+  # functionality. 
   # 
   
-    self.con = pgdb.connect(database=db, user=user, password=password)
+    if not user: 
+
+      self.heroku_db = False
+      urlparse.uses_netloc.append("postgres")
+      url = urlparse.urlparse(os.environ["DATABASE_URL"])
+
+      self.con = pgdb.connect(
+        database=url.path[1:],
+        user=url.username,
+        password=url.password,
+        host=url.hostname,
+        port=url.port
+      )
+      
+    else: 
+
+      self.heroku_db = False
+      self.con = pgdb.connect(database=db, user=user, password=password)
+
     cur = self.con.cursor()
     cur.execute("SELECT VERSION(); begin")
     #ver = cur.fetchone()
@@ -125,12 +147,13 @@ class SeaIceConnector:
          execute procedure SI.upd_timestamp();"""
     )
 
-    # Set user permissions.
-    cur.execute("""
-      grant usage on schema SI to admin, viewer, contributor;
-      grant select on all tables in schema SI to viewer, contributor; 
-      grant insert, delete, update on SI.Terms, SI.Terms_id_seq to contributor"""
-    )
+    # Set user permissions. (Not relevant for Heroku-Postgres.)
+    if self.heroku_db:
+      cur.execute("""
+       grant usage on schema SI to admin, viewer, contributor;
+       grant select on all tables in schema SI to viewer, contributor; 
+       grant insert, delete, update on SI.Terms, SI.Terms_id_seq to contributor"""
+      )
 
   
   def dropSchema(self): 

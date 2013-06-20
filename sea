@@ -46,7 +46,9 @@ parser.add_option("-d", "--dump", action="store_true", dest="dump", default=Fals
                   help="Display the contents of the dictionary in the terminal.")
 
 parser.add_option("--config", dest="config_file", metavar="FILE", 
-                  help="User credentials for local MySQL database (defaults to '$HOME/.seaice').",
+                  help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice')." + 
+                       "If 'heroku' is given, then a connection to a foreign host specified by" + 
+                       "DATABASE_URL is established.",
                   default=(os.environ['HOME'] + '/.seaice'))
 
 parser.add_option("--import", dest="import_file",
@@ -83,16 +85,21 @@ parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=Fa
 ## Establish connection to MySQL db ##
 
 try:
-  
-  try: 
-    config = seaice.get_config(options.config_file)
-  except OSError: 
-    print >>sys.stderr, "error: config file '%s' not found" % options.config_file
-    sys.exit(1)
 
-  sea = seaice.SeaIceConnector(config.get('default', 'user'),       
-                               config.get('default', 'password'),
-                               config.get('default', 'dbname'))
+  if options.config_file == "heroku": 
+    
+    sea = seaice.SeaIceConnector()
+
+  else: 
+    try: 
+      config = seaice.get_config(options.config_file)
+    except OSError: 
+      print >>sys.stderr, "error: config file '%s' not found" % options.config_file
+      sys.exit(1)
+
+    sea = seaice.SeaIceConnector(config.get('default', 'user'),       
+                                 config.get('default', 'password'),
+                                 config.get('default', 'dbname'))
   
   ## Run specified queries. ##
 

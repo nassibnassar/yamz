@@ -28,23 +28,52 @@ from flask import Markup
 from flask import render_template, render_template_string, url_for, redirect
 from flask import request, session, g
 
-import sys, psycopg2 as pgdb
+import os, sys, optparse
+import psycopg2 as pgdb
 import seaice
+
+## Parse command line options. ##
+
+parser = optparse.OptionParser()
+
+parser.description="""\
+This program is a Python/Flask-based web frontend for the SeaIce metadictionary. 
+SeaIce is a database comprised of a set of user-defined, crowd-sourced terms and 
+relationss. The goal of SeaIce is to develop a succint and complete set of 
+metadata terms to register just about any type of file or data set. 'ice' is 
+distributed under the terms of the BSD license with the hope that it will be 
+useful, but without warranty. You should have received a copy of the BSD 
+license with this program; otherwise, visit 
+http://opensource.org/licenses/BSD-3-Clause.
+"""
+
+parser.add_option("--config", dest="config_file", metavar="FILE", 
+                  help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice')." + 
+                       "If 'heroku' is given, then a connection to a foreign host specified by" + 
+                       "DATABASE_URL is established.",
+                  default=(os.environ['HOME'] + '/.seaice'))
+
+parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
+                  help="Start flask in debug mode.")
+
+(options, args) = parser.parse_args()
 
 app = Flask(__name__)
 app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 
-## Connection local MySQL databse ## 
+## Connect to PostgreSQL databse ## 
 
-db_config = seaice.get_config()
+db_config = None
 
 try: 
- 
-  # TEMP
-  sea = seaice.SeaIceConnector(db_config.get('default', 'user'),
-                               db_config.get('default', 'password'),
-                               db_config.get('default', 'dbname'))
+  if options.config_file == "heroku": 
+    sea = seaice.SeaIceConnector()
 
+  else: 
+    db_config = seaice.get_config(options.config_file)
+    sea = seaice.SeaIceConnector(db_config.get('default', 'user'),
+                                 db_config.get('default', 'password'),
+                                 db_config.get('default', 'dbname'))
 
 except pqdb.DatabaseError, e:
   print 'error: %s' % e    
@@ -62,9 +91,13 @@ def before_request():
   # TODO get from pool instead!
   try:
 
-    g.db = seaice.SeaIceConnector(db_config.get(view, 'user'),
-                                  db_config.get(view, 'password'),
-                                  db_config.get(view, 'dbname'))
+    if options.config_file == "heroku": 
+      g.db = seaice.SeaIceConnector()
+
+    else: 
+      g.db = seaice.SeaIceConnector(db_config.get(view, 'user'),
+                                    db_config.get(view, 'password'),
+                                    db_config.get(view, 'dbname'))
 
   except pqdb.DatabaseError, e:
     print 'error: %s' % e    
