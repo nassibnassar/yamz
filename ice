@@ -46,8 +46,8 @@ try:
                                db_config.get('default', 'dbname'))
 
 
-except mdb.Error, e:
-  print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
+except pqdb.DatabaseError, e:
+  print 'error: %s' % e    
   sys.exit(1)
 
 ## Connect to database for each request ##
@@ -66,8 +66,8 @@ def before_request():
                                   db_config.get(view, 'password'),
                                   db_config.get(view, 'dbname'))
 
-  except mdb.Error, e:
-    print >>sys.stderr, "error (%d): %s" % (e.args[0],e.args[1])
+  except pqdb.DatabaseError, e:
+    print 'error: %s' % e    
     sys.exit(1)
 
 @app.teardown_request
