@@ -5,10 +5,9 @@ packages. On Ubuntu, grab the follwoing:
   
   python-flask . . . . . . . Simple HTTP server.
 
-  mysql-server . . . . . . . We're using MySQL as our database for the 
-                             moment. 
+  postgresql . . . . . . . . We're using PostgreSQL for databse managment. 
 
-  python-mysqldb . . . . . . Python API for MySQL.
+  python-psycopg2  . . . . . Python API for PostgreSQL.
 
   python-pip . . . . . . . . Package manager for additional Python 
                              programs. 
@@ -18,34 +17,59 @@ nicely. Do:
 
   $ sudo pip install configparser
 
-Now set up a database in MySQL: 
+Now set up a database in postgres. First, we need to do some configuration. 
+Postgres requires an administrative user called 'postgres'. In addition,
+we'll create three users ("roles" in postgres jargin) for our databse. First,
+set postgres' password: 
 
-  $ mysql --user=USER --password=PASS
-  mysql> create database DBNAME (such as seaice) 
-  mysql> commit
-  mysql> exit
+  $ sudo -u postgres psql template1
+  template1=# alter uesr postgres with encrypted password 'PASS';  
+  template1=# \q [quit] 
 
-Lastly, create a configuration file for the database and user account
-you set up. Create a file called ~/.seaice like: 
+now configure the authentication method for postgres and all other users 
+connecting locally. In /etc/postgresql/9.1/main/pg_hba.conf, change "peer" 
+in line
+
+ local   all         postgres                          peer
+
+to "md5" for the administrative account and local unix domain socket 
+connections. . Next, we wnat to only be able to connect to the database from 
+the local machine. In /etc/postgresql/9.1/main/postgresql.conf, uncomment the 
+line
+
+ listen_addresses = 'localhost'
+
+Finally, log back into postgres to add users:
+
+  $ sudo -u postgres psql
+  postgres=# create user admin with encrypted password 'PASS';
+  postgres=# create user viewer with encrypted password 'PASS';
+  postgres=# create user contributor with encrypted password 'PASS';
+  postgres=# create database seaice with owner admin;
+
+(Using unique, completely random passwords is a good idea here.) Lastly, 
+create a configuration file for the database and user account you set up. 
+Create a file called ~/.seaice like: 
 
   [default]
   dbname = seaice
-  user = USER
-  password = PASS1
+  user = admin
+  password = PASS
   [viewer]
   dbname = seaice
   user = viewer
-  password = PASS2
+  password = PASS
   [contributor]
   dbname = seaice
   user = contributor
-  password = PASS3
+  password = PASS
 
 Set the correct file permissions with: 
 
   $ chmod 600 ~/.seaice
 
-Then you should be good to go! To test everything is sane, do: 
+Then you should be good to go! For sanity's sake and to create the database 
+schema and tables, do: 
 
   $ ./sea --init-db
 
