@@ -82,26 +82,26 @@ class SeaIceConnector:
     cur.execute("""
       create table if not exists SI.Users
         (
-          Id serial primary key,
+          id serial primary key,
           Name text not null
         );
-      alter sequence SI.Users_Id_seq start with 1001"""
+      alter sequence SI.Users_id_seq start with 1001"""
     )
 
     # Create Terms table if it doesn't exist.
     cur.execute("""
       create table if not exists SI.Terms
         (
-          Id serial primary key, 
-          OwnerId integer default 0 not null,
-          TermString text not null, 
-          Definition text not null,
-          Score integer default 0 not null,
-          Created timestamp default now() not null, 
-          Modified timestamp default now() not null, 
-          foreign key (OwnerId) references SI.Users(Id)
+          id serial primary key not null, 
+          owner_id integer default 0 not null,
+          term_string text not null, 
+          definition text not null,
+          score integer default 0 not null,
+          created timestamp default now() not null, 
+          modified timestamp default now() not null, 
+          foreign key (owner_id) references SI.Users(id)
         ); 
-      alter sequence SI.Terms_Id_seq start with 1001"""
+      alter sequence SI.Terms_id_seq start with 1001"""
     )
 
     # Create update triggers.
@@ -111,7 +111,7 @@ class SeaIceConnector:
         AS
          $$
           BEGIN
-            NEW.Modified = CURRENT_TIMESTAMP;
+            NEW.modified = CURRENT_TIMESTAMP;
             RETURN NEW;
           END;
          $$;
@@ -127,7 +127,7 @@ class SeaIceConnector:
     cur.execute("""
       grant usage on schema SI to admin, viewer, contributor;
       grant select on all tables in schema SI to viewer, contributor; 
-      grant insert, delete, update on SI.Terms to contributor"""
+      grant insert, delete, update on SI.Terms, SI.Terms_id_seq to contributor"""
     )
 
   
@@ -160,59 +160,58 @@ class SeaIceConnector:
 
     # Default values for table entries.  
     defTerm = { 
-      "Id" : "default",
-      "TermString" : "<nil>", 
-      "Definition" : "<nil>", 
-      "Score" : "default", 
-      "Created" : "current_timestamp", 
-      "Modified" : "current_timestamp",
-      "OwnerId" : "default"
+      "id" : "default",
+      "term_string" : "<nil>", 
+      "definition" : "<nil>", 
+      "score" : "default", 
+      "created" : "current_timestamp", 
+      "modified" : "current_timestamp",
+      "owner_id" : "default"
     }
 
     # Format entries for db query
     for (key, value) in term.iteritems():
-      if key == "Created" or key == "Modified": 
+      if key == "created" or key == "modified": 
         defTerm[key] = "'" + str(value) + "'"
       else: 
         defTerm[key] = str(value).replace("'", "\\'")
     
     try:
       return cur.execute(
-        """insert into Terms( Id, 
-                              TermString, 
-                              Definition, 
-                              Score,
-                              Created,
-                              Modified,
-                              OwnerId ) 
-            values(%s, '%s', '%s', '%s', %s, %s, %s) 
-        """ % (defTerm['Id'], defTerm['TermString'], defTerm['Definition'], defTerm['Score'], 
-               defTerm['Created'], defTerm['Modified'], defTerm['OwnerId']))
-
+        """insert into SI.Terms( id, 
+                              term_string, 
+                              definition, 
+                              score,
+                              created,
+                              modified,
+                              owner_id ) 
+            values(%s, '%s', '%s', %s, %s, %s, %s) 
+        """ % (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['score'], 
+               defTerm['created'], defTerm['modified'], defTerm['owner_id']))
 
     except pgdb.DatabaseError, e:
-      print 'Error %s' % e    
-      sys.exit(1)
+      #print 'Error %s' % e    
+      #sys.exit(1)
       # TODO if duplicate key, output warning. Otherwise raise e
       # This how it looked before migration to postgres:
       # if e.args[0] == 1062: # Duplicate primary key
       #   print >>sys.stderr, "warning (%d): %s (ignoring)" % (e.args[0],e.args[1])
       #   return 0
-      # else: raise e
+      raise e
 
-  def remove(self, Id):
+  def remove(self, id):
   #
   # Remove term from the database and return number of rows affected (1 or 0). 
   #
     cur = self.con.cursor()
-    return cur.execute("delete from SI.Terms where Id=%d" % Id)
+    return cur.execute("delete from SI.Terms where id=%d" % id)
 
-  def getTerm(self, Id): 
+  def getTerm(self, id): 
   # 
-  # Retrieve term by Id. Return dictionary structure or None. 
+  # Retrieve term by id. Return dictionary structure or None. 
   # 
-    cur = self.con.cursor(pgdb.cursors.DictCursor)
-    cur.execute("select * from SI.Terms where Id=%d" % Id)
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("select * from SI.Terms where id=%d" % id)
     return cur.fetchone()
   
   def getAllTerms(self, sortBy=None): 
@@ -226,13 +225,13 @@ class SeaIceConnector:
       cur.execute("select * from SI.Terms")
     return cur.fetchall()
 
-  def searchByTerm(self, TermString): 
+  def searchByTerm(self, term_string): 
   #
   # Search table by term string and return a list of dictionary structures
   #
-    TermString = TermString.replace("'", "\\'")
-    cur = self.con.cursor(pgdb.cursors.DictCursor)
-    cur.execute("select * from SI.Terms where TermString='%s'" % TermString)
+    term_string = term_string.replace("'", "\\'")
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("select * from SI.Terms where term_string='%s'" % term_string)
     return list(cur.fetchall())
 
   def searchByDef(self, string): 
@@ -241,23 +240,23 @@ class SeaIceConnector:
   #
     pass 
 
-  def updateTerm(self, Id, term): 
+  def updateTerm(self, id, term): 
   #
-  # Modify a term's Definition and/or TermString. 
+  # Modify a term's definition and/or term_string. 
   # Note: term ownership authenticated upstream! 
   # 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = str(value).replace("'", "\\'")
-    cur.execute("update SI.Terms set TermString='%s', Definition='%s' where Id=%d" % (
-      term['TermString'], term['Definition'], Id))
+    cur.execute("update SI.Terms set term_string='%s', definition='%s' where id=%d" % (
+      term['term_string'], term['definition'], id))
   
-  def getUserNameById(self, UserId): 
+  def getUserNameByid(self, Userid): 
   #
-  # Return Users.Name where Users.Id = UserId
+  # Return Users.Name where Users.id = Userid
   #
     cur = self.con.cursor()
-    cur.execute("select Name from SI.Users where Id=%d" % UserId)
+    cur.execute("select Name from SI.Users where id=%d" % Userid)
     res = cur.fetchone()
     if res: 
       return res[0]
@@ -277,7 +276,7 @@ class SeaIceConnector:
     else:
       fd = sys.stdout
 
-    cur = self.con.cursor(pgdb.cursors.DictCursor)
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Terms")
     rows = cur.fetchall()
     printAsJSObject(rows, fd)
@@ -298,8 +297,8 @@ class SeaIceConnector:
   # Write table rows in JSON format to 'fd'. 
   #
     for row in rows:
-      row['Modified'] = str(row['Modified'])
-      row['Created'] = str(row['Created'])
+      row['modified'] = str(row['modified'])
+      row['created'] = str(row['created'])
     print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
 
   def printParagraph(self, text, leftMargin=8, width=60): 
@@ -322,20 +321,20 @@ class SeaIceConnector:
   # Print table rows to the terminal. 
   #
     for row in rows:
-      print "Term: %-26s Id No. %-7d Created: %s" % ("%s (%d)" % (row['TermString'], 
-                                                                  row["Score"]),
-                                                     row['Id'],
-                                                     row['Created']) 
+      print "Term: %-26s id No. %-7d created: %s" % ("%s (%d)" % (row['term_string'], 
+                                                                  row["score"]),
+                                                     row['id'],
+                                                     row['created']) 
 
-      print " " * 42 + "Last Modified: %s" % row['Modified']
+      print " " * 42 + "Last modified: %s" % row['modified']
 
-      print "\n    Definition:\n"    
-      self.printParagraph(row['Definition'])
+      print "\n    definition:\n"    
+      self.printParagraph(row['definition'])
       
-      print "\n    Ownership: %s" % self.getUserNameById(row['OwnerId'])
+      print "\n    Ownership: %s" % self.getUserNameByid(row['owner_id'])
       print
 
-  def printAsHTML(self, rows, OwnerId=0): 
+  def printAsHTML(self, rows, owner_id=0): 
   #
   # Print table rows as an HTML table (to string) 
   # 
@@ -343,16 +342,16 @@ class SeaIceConnector:
     for row in rows:
       string += "<tr>"
       string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
-        repr("70%"), row['TermString'], row['Id'])
-      string += "  <td valign=top><i>Created</i>: %s</td>" % row['Created']
+        repr("70%"), row['term_string'], row['id'])
+      string += "  <td valign=top><i>created</i>: %s</td>" % row['created']
       string += "</tr><tr>"
-      string += "  <td valign=top><i>Score</i>: %s</td>" % row['Score']
-      string += "  <td valign=top><i>Last Modified</i>: %s</td>" % row['Modified']
+      string += "  <td valign=top><i>score</i>: %s</td>" % row['score']
+      string += "  <td valign=top><i>Last modified</i>: %s</td>" % row['modified']
       string += "</tr><tr>"
-      string += "  <td valign=top><i>Definition:</i> %s</td>" % row['Definition']
-      string += "  <td valign=top><i>Ownership:</i> %s"% self.getUserNameById(row['OwnerId'])
-      if OwnerId == row['OwnerId']:
-        string += " <a href=\"/edit=%d\">[edit term]</a>" % row['Id']
+      string += "  <td valign=top><i>definition:</i> %s</td>" % row['definition']
+      string += "  <td valign=top><i>Ownership:</i> %s"% self.getUserNameByid(row['owner_id'])
+      if owner_id == row['owner_id']:
+        string += " <a href=\"/edit=%d\">[edit term]</a>" % row['id']
       string += "</td></tr><tr height=16><td></td></tr>"
     string += "</table>"
     return string
@@ -362,7 +361,7 @@ class SeaIceConnector:
 
   def addUser(self): # TEMP!!!
     cur = self.con.cursor()
-    cur.execute("insert into SI.Users (Id, Name) values (999, 'Chris')")
-    cur.execute("insert into SI.Users (Id, Name) values (1000, 'Julie')")
+    cur.execute("insert into SI.Users (id, Name) values (999, 'Chris')")
+    cur.execute("insert into SI.Users (id, Name) values (1000, 'Julie')")
     cur.execute("commit")
 

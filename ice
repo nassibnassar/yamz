@@ -97,7 +97,7 @@ def contact():
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
   if request.method == 'POST':
-    if g.db.getUserNameById(int(request.form['user_id'])):
+    if g.db.getUserNameByid(int(request.form['user_id'])):
       session['user_id'] = int(request.form['user_id'])
       return render_template('index.html', user_id = session.get('user_id'))
     else: 
@@ -147,12 +147,12 @@ def getTerm(term_id = None):
 
 @app.route("/browse")
 def browse():
-  terms = g.db.getAllTerms(sortBy="TermString")
+  terms = g.db.getAllTerms(sortBy="term_string")
   result = "<hr>"
 
   for term in terms: 
     result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
-      term['Id'], term['TermString'], g.db.getUserNameById(term['OwnerId']))
+      term['id'], term['term_string'], g.db.getUserNameByid(term['owner_id']))
 
   return render_template("browse.html", user_id = session.get('user_id'), 
                                         title = "Browse", 
@@ -185,9 +185,9 @@ def addTerm():
     return redirect(url_for('login'))
 
   if request.method == "POST": 
-    term = { 'TermString' : request.form['term_string'],
-             'Definition' : request.form['definition'],
-             'OwnerId' : session['user_id'] }
+    term = { 'term_string' : request.form['term_string'],
+             'definition' : request.form['definition'],
+             'owner_id' : session['user_id'] }
 
     g.db.insert(term)
     g.db.commit()
@@ -209,12 +209,12 @@ def editTerm(term_id = None):
 
   try: 
     term = g.db.getTerm(int(term_id))
-    assert session.get('user_id') and term['OwnerId'] == session['user_id']
+    assert session.get('user_id') and term['owner_id'] == session['user_id']
     
     if request.method == "POST":
-      updatedTerm = { 'TermString' : request.form['term_string'],
-                      'Definition' : request.form['definition'],
-                      'OwnerId' : session['user_id'] } 
+      updatedTerm = { 'term_string' : request.form['term_string'],
+                      'definition' : request.form['definition'],
+                      'owner_id' : session['user_id'] } 
 
       g.db.updateTerm(int(term_id), updatedTerm)
       g.db.commit()
@@ -232,8 +232,8 @@ def editTerm(term_id = None):
                                                   title = "Edit - %s" % term_id,
                                                   headline = "Edit term",
                                                   edit_id = term_id,
-                                                  term_string_edit = term['TermString'],
-                                                  definition_edit = term['Definition'])
+                                                  term_string_edit = term['term_string'],
+                                                  definition_edit = term['definition'])
   except ValueError:
     return render_template("basic_page.html", user_id = session.get('user_id'), 
                                               title = "Term not found",
