@@ -67,7 +67,9 @@ class SeaIceConnector:
 
   def createSchema(self):
   #
-  # TODO
+  # Create a schema for the SeaIce database that includes the tables
+  # Users, Terms, Relations(TODO), and CommentHistory(TODO), and an
+  # update trigger funciton. 
   #
     
     cur = self.con.cursor()
@@ -85,7 +87,7 @@ class SeaIceConnector:
           id serial primary key,
           Name text not null
         );
-      alter sequence SI.Users_id_seq start with 1001"""
+      alter sequence SI.Users_id_seq restart with 1001"""
     )
 
     # Create Terms table if it doesn't exist.
@@ -101,26 +103,26 @@ class SeaIceConnector:
           modified timestamp default now() not null, 
           foreign key (owner_id) references SI.Users(id)
         ); 
-      alter sequence SI.Terms_id_seq start with 1001"""
+      alter sequence SI.Terms_id_seq restart with 1001;"""
     )
 
     # Create update triggers.
     cur.execute("""
-      CREATE OR REPLACE FUNCTION SI.upd_timestamp() RETURNS TRIGGER 
-        LANGUAGE plpgsql
-        AS
+      create or replace function SI.upd_timestamp() returns trigger 
+        language plpgsql
+        as
          $$
-          BEGIN
-            NEW.modified = CURRENT_TIMESTAMP;
-            RETURN NEW;
-          END;
+          begin
+            new.modified = current_timestamp;
+            return new;
+          end;
          $$;
               
-      CREATE TRIGGER t_name
-        BEFORE UPDATE
-         ON SI.Terms
-        FOR EACH ROW
-         EXECUTE PROCEDURE SI.upd_timestamp();"""
+      create trigger t_name
+        before update
+         on SI.Terms
+        for each row
+         execute procedure SI.upd_timestamp();"""
     )
 
     # Set user permissions.
@@ -133,10 +135,9 @@ class SeaIceConnector:
   
   def dropSchema(self): 
   #
-  # TODO
+  # Drop SeaIce schema. 
   #
   
-    # Destroy Terms table if it exists. 
     cur = self.con.cursor()
     cur.execute("drop schema SI cascade")
 
@@ -145,7 +146,7 @@ class SeaIceConnector:
   def commit(self): 
   #
   # Commit changes to database made while the connection was open. This 
-# should be called before the class destructor is called in order to 
+  # should be called before the class destructor is called in order to 
   # save changes. 
   #
     cur = self.con.cursor()

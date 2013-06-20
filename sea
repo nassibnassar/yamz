@@ -135,7 +135,7 @@ try:
   sea.commit()
 
 except pqdb.DatabaseError, e:
-  print 'Error %s' % e    
+  print 'error: %s' % e    
   sys.exit(1)
 
 except IOError:
