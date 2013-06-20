@@ -28,7 +28,7 @@ from flask import Markup
 from flask import render_template, render_template_string, url_for, redirect
 from flask import request, session, g
 
-import sys, MySQLdb as mdb
+import sys, psycopg2 as pgdb
 import seaice
 
 app = Flask(__name__)
