@@ -60,7 +60,7 @@ class SeaIceConnector:
   
     if not user: 
 
-      self.heroku_db = False
+      self.heroku_db = True
       urlparse.uses_netloc.append("postgres")
       url = urlparse.urlparse(os.environ["DATABASE_URL"])
 
@@ -148,7 +148,7 @@ class SeaIceConnector:
     )
 
     # Set user permissions. (Not relevant for Heroku-Postgres.)
-    if self.heroku_db:
+    if not self.heroku_db:
       cur.execute("""
        grant usage on schema SI to admin, viewer, contributor;
        grant select on all tables in schema SI to viewer, contributor; 
