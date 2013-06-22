@@ -213,7 +213,7 @@ def login_google():
 
 @app.route(REDIRECT_URI)
 @google.authorized_handler
-def authorized(resp):
+def authorized(resp, method=):
   access_token = resp['access_token']
   session['access_token'] = access_token, ''
 
@@ -228,11 +228,7 @@ def authorized(resp):
   g_user = json.load(res)
 
   user = sea.getUserByAuth('google', g_user['id'])
-  if user: 
-    print 'Logging in!'
-    
-  else: # TODO form for entering name
-    print 'Adding user!!!'
+  if not user: # TODO form for entering name 
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
     g_user['last_name'] = "Patton"
@@ -240,7 +236,6 @@ def authorized(resp):
     sea.insertUser(g_user)
     user = sea.getUserByAuth('google', g_user['id'])
   
-  print user
   poop.login_user(seaice.User(user['id'], user['first_name']))
   flash("Logged in successfully")
   sea.commit()
