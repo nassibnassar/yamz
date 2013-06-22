@@ -158,15 +158,15 @@ def teardown_request(exception):
 
 @app.route("/")
 def index():
-  return render_template("index.html", user_id = poop.current_user.id)
+  return render_template("index.html", user_name = poop.current_user.name)
 
 @app.route("/about")
 def about():
-  return render_template("about.html", user_id = poop.current_user.id)
+  return render_template("about.html", user_name = poop.current_user.name)
 
 @app.route("/contact")
 def contact():
-  return render_template("contact.html", user_id = poop.current_user.id)
+  return render_template("contact.html", user_name = poop.current_user.name)
 
 
 ## Login and logout ##
@@ -180,7 +180,7 @@ def login():
       poop.login_user(User(id, name))
       poop.current_user.id = id
       flash("Logged in successfully")
-      return render_template('index.html', user_id = poop.current_user.id)
+      return render_template('index.html', user_name = poop.current_user.name)
     else: 
       return render_template("basic_page.html", title = "Login failed", 
                                                 content = "Account doesn't exist!")
@@ -219,13 +219,13 @@ def getTerm(term_id = None):
     term = g.db.getTerm(int(term_id))
     if term:
       result = g.db.printAsHTML([term], poop.current_user.id)
-      return render_template("basic_page.html", user_id = poop.current_user.id, 
+      return render_template("basic_page.html", user_name = poop.current_user.name, 
                                                 title = "Term - %s" % term_id, 
                                                 headline = "Term", 
                                                 content = Markup(result))
   except ValueError: pass
 
-  return render_template("basic_page.html", user_id = poop.current_user.id, 
+  return render_template("basic_page.html", user_name = poop.current_user.name, 
                                             title = "Term not found",
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
@@ -239,7 +239,7 @@ def browse():
     result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
       term['id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
 
-  return render_template("browse.html", user_id = poop.current_user.id, 
+  return render_template("browse.html", user_name = poop.current_user.name, 
                                         title = "Browse", 
                                         headline = "Browse dictionary",
                                         content = Markup(result))
@@ -250,15 +250,15 @@ def returnQuery():
   if request.method == "POST": 
     terms = g.db.searchByTerm(request.form['term_string'])
     if len(terms) == 0: 
-      return render_template("search.html", user_id = poop.current_user.id, 
+      return render_template("search.html", user_name = poop.current_user.name, 
                                             term_string = request.form['term_string'])
     else:
       result = g.db.printAsHTML(terms, poop.current_user.id)
-      return render_template("search.html", user_id = poop.current_user.id, 
+      return render_template("search.html", user_name = poop.current_user.name, 
         term_string = request.form['term_string'], result = Markup(result))
 
   else: # GET
-    return render_template("search.html", user_id = poop.current_user.id)
+    return render_template("search.html", user_name = poop.current_user.name)
 
 
 
@@ -276,14 +276,14 @@ def addTerm():
     g.db.insert(term)
     g.db.commit()
 
-    return render_template("basic_page.html", user_id = poop.current_user.id, 
+    return render_template("basic_page.html", user_name = poop.current_user.name, 
                                               title = "Contribute",
                                               headline = "Contribute", 
                                               content = Markup(
         """<strong>%s</strong> has been added to the metadictionary.
         Thank you for your contribution!""" % request.form['term_string']))
   
-  else: return render_template("contribute.html", user_id = poop.current_user.id, 
+  else: return render_template("contribute.html", user_name = poop.current_user.name, 
                                                   title = "Contribute", 
                                                   headline = "Add a dictionary term")
 
@@ -304,7 +304,7 @@ def editTerm(term_id = None):
       g.db.updateTerm(int(term_id), updatedTerm)
       g.db.commit()
 
-      return render_template("basic_page.html", user_id = poop.current_user.id, 
+      return render_template("basic_page.html", user_name = poop.current_user.name, 
                                                 title = "Edit",
                                                 headline = "Edit Term", 
                                                 content = Markup(
@@ -313,20 +313,20 @@ def editTerm(term_id = None):
   
     else: # GET 
       if term: 
-        return render_template("contribute.html", user_id = poop.current_user.id, 
+        return render_template("contribute.html", user_name = poop.current_user.name, 
                                                   title = "Edit - %s" % term_id,
                                                   headline = "Edit term",
                                                   edit_id = term_id,
                                                   term_string_edit = term['term_string'],
                                                   definition_edit = term['definition'])
   except ValueError:
-    return render_template("basic_page.html", user_id = poop.current_user.id, 
+    return render_template("basic_page.html", user_name = poop.current_user.name, 
                                               title = "Term not found",
                                               headline = "Term", 
                                               content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
   except AssertionError:
-    return render_template("basic_page.html", user_id = poop.current_user.id, 
+    return render_template("basic_page.html", user_name = poop.current_user.name, 
                                               title = "Term - %s" % term_id, 
                                               content = 
               """Error! You may only edit or remove terms and definitions which 

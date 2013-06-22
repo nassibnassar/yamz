@@ -47,8 +47,8 @@
               <li><a href="/contribute">Contribute</a></li>
               <li class="active"><a href="/about">About</a></li>
               <li><a href="/contact">Contact</a></li>
-              <li>{% if user_id %}
-                 <a href="/logout">Log out of {{ user_id }}</a>
+              <li>{% if user_name %}
+                 <a href="/logout">Log out of {{ user_name }}</a>
                 {% else %}
                  <a href="/login">Login</a>
                 {% endif %} 
