@@ -31,8 +31,9 @@ from flask import request, session, g
 from flask_oauth import OAuth
 from flask.ext import login as poop
 
+from urllib2 import Request, urlopen, URLError
 import os, sys, optparse
-import psycopg2 as pgdb
+import json, psycopg2 as pgdb
 import seaice
 
 ## Parse command line options. ##
@@ -176,44 +177,75 @@ def contact():
 
   ## Login and logout ##
 
-@app.route("/login", methods = ['POST', 'GET'])
+@app.route("/login")
 def login():
-  if request.method == 'POST':
-    id = int(request.form['user_id'])
-    name = g.db.getUserNameById(int(id))
-    if name:
-      poop.login_user(seaice.User(id, name))
-      poop.current_user.id = id
-      flash("Logged in successfully")
-      return render_template('index.html', user_name = poop.current_user.name)
-    else: 
-      return render_template("basic_page.html", title = "Login failed", 
-                                                content = "Account doesn't exist!")
+  #if request.method == 'POST':
+  #  id = int(request.form['user_id'])
+  #  name = g.db.getUserNameById(int(id))
+  #  if name:
+  #    poop.login_user(seaice.User(id, name))
+  #    poop.current_user.id = id
+  #    flash("Logged in successfully")
+  #    return render_template('index.html', user_name = poop.current_user.name)
+  #  else: 
+  #    return render_template("basic_page.html", title = "Login failed", 
+  #                                              content = "Account doesn't exist!")
+  if poop.current_user.id:
+      return render_template("basic_page.html", user_name = poop.current_user.name,
+                                                title = "Oops!", 
+                                                content = "You are already logged in!")
+    
   form = '''
     <p>
       In order to propose new terms or comment on others', you must first
       sign in. 
+       <li>Sign in with <a href="/login/google">Google</a>.</li>
     </p>
-    <hr>
-    <form action="" method="post">
-      <p><input type=text name=user_id>
-      <p><input type=submit value=Login>
-    </form>
     '''
   return render_template("basic_page.html", title = "Login page", 
                                             headline = "Login", 
                                             content = Markup(form))
-                                            
+
+@app.route("/login/google")
+def login_google():
+    callback=url_for('authorized', _external=True)
+    return google.authorize(callback=callback)
+
+@app.route(REDIRECT_URI)
+@google.authorized_handler
+def authorized(resp):
+  access_token = resp['access_token']
+  session['access_token'] = access_token, ''
+
+  headers = {'Authorization': 'OAuth '+access_token}
+  req = Request('https://www.googleapis.com/oauth2/v1/userinfo', None, headers)
+  try:
+    res = urlopen(req)
+  except URLError, e:
+    if e.code == 401: # Unauthorized - bad token
+      session.pop('access_token', None)
+      return 'poop'
+  g_user = json.load(res)
+  print g_user
+
+    # TODO login, add user if necessary
+
+  return redirect(url_for('index'))
+
+@google.tokengetter
+def get_access_token():
+    return session.get('access_token')
+
 @app.route('/logout')
 @poop.login_required
 def logout():
   poop.logout_user()
   return redirect(url_for('index'))
 
-
 @login_manager.unauthorized_handler
 def unauthorized(): 
   return redirect(url_for('login'))
+
 
   ## Look up terms ##
 

@@ -105,12 +105,13 @@ class SeaIceConnector:
     cur.execute("""
       create table if not exists SI.Users
         (
-          id serial unique not null,
+          id serial primary key not null,
           authority varchar(64) not null, 
+          auth_id varchar(64) not null, 
+          email varchar(64) not null, 
           last_name varchar(64) not null,
           first_name varchar(64) not null,
-          email varchar(64) not null, 
-          constraint auth_id primary key (id, authority)
+          reputation integer default 0 not null
         );
       alter sequence SI.Users_id_seq restart with 10001;"""
     )
@@ -181,7 +182,7 @@ class SeaIceConnector:
   def insert(self, term): 
   #
   # Add a term to the database and return number of rows affected (1 or 0. 
-  # Expects a dictionary type.
+  # Expects a dictionary type. # TODO rename to insertTerm()
   #
     cur = self.con.cursor()
 
@@ -229,6 +230,7 @@ class SeaIceConnector:
   def remove(self, id):
   #
   # Remove term from the database and return number of rows affected (1 or 0). 
+  # TODO rename to removeTerm()
   #
     cur = self.con.cursor()
     return cur.execute("delete from SI.Terms where id=%d" % id)
@@ -278,6 +280,19 @@ class SeaIceConnector:
     cur.execute("update SI.Terms set term_string='%s', definition='%s' where id=%d" % (
       term['term_string'], term['definition'], id))
   
+  def insertUser(self, user):
+  #
+  # Insert a new user into the table. 
+  #
+    cur = self.con.cursor()
+    cur.execute("""insert into SI.Users(email, last_name, first_name, authority, auth_id) 
+                    values (%s, %s, %s, %s, %s)""" % user['email'], 
+                                                     user['last_name'], 
+                                                     user['first_name'], 
+                                                     user['authority'],
+                                                     user['auth_id'])
+
+
   def getUserNameById(self, Userid): 
   #
   # Return Users.Name where Users.id = Userid
