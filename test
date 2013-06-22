@@ -13,6 +13,7 @@ import psycopg2 as pgdb
 import seaice
 from flask import Flask, redirect, url_for, session
 from flask_oauth import OAuth
+import json
 
 
 # You must configure these 3 values from Google APIs console
@@ -44,9 +45,10 @@ google = oauth.remote_app('google',
 @app.route('/')
 def index():
     access_token = session.get('access_token')
-    if access_token is None:
+    if access_token is None: # 1
         return redirect(url_for('login'))
 
+    # 4
     access_token = access_token[0]
     from urllib2 import Request, urlopen, URLError
 
@@ -60,13 +62,12 @@ def index():
             # Unauthorized - bad token
             session.pop('access_token', None)
             return redirect(url_for('login'))
-        return res.read()
-
-    return res.read()
-
+    a = json.load(res)
+    return str(a)
 
 @app.route('/login')
 def login():
+    # 2
     callback=url_for('authorized', _external=True)
     return google.authorize(callback=callback)
 
@@ -75,6 +76,7 @@ def login():
 @app.route(REDIRECT_URI)
 @google.authorized_handler
 def authorized(resp):
+    # 3
     access_token = resp['access_token']
     session['access_token'] = access_token, ''
     return redirect(url_for('index'))

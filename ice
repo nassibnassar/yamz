@@ -28,6 +28,7 @@ from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash
 from flask import request, session, g
+from flask_oauth import OAuth
 from flask.ext import login as poop
 
 import os, sys, optparse
@@ -61,6 +62,8 @@ parser.add_option("-d", "--debug", action="store_true", dest="debug", default=Fa
 (options, args) = parser.parse_args()
 
 
+
+
 ## Connect to PostgreSQL databse ## 
 
 db_config = None
@@ -80,12 +83,34 @@ except pqdb.DatabaseError, e:
   sys.exit(1)
 
 
+
+
 ## Setup flask application ##
 
 app = Flask(__name__)
 app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 
-## Session logins ##
+  ## Google authentication (Oauth) ##
+
+oauth = OAuth()
+
+GOOGLE_CLIENT_ID = '173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleusercontent.com'
+GOOGLE_CLIENT_SECRET = '_Wmt-6SZXRMeaJVFXkuRH-rm'
+REDIRECT_URI = '/authorized' # TODO move these parameters to local config file 
+
+google = oauth.remote_app('google',
+                          base_url='https://www.google.com/accounts/',
+                          authorize_url='https://accounts.google.com/o/oauth2/auth',
+                          request_token_url=None,
+                          request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email',
+                                                'response_type': 'code'},
+                          access_token_url='https://accounts.google.com/o/oauth2/token',
+                          access_token_method='POST',
+                          access_token_params={'grant_type': 'authorization_code'},
+                          consumer_key=GOOGLE_CLIENT_ID,
+                          consumer_secret=GOOGLE_CLIENT_SECRET)
+
+  ## Session logins ##
 
 login_manager = poop.LoginManager()
 login_manager.init_app(app)
@@ -99,7 +124,9 @@ def load_user(id):
   return None
 
 
-## Connect to database for each request ##
+## Request wrappers (get a db connector) ##
+# It's probably a better idea to only grap a connection when it's
+# required. 
 
 @app.before_request
 def before_request():
@@ -130,6 +157,8 @@ def teardown_request(exception):
        # it to the pool here. TODO
 
 
+
+
 ## HTTP request handlers ##
 
 @app.route("/")
@@ -145,7 +174,7 @@ def contact():
   return render_template("contact.html", user_name = poop.current_user.name)
 
 
-## Login and logout ##
+  ## Login and logout ##
 
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
@@ -186,7 +215,7 @@ def logout():
 def unauthorized(): 
   return redirect(url_for('login'))
 
-## Look up terms ##
+  ## Look up terms ##
 
 @app.route("/term=<term_id>")
 def getTerm(term_id = None):
@@ -238,7 +267,7 @@ def returnQuery():
 
 
 
-## Propose or edit terms ##
+  ## Propose or edit terms ##
 
 @app.route("/contribute", methods = ['POST', 'GET'])
 @poop.login_required
@@ -308,13 +337,6 @@ def editTerm(term_id = None):
               """Error! You may only edit or remove terms and definitions which 
                  you've contributed. However, you may comment or vote on this term. """)
 
-
-# TEMP
-# Create two users: (Chris, 999), (Julie, 1000)
-@app.route("/temp")
-def temp():
-  sea.addUser()
-  return "got it"
 
 ## Start HTTP server. ##
 

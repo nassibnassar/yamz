@@ -105,10 +105,14 @@ class SeaIceConnector:
     cur.execute("""
       create table if not exists SI.Users
         (
-          id serial primary key,
-          Name text not null
+          id serial unique not null,
+          authority varchar(64) not null, 
+          last_name varchar(64) not null,
+          first_name varchar(64) not null,
+          email varchar(64) not null, 
+          constraint auth_id primary key (id, authority)
         );
-      alter sequence SI.Users_id_seq restart with 1001"""
+      alter sequence SI.Users_id_seq restart with 10001;"""
     )
 
     # Create Terms table if it doesn't exist.
@@ -379,12 +383,4 @@ class SeaIceConnector:
     string += "</table>"
     return string
     
-
-  ## For testing purposes ##
-
-  def addUser(self): # TEMP!!!
-    cur = self.con.cursor()
-    cur.execute("insert into SI.Users (id, Name) values (999, 'Chris')")
-    cur.execute("insert into SI.Users (id, Name) values (1000, 'Julie')")
-    cur.execute("commit")
 
