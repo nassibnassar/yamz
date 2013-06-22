@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Copyright (c) 2013, Christopher Patton, Nassib Nassar
 # All rights reserved.
 # 

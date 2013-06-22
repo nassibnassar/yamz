@@ -87,39 +87,15 @@ app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 
 ## Session logins ##
 
-class User:
-
-  def __init__(self, id, name): 
-    self.id = id
-    self.name = name
-    self.logged_in = True
-  
-  def is_authenticated(self):
-    return self.logged_in
-
-  def is_active(self):
-    return self.logged_in
-
-  def is_anonymous(self):
-    return False
-
-  def get_id(self):
-    return unicode(self.id)
-
-class AnonymousUser(User): 
-  def __init__(self): 
-    self.id = self.name = None
-    self.logged_in = False
-
 login_manager = poop.LoginManager()
 login_manager.init_app(app)
-login_manager.anonymous_user = AnonymousUser
+login_manager.anonymous_user = seaice.AnonymousUser
 
 @login_manager.user_loader
 def load_user(id):
   name = sea.getUserNameById(int(id))
   if name:
-    return User(int(id), name)
+    return seaice.User(int(id), name)
   return None
 
 
@@ -177,7 +153,7 @@ def login():
     id = int(request.form['user_id'])
     name = g.db.getUserNameById(int(id))
     if name:
-      poop.login_user(User(id, name))
+      poop.login_user(seaice.User(id, name))
       poop.current_user.id = id
       flash("Logged in successfully")
       return render_template('index.html', user_name = poop.current_user.name)
