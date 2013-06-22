@@ -275,7 +275,7 @@ class SeaIceConnector:
     cur.execute("update SI.Terms set term_string='%s', definition='%s' where id=%d" % (
       term['term_string'], term['definition'], id))
   
-  def getUserNameByid(self, Userid): 
+  def getUserNameById(self, Userid): 
   #
   # Return Users.Name where Users.id = Userid
   #
@@ -355,7 +355,7 @@ class SeaIceConnector:
       print "\n    definition:\n"    
       self.printParagraph(row['definition'])
       
-      print "\n    Ownership: %s" % self.getUserNameByid(row['owner_id'])
+      print "\n    Ownership: %s" % self.getUserNameById(row['owner_id'])
       print
 
   def printAsHTML(self, rows, owner_id=0): 
@@ -373,7 +373,7 @@ class SeaIceConnector:
       string += "  <td valign=top><i>Last modified</i>: %s</td>" % row['modified']
       string += "</tr><tr>"
       string += "  <td valign=top><i>definition:</i> %s</td>" % row['definition']
-      string += "  <td valign=top><i>Ownership:</i> %s"% self.getUserNameByid(row['owner_id'])
+      string += "  <td valign=top><i>Ownership:</i> %s"% self.getUserNameById(row['owner_id'])
       if owner_id == row['owner_id']:
         string += " <a href=\"/edit=%d\">[edit term]</a>" % row['id']
       string += "</td></tr><tr height=16><td></td></tr>"

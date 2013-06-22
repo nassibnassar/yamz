@@ -19,7 +19,6 @@ app.secret_key = "Joseph D. Sanders"
 
 ## Setup logging on ##
 
-login_manager.init_app(app)
 
 class User:
 
@@ -40,6 +39,15 @@ class User:
   def get_id(self):
     return unicode(self.Id)
 
+class AnonymousUser(User): 
+  def __init__(self): 
+    self.Id = self.Name = None
+    self.logged_in = False
+
+
+login_manager.init_app(app)
+login_manager.anonymous_user = AnonymousUser
+
 # This is a DB. 
 users = { 1 : User(1, 'Paul'), 
           2 : User(2, 'Friedrich'),
@@ -55,7 +63,8 @@ def load_user(userid):
 
 @app.route("/")
 def index():
-  return 'index <a href="/stuff">stuff</a>'
+  return '''index <a href="/stuff">stuff</a>
+         You are logged in as %s''' % poop.current_user.Name
 
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
