@@ -102,6 +102,7 @@ class SeaIceConnector:
     )
     
     # Create Users table if it doesn't exist. 
+    # TODO unique constraint on (auth_id, authority)
     cur.execute("""
       create table if not exists SI.Users
         (
@@ -286,19 +287,30 @@ class SeaIceConnector:
   #
     cur = self.con.cursor()
     cur.execute("""insert into SI.Users(email, last_name, first_name, authority, auth_id) 
-                    values (%s, %s, %s, %s, %s)""" % user['email'], 
+                    values ('%s', '%s', '%s', '%s', '%s')""" % (
+                                                     user['email'], 
                                                      user['last_name'], 
                                                      user['first_name'], 
                                                      user['authority'],
-                                                     user['auth_id'])
+                                                     user['auth_id']))
 
+  def getUserByAuth(self, authority, auth_id):
+  #
+  # Return Users.Id where Users.auth_id = auth_id and 
+  # Users.authority = authority
+  #
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("select * from SI.Users where auth_id = '%s' and authority = '%s'" % 
+                 (auth_id, authority))
+    res = cur.fetchone()
+    return res
 
   def getUserNameById(self, Userid): 
   #
   # Return Users.Name where Users.id = Userid
   #
     cur = self.con.cursor()
-    cur.execute("select Name from SI.Users where id=%d" % Userid)
+    cur.execute("select first_name from SI.Users where id=%d" % Userid)
     res = cur.fetchone()
     if res: 
       return res[0]

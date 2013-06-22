@@ -226,9 +226,24 @@ def authorized(resp):
       session.pop('access_token', None)
       return 'poop'
   g_user = json.load(res)
-  print g_user
 
-    # TODO login, add user if necessary
+  user = sea.getUserByAuth('google', g_user['id'])
+  if user: 
+    print 'Logging in!'
+    
+  else: # TODO form for entering name
+    print 'Adding user!!!'
+    g_user['authority'] = 'google'
+    g_user['auth_id'] = g_user['id']
+    g_user['last_name'] = "Patton"
+    g_user['first_name'] = "Christopher"
+    sea.insertUser(g_user)
+    user = sea.getUserByAuth('google', g_user['id'])
+  
+  print user
+  poop.login_user(seaice.User(user['id'], user['first_name']))
+  flash("Logged in successfully")
+  sea.commit()
 
   return redirect(url_for('index'))
 
