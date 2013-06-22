@@ -15,7 +15,7 @@ packages. On Ubuntu, grab the follwoing:
 We need to download a package from pip that handles configuration files
 nicely. Do: 
 
-  $ sudo pip install configparser flask-login
+  $ sudo pip install configparser flask-login flask-Oauth
 
 Now set up a database in postgres. First, we need to do some configuration. 
 Postgres requires an administrative user called 'postgres'. In addition,
