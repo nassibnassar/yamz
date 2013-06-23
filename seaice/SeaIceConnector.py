@@ -294,6 +294,14 @@ class SeaIceConnector:
                                                      user['authority'],
                                                      user['auth_id']))
 
+  def getUser(self, id):
+  #
+  # Get User by Id
+  #
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("select * from SI.Users where id=%d" % id)
+    return cur.fetchone()
+      
   def getUserByAuth(self, authority, auth_id):
   #
   # Return Users.Id where Users.auth_id = auth_id and 
@@ -312,10 +320,19 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("select first_name from SI.Users where id=%d" % Userid)
     res = cur.fetchone()
+    print res
     if res: 
       return res[0]
     else: 
       return None
+  
+  def updateUser(self, id, first, last): 
+  #
+  # Update User name
+  # 
+    cur = self.con.cursor()
+    cur.execute("update SI.Users set first_name='%s', last_name='%s' where id=%d" % (
+      first, last, id))
 
 
   ## Import/Export tables ##

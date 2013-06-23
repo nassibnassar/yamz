@@ -213,7 +213,7 @@ def login_google():
 
 @app.route(REDIRECT_URI)
 @google.authorized_handler
-def authorized(resp, method=):
+def authorized(resp):
   access_token = resp['access_token']
   session['access_token'] = access_token, ''
 
@@ -231,20 +231,27 @@ def authorized(resp, method=):
   if not user: # TODO form for entering name 
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
-    g_user['last_name'] = "Patton"
-    g_user['first_name'] = "Christopher"
+    g_user['last_name'] = "nil"
+    g_user['first_name'] = "nil"
     sea.insertUser(g_user)
+    sea.commit()
     user = sea.getUserByAuth('google', g_user['id'])
+    poop.login_user(seaice.User(user['id'], user['first_name']))
+    return render_template("settings.html", user_name = poop.current_user.name,
+                                            email = g_user['email'],
+                                            message = """
+        According to our records, this is the first time you've logged onto 
+        SeaIce with this account. Please provide your first and last name as 
+        you would like it to appear with your contributions. Thank you!""")
   
   poop.login_user(seaice.User(user['id'], user['first_name']))
   flash("Logged in successfully")
-  sea.commit()
-
   return redirect(url_for('index'))
+
 
 @google.tokengetter
 def get_access_token():
-    return session.get('access_token')
+  return session.get('access_token')
 
 @app.route('/logout')
 @poop.login_required
@@ -256,6 +263,49 @@ def logout():
 def unauthorized(): 
   return redirect(url_for('login'))
 
+  ## Users ##
+
+@app.route("/settings", methods = ['POST', 'GET'])
+@poop.login_required
+def settings():
+  if request.method == "POST": 
+    sea.updateUser(poop.current_user.id, 
+                   request.form['first_name'],
+                   request.form['last_name'])
+    sea.commit()
+    return redirect(url_for('index'))
+    # TODO redirect to /user=USER_ID
+  
+  user = g.db.getUser(poop.current_user.id)
+  return render_template("settings.html", user_name = poop.current_user.name,
+                                          email = user['email'],
+                                          last_name_edit = user['last_name'],
+                                          first_name_edit = user['first_name'],
+                                          message = """
+                    Here you can change how your name will appear""")
+
+@app.route("/user=<user_id>")
+def getUser(user_id = None): 
+ 
+  try:
+    user = g.db.getUser(int(user_id))
+    if user:
+      result =  """
+        <table cellpadding=12>
+          <tr><td valign=top width="40%">First name:</td><td>%s</td></tr>
+          <tr><td valign=top>Last name:</td><td>%s</td></tr>
+          <tr><td valign=top>Email:</td><td>%s</td></td>
+        </table> """ % (user['first_name'], user['last_name'], user['email'])
+      return render_template("basic_page.html", user_name = poop.current_user.name, 
+                                                title = "User - %s" % term_id, 
+                                                headline = "User", 
+                                                content = Markup(result))
+  except ValueError: pass
+  
+  return render_template("basic_page.html", user_name = poop.current_user.name, 
+                                            title = "User not found",
+                                            headline = "User", 
+                                            content = Markup("User <strong>#%s</strong> not found!" % user_id))
 
   ## Look up terms ##
 
