@@ -28,7 +28,6 @@ from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash
 from flask import request, session, g
-from flask_oauth import OAuth
 from flask.ext import login as poop
 
 from urllib2 import Request, urlopen, URLError
@@ -97,25 +96,6 @@ except pqdb.DatabaseError, e:
 app = Flask(__name__)
 app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 
-  ## Google authentication (Oauth) ##
-
-oauth = OAuth()
-
-GOOGLE_CLIENT_ID = '173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleusercontent.com'
-GOOGLE_CLIENT_SECRET = '_Wmt-6SZXRMeaJVFXkuRH-rm'
-REDIRECT_URI = '/authorized' # TODO move these parameters to local config file 
-
-google = oauth.remote_app('google',
-                          base_url='https://www.google.com/accounts/',
-                          authorize_url='https://accounts.google.com/o/oauth2/auth',
-                          request_token_url=None,
-                          request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email',
-                                                'response_type': 'code'},
-                          access_token_url='https://accounts.google.com/o/oauth2/token',
-                          access_token_method='POST',
-                          access_token_params={'grant_type': 'authorization_code'},
-                          consumer_key=GOOGLE_CLIENT_ID,
-                          consumer_secret=GOOGLE_CLIENT_SECRET)
 
   ## Session logins ##
 
@@ -217,10 +197,10 @@ def login():
 @app.route("/login/google")
 def login_google():
     callback=url_for('authorized', _external=True)
-    return google.authorize(callback=callback)
+    return seaice.google.authorize(callback=callback)
 
-@app.route(REDIRECT_URI)
-@google.authorized_handler
+@app.route(seaice.REDIRECT_URI)
+@seaice.google.authorized_handler
 def authorized(resp):
   access_token = resp['access_token']
   session['access_token'] = access_token, ''
@@ -236,7 +216,7 @@ def authorized(resp):
   g_user = json.load(res)
 
   user = sea.getUserByAuth('google', g_user['id'])
-  if not user: # TODO form for entering name 
+  if not user: 
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
     g_user['last_name'] = "nil"
@@ -257,7 +237,7 @@ def authorized(resp):
   return redirect(url_for('index'))
 
 
-@google.tokengetter
+@seaice.google.tokengetter
 def get_access_token():
   return session.get('access_token')
 
