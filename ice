@@ -46,7 +46,7 @@ SeaIce is a database comprised of a set of user-defined, crowd-sourced terms and
 relationss. The goal of SeaIce is to develop a succint and complete set of 
 metadata terms to register just about any type of file or data set. 'ice' is 
 distributed under the terms of the BSD license with the hope that it will be 
-useful, but without warranty. You should have received a copy of the BSD 
+# useful, but without warranty. You should have received a copy of the BSD 
 license with this program; otherwise, visit 
 http://opensource.org/licenses/BSD-3-Clause.
 """
@@ -69,7 +69,13 @@ parser.add_option("-d", "--debug", action="store_true", dest="debug", default=Fa
 
 db_config = None
 
-try: 
+try:
+
+  # This connector is needed to do DB queries outside 
+  # the context of a request. It won't be necessary 
+  # once I implement a DB pool with viewes instead of 
+  # users. TODO ~ 6/23/13
+
   if options.config_file == "heroku": 
     sea = seaice.SeaIceConnector()
 
@@ -126,8 +132,10 @@ def load_user(id):
 
 
 ## Request wrappers (get a db connector) ##
-# It's probably a better idea to only grap a connection when it's
-# required. 
+
+# TODO ~ 6/23/13. Only get a DB connector when it is 
+# needed in order to save overhead. Furthermore, get it
+# from a pool.
 
 @app.before_request
 def before_request():
