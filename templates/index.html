@@ -42,13 +42,12 @@
       <div class="container-narrow">
         <div class="masthead">
           <ul class="nav nav-pills pull-right">
-            <li class="active"><a href="/">Home</a></li>
             <li><a href="/browse">Browse</a></li>
             <li><a href="/contribute">Contribute</a></li>
             <li><a href="/about">About</a></li>
             <li><a href="/contact">Contact</a></li>
             <li><a href="/settings">Settings</a></li>
-            <li>{% if user_name %}
+            <li class="active">{% if user_name %}
                <a href="/logout">Log out of {{ user_name }}</a>
               {% else %}
                <a href="/login">Login</a>
