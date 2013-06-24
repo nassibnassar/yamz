@@ -291,7 +291,7 @@ def getTerm(term_id = None, message = ""):
   try: 
     term = g.db.getTerm(int(term_id))
     if term:
-      result = g.db.printAsHTML([term], poop.current_user.id)
+      result = seaice.printAsHTML(g.db, [term], poop.current_user.id)
       result = message + "<hr>" + result
       return render_template("basic_page.html", user_name = poop.current_user.name, 
                                                 title = "Term - %s" % term_id, 
@@ -327,7 +327,7 @@ def returnQuery():
       return render_template("search.html", user_name = poop.current_user.name, 
                                             term_string = request.form['term_string'])
     else:
-      result = g.db.printAsHTML(terms, poop.current_user.id)
+      result = seaice.printAsHTML(g.db, terms, poop.current_user.id)
       return render_template("search.html", user_name = poop.current_user.name, 
         term_string = request.form['term_string'], result = Markup(result))
 

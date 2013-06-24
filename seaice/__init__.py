@@ -25,3 +25,4 @@
 from SeaIceConnector import *
 from User import *
 from Auth import *
+from Pretty import *
