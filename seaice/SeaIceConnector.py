@@ -420,7 +420,22 @@ class SeaIceConnector:
   #
   # Print table rows as an HTML table (to string) 
   # 
-    string = "<table colpadding=16>" 
+    script = """
+    <script>function ConfirmRemove(id) {
+      var r=window.confirm("Are you sure you want to delete term #" + id + "?");
+      if (r==true) { 
+        x=id; 
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", "remove");
+        field = document.createElement("input");
+        field.setAttribute("name", "id");
+        field.setAttribute("value", id);
+        form.appendChild(field);
+        document.body.appendChild(form); 
+        form.submit();
+      } else { x="nil"; } } </script>"""
+    string = script + "<table colpadding=16>" 
     for row in rows:
       string += "<tr>"
       string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
@@ -433,7 +448,9 @@ class SeaIceConnector:
       string += "  <td valign=top><i>definition:</i> %s</td>" % row['definition']
       string += "  <td valign=top><i>Ownership:</i> %s"% self.getUserNameById(row['owner_id'])
       if owner_id == row['owner_id']:
-        string += " <a href=\"/edit=%d\">[edit term]</a>" % row['id']
+        string += " <a href=\"/edit=%d\">[edit]</a>" % row['id']
+        string += """ <a id="myLink" title="Click to delete term" href="#"
+                      onclick="return ConfirmRemove(%s);">[remove]</a><br>""" % row['id']
       string += "</td></tr><tr height=16><td></td></tr>"
     string += "</table>"
     return string

@@ -336,7 +336,7 @@ def returnQuery():
 
 
 
-  ## Propose or edit terms ##
+  ## Propose, edit, or remove a term ##
 
 @app.route("/contribute", methods = ['POST', 'GET'])
 @poop.login_required
@@ -395,6 +395,19 @@ def editTerm(term_id = None):
                                               content = 
               """Error! You may only edit or remove terms and definitions which 
                  you've contributed. However, you may comment or vote on this term. """)
+
+
+@app.route("/remove", methods=["POST"])
+def remTerm():
+  term = g.db.getTerm(int(request.form['id']))
+  if term and term['owner_id'] == poop.current_user.id: 
+    g.db.removeTerm(int(request.form['id']))
+    g.db.commit()
+  
+  return render_template("basic_page.html", user_name = poop.current_user.name, 
+                                            title = "Remove term",
+                                            content = Markup(
+                "Successfully removed term <b>#%s</b> from the metadictionary." % request.form['id']))
 
 
 ## Start HTTP server. ##
