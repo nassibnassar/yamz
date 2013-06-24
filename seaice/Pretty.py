@@ -8,7 +8,7 @@ def printPrettyDate(t, gmt=False):
 # has elapsed, then give this info. TODO
 #
 
-  return "%s/%s/%s %s:%s" % (t.day, t.month, t.year, t.hour, t.minute)
+  return "%s/%s/%s %s:%s %s" % (t.day, t.month, t.year, t.hour, t.minute, t.tzname)
   
 
 
