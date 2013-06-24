@@ -23,7 +23,47 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from SeaIceConnector import *
-from SeaIceConnectorPool import *
-from User import *
-from Auth import *
-from Pretty import *
+from threading import Lock
+
+class ScopedSeaIceConnector (SeaIceConnector): 
+
+  def __init__(self, pool, db_con):
+    self.con = db_con.con
+    self.heroku_db = db_con.heroku_db
+    self.db_con = db_con
+    self.pool = pool
+
+  def __del__(self):
+    self.pool.enqueue(self.db_con)
+
+
+class SeaIceConnectorPool:
+  
+  def __init__(self, count=20, user=None, password=None, db=None):
+    self.pool = [ SeaIceConnector(user, password, db) for _ in range(count) ]
+    self.L_pool = Lock()
+
+  def getScoped(self):
+  #
+  # Get scoped connector (releases itself when it goes out of scope)
+  #
+    return ScopedSeaIceConnector(self, self.dequeue())
+      
+  def dequeue(self):
+  #
+  # Get connector 
+  #
+    self.L_pool.acquire()
+    db_con = self.pool.pop()
+    self.L_pool.release()
+    return db_con
+
+  def enqueue(self, db_con): 
+  #
+  # Release connector
+  #
+    self.L_pool.acquire()
+    self.pool.append(db_con)
+    self.L_pool.release()
+
+

@@ -70,21 +70,16 @@ db_config = None
 
 try:
 
-  # This connector is needed to do DB queries outside 
-  # the context of a request. It won't be necessary 
-  # once I implement a DB pool with viewes instead of 
-  # users. TODO ~ 6/23/13
-
   if options.config_file == "heroku": 
-    sea = seaice.SeaIceConnector()
+    dbPool = seaice.SeaIceConnectorPool(20)
 
   else: 
     db_config = seaice.get_config(options.config_file)
-    sea = seaice.SeaIceConnector(db_config.get('default', 'user'),
-                                 db_config.get('default', 'password'),
-                                 db_config.get('default', 'dbname'))
+    dbPool = seaice.SeaIceConnectorPool(20, db_config.get('default', 'user'),
+                                        db_config.get('default', 'password'),
+                                        db_config.get('default', 'dbname'))
 
-except pqdb.DatabaseError, e:
+except pgdb.DatabaseError, e:
   print 'error: %s' % e    
   sys.exit(1)
 
@@ -105,7 +100,8 @@ login_manager.anonymous_user = seaice.AnonymousUser
 
 @login_manager.user_loader
 def load_user(id):
-  name = sea.getUserNameById(int(id))
+  db = dbPool.getScoped()
+  name = db.getUserNameById(int(id))
   if name:
     return seaice.User(int(id), name)
   return None
@@ -113,39 +109,18 @@ def load_user(id):
 
 ## Request wrappers (get a db connector) ##
 
-# TODO ~ 6/23/13. Only get a DB connector when it is 
-# needed in order to save overhead. Furthermore, get it
-# from a pool.
-
 @app.before_request
 def before_request():
-  if poop.current_user.id: 
-    view = 'contributor'
-  else:
-    view = 'viewer'
-
-  # TODO get from pool instead!
   try:
+    g.db = dbPool.dequeue()
 
-    if options.config_file == "heroku": 
-      g.db = seaice.SeaIceConnector()
-
-    else: 
-      g.db = seaice.SeaIceConnector(db_config.get(view, 'user'),
-                                    db_config.get(view, 'password'),
-                                    db_config.get(view, 'dbname'))
-
-  except pqdb.DatabaseError, e:
+  except pgdb.DatabaseError, e:
     print 'error: %s' % e    
     sys.exit(1)
 
 @app.teardown_request
 def teardown_request(exception):
-  pass # connection closed when g.db goes out of scope. 
-       # Once we have a connection pool, we'll release 
-       # it to the pool here. TODO
-
-
+  dbPool.enqueue(g.db) 
 
 
 ## HTTP request handlers ##
@@ -204,15 +179,16 @@ def authorized(resp):
       return 'poop'
   g_user = json.load(res)
 
-  user = sea.getUserByAuth('google', g_user['id'])
+  db = dbPool.getScoped()
+  user = db.getUserByAuth('google', g_user['id'])
   if not user: 
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
     g_user['last_name'] = "nil"
     g_user['first_name'] = "nil"
-    sea.insertUser(g_user)
-    sea.commit()
-    user = sea.getUserByAuth('google', g_user['id'])
+    db.insertUser(g_user)
+    db.commit()
+    user = db.getUserByAuth('google', g_user['id'])
     poop.login_user(seaice.User(user['id'], user['first_name']))
     return render_template("settings.html", user_name = poop.current_user.name,
                                             email = g_user['email'],
@@ -246,10 +222,10 @@ def unauthorized():
 @poop.login_required
 def settings():
   if request.method == "POST": 
-    sea.updateUser(poop.current_user.id, 
+    g.db.updateUser(poop.current_user.id, 
                    request.form['first_name'],
                    request.form['last_name'])
-    sea.commit()
+    g.db.commit()
     return getUser(str(poop.current_user.id))
   
   user = g.db.getUser(poop.current_user.id)
