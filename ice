@@ -167,17 +167,6 @@ def contact():
 
 @app.route("/login")
 def login():
-  #if request.method == 'POST':
-  #  id = int(request.form['user_id'])
-  #  name = g.db.getUserNameById(int(id))
-  #  if name:
-  #    poop.login_user(seaice.User(id, name))
-  #    poop.current_user.id = id
-  #    flash("Logged in successfully")
-  #    return render_template('index.html', user_name = poop.current_user.name)
-  #  else: 
-  #    return render_template("basic_page.html", title = "Login failed", 
-  #                                              content = "Account doesn't exist!")
   if poop.current_user.id:
       return render_template("basic_page.html", user_name = poop.current_user.name,
                                                 title = "Oops!", 
@@ -261,8 +250,7 @@ def settings():
                    request.form['first_name'],
                    request.form['last_name'])
     sea.commit()
-    return redirect(url_for('index'))
-    # TODO redirect to /user=USER_ID
+    return getUser(str(poop.current_user.id))
   
   user = g.db.getUser(poop.current_user.id)
   return render_template("settings.html", user_name = poop.current_user.name,
@@ -278,17 +266,17 @@ def getUser(user_id = None):
   try:
     user = g.db.getUser(int(user_id))
     if user:
-      result =  """
+      result =  """<hr>
         <table cellpadding=12>
-          <tr><td valign=top width="40%">First name:</td><td>%s</td></tr>
-          <tr><td valign=top>Last name:</td><td>%s</td></tr>
-          <tr><td valign=top>Email:</td><td>%s</td></td>
-        </table> """ % (user['first_name'], user['last_name'], user['email'])
+          <tr><td valign=top width="40%">First name:</td><td>{0}</td></tr>
+          <tr><td valign=top>Last name:</td><td>{1}</td></tr>
+          <tr><td valign=top>Email:</td><td>{2}</td></td>
+        </table> """.format(user['first_name'], user['last_name'], user['email'])
       return render_template("basic_page.html", user_name = poop.current_user.name, 
-                                                title = "User - %s" % term_id, 
+                                                title = "User - %s" % user_id, 
                                                 headline = "User", 
                                                 content = Markup(result))
-  except ValueError: pass
+  except IndexError: pass
   
   return render_template("basic_page.html", user_name = poop.current_user.name, 
                                             title = "User not found",
@@ -298,12 +286,13 @@ def getUser(user_id = None):
   ## Look up terms ##
 
 @app.route("/term=<term_id>")
-def getTerm(term_id = None):
+def getTerm(term_id = None, message = ""):
   
   try: 
     term = g.db.getTerm(int(term_id))
     if term:
       result = g.db.printAsHTML([term], poop.current_user.id)
+      result = message + "<hr>" + result
       return render_template("basic_page.html", user_name = poop.current_user.name, 
                                                 title = "Term - %s" % term_id, 
                                                 headline = "Term", 
@@ -358,15 +347,10 @@ def addTerm():
              'definition' : request.form['definition'],
              'owner_id' : poop.current_user.id }
 
-    g.db.insert(term)
+    id = g.db.insertTerm(term)
     g.db.commit()
-
-    return render_template("basic_page.html", user_name = poop.current_user.name, 
-                                              title = "Contribute",
-                                              headline = "Contribute", 
-                                              content = Markup(
-        """<strong>%s</strong> has been added to the metadictionary.
-        Thank you for your contribution!""" % request.form['term_string']))
+  
+    return getTerm(str(id), message = "Your term has been added to the metadictionary!")
   
   else: return render_template("contribute.html", user_name = poop.current_user.name, 
                                                   title = "Contribute", 
@@ -389,12 +373,7 @@ def editTerm(term_id = None):
       g.db.updateTerm(int(term_id), updatedTerm)
       g.db.commit()
 
-      return render_template("basic_page.html", user_name = poop.current_user.name, 
-                                                title = "Edit",
-                                                headline = "Edit Term", 
-                                                content = Markup(
-          """<strong>%s</strong> has been updated in the metadictionary.
-          Thank you for your contribution!""" % request.form['term_string']))
+      return getTerm(term_id, message = "Your term has been updated in the metadictionary.")
   
     else: # GET 
       if term: 

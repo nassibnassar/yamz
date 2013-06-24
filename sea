@@ -104,7 +104,7 @@ try:
   ## Run specified queries. ##
 
   if options.remove_id:
-    if not sea.remove(int(options.remove_id)):
+    if not sea.removeTerm(int(options.remove_id)):
       print >>sys.stderr, "sea: no such term (Id=%s not found)" % options.remove_id
 
   if options.import_file:

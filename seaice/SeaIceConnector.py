@@ -180,10 +180,9 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("commit")
 
-  def insert(self, term): 
+  def insertTerm(self, term): 
   #
-  # Add a term to the database and return number of rows affected (1 or 0. 
-  # Expects a dictionary type. # TODO rename to insertTerm()
+  # Add a term to the database and return Terms.Id (None if failed) 
   #
     cur = self.con.cursor()
 
@@ -206,7 +205,7 @@ class SeaIceConnector:
         defTerm[key] = str(value).replace("'", "\\'")
     
     try:
-      return cur.execute(
+      cur.execute(
         """insert into SI.Terms( id, 
                               term_string, 
                               definition, 
@@ -215,8 +214,15 @@ class SeaIceConnector:
                               modified,
                               owner_id ) 
             values(%s, '%s', '%s', %s, %s, %s, %s) 
+            returning id
         """ % (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['score'], 
                defTerm['created'], defTerm['modified'], defTerm['owner_id']))
+    
+      res = cur.fetchone()
+      if res: 
+        return res[0]
+      else:
+        return None
 
     except pgdb.DatabaseError, e:
       #print 'Error %s' % e    
@@ -228,10 +234,9 @@ class SeaIceConnector:
       #   return 0
       raise e
 
-  def remove(self, id):
+  def removeTerm(self, id):
   #
   # Remove term from the database and return number of rows affected (1 or 0). 
-  # TODO rename to removeTerm()
   #
     cur = self.con.cursor()
     return cur.execute("delete from SI.Terms where id=%d" % id)
@@ -283,16 +288,23 @@ class SeaIceConnector:
   
   def insertUser(self, user):
   #
-  # Insert a new user into the table. 
+  # Insert a new user into the table and return Users.Id (None if failed) 
   #
     cur = self.con.cursor()
     cur.execute("""insert into SI.Users(email, last_name, first_name, authority, auth_id) 
-                    values ('%s', '%s', '%s', '%s', '%s')""" % (
+                    values ('%s', '%s', '%s', '%s', '%s')
+                    returning id""" % (
                                                      user['email'], 
                                                      user['last_name'], 
                                                      user['first_name'], 
                                                      user['authority'],
                                                      user['auth_id']))
+    res = cur.fetchone()
+    if res: 
+      return res[0]
+    else:
+      return None
+
 
   def getUser(self, id):
   #
@@ -320,7 +332,6 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("select first_name from SI.Users where id=%d" % Userid)
     res = cur.fetchone()
-    print res
     if res: 
       return res[0]
     else: 
