@@ -76,13 +76,12 @@ try:
   else: 
     db_config = seaice.get_config(options.config_file)
     dbPool = seaice.SeaIceConnectorPool(20, db_config.get('default', 'user'),
-                                        db_config.get('default', 'password'),
-                                        db_config.get('default', 'dbname'))
+                                            db_config.get('default', 'password'),
+                                            db_config.get('default', 'dbname'))
 
 except pgdb.DatabaseError, e:
   print 'error: %s' % e    
   sys.exit(1)
-
 
 
 
@@ -111,16 +110,17 @@ def load_user(id):
 
 @app.before_request
 def before_request():
-  try:
-    g.db = dbPool.dequeue()
-
-  except pgdb.DatabaseError, e:
-    print 'error: %s' % e    
-    sys.exit(1)
+  pass
+  #try:
+  #  g.db = dbPool.getScoped()
+  #
+  #except pgdb.DatabaseError, e:
+  #  print 'error: %s' % e    
+  #  sys.exit(1)
 
 @app.teardown_request
 def teardown_request(exception):
-  dbPool.enqueue(g.db) 
+  pass#dbPool.enqueue(g.db) 
 
 
 ## HTTP request handlers ##
@@ -160,8 +160,8 @@ def login():
 
 @app.route("/login/google")
 def login_google():
-    callback=url_for('authorized', _external=True)
-    return seaice.google.authorize(callback=callback)
+  callback=url_for('authorized', _external=True)
+  return seaice.google.authorize(callback=callback)
 
 @app.route(seaice.REDIRECT_URI)
 @seaice.google.authorized_handler
@@ -178,17 +178,17 @@ def authorized(resp):
       session.pop('access_token', None)
       return 'poop'
   g_user = json.load(res)
-
-  db = dbPool.getScoped()
-  user = db.getUserByAuth('google', g_user['id'])
+  
+  g.db = dbPool.getScoped()
+  user = g.db.getUserByAuth('google', g_user['id'])
   if not user: 
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
     g_user['last_name'] = "nil"
     g_user['first_name'] = "nil"
-    db.insertUser(g_user)
-    db.commit()
-    user = db.getUserByAuth('google', g_user['id'])
+    g.db.insertUser(g_user)
+    g.db.commit()
+    user = g.db.getUserByAuth('google', g_user['id'])
     poop.login_user(seaice.User(user['id'], user['first_name']))
     return render_template("settings.html", user_name = poop.current_user.name,
                                             email = g_user['email'],
@@ -221,14 +221,17 @@ def unauthorized():
 @app.route("/settings", methods = ['POST', 'GET'])
 @poop.login_required
 def settings():
+  g.db = dbPool.dequeue()
   if request.method == "POST": 
     g.db.updateUser(poop.current_user.id, 
                    request.form['first_name'],
                    request.form['last_name'])
     g.db.commit()
+    dbPool.enqueue(g.db)
     return getUser(str(poop.current_user.id))
   
   user = g.db.getUser(poop.current_user.id)
+  dbPool.enqueue(g.db)
   return render_template("settings.html", user_name = poop.current_user.name,
                                           email = user['email'],
                                           last_name_edit = user['last_name'],
@@ -239,6 +242,7 @@ def settings():
 @app.route("/user=<user_id>")
 def getUser(user_id = None): 
  
+  g.db = dbPool.getScoped()
   try:
     user = g.db.getUser(int(user_id))
     if user:
@@ -264,6 +268,7 @@ def getUser(user_id = None):
 @app.route("/term=<term_id>")
 def getTerm(term_id = None, message = ""):
   
+  g.db = dbPool.getScoped()
   try: 
     term = g.db.getTerm(int(term_id))
     if term:
@@ -282,6 +287,7 @@ def getTerm(term_id = None, message = ""):
 
 @app.route("/browse")
 def browse():
+  g.db = dbPool.getScoped()
   terms = g.db.getAllTerms(sortBy="term_string")
   result = "<hr>"
 
@@ -297,6 +303,7 @@ def browse():
 
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
+  g.db = dbPool.getScoped()
   if request.method == "POST": 
     terms = g.db.searchByTerm(request.form['term_string'])
     if len(terms) == 0: 
@@ -319,13 +326,14 @@ def returnQuery():
 def addTerm(): 
 
   if request.method == "POST": 
+    g.db = dbPool.dequeue()
     term = { 'term_string' : request.form['term_string'],
              'definition' : request.form['definition'],
              'owner_id' : poop.current_user.id }
 
     id = g.db.insertTerm(term)
     g.db.commit()
-  
+    dbPool.enqueue(g.db)
     return getTerm(str(id), message = "Your term has been added to the metadictionary!")
   
   else: return render_template("contribute.html", user_name = poop.current_user.name, 
@@ -338,6 +346,7 @@ def addTerm():
 def editTerm(term_id = None): 
 
   try: 
+    g.db = dbPool.dequeue()
     term = g.db.getTerm(int(term_id))
     assert poop.current_user.id and term['owner_id'] == poop.current_user.id
     
@@ -348,10 +357,11 @@ def editTerm(term_id = None):
 
       g.db.updateTerm(int(term_id), updatedTerm)
       g.db.commit()
-
+      dbPool.enqueue(g.db)
       return getTerm(term_id, message = "Your term has been updated in the metadictionary.")
   
     else: # GET 
+      dbPool.enqueue(g.db)
       if term: 
         return render_template("contribute.html", user_name = poop.current_user.name, 
                                                   title = "Edit - %s" % term_id,
@@ -375,6 +385,7 @@ def editTerm(term_id = None):
 
 @app.route("/remove", methods=["POST"])
 def remTerm():
+  g.db = dbPool.getScoped()
   term = g.db.getTerm(int(request.form['id']))
   if term and term['owner_id'] == poop.current_user.id: 
     g.db.removeTerm(int(request.form['id']))

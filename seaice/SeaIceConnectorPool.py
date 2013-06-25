@@ -23,7 +23,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from SeaIceConnector import *
-from threading import Lock
+from threading import Condition
 
 class ScopedSeaIceConnector (SeaIceConnector): 
 
@@ -41,7 +41,7 @@ class SeaIceConnectorPool:
   
   def __init__(self, count=20, user=None, password=None, db=None):
     self.pool = [ SeaIceConnector(user, password, db) for _ in range(count) ]
-    self.L_pool = Lock()
+    self.C_pool = Condition()
 
   def getScoped(self):
   #
@@ -53,17 +53,22 @@ class SeaIceConnectorPool:
   #
   # Get connector 
   #
-    self.L_pool.acquire()
+    self.C_pool.acquire()
+    while len(self.pool) == 0: 
+      self.C_pool.wait()
     db_con = self.pool.pop()
-    self.L_pool.release()
+    self.C_pool.release()
+    print 'yes'
     return db_con
 
   def enqueue(self, db_con): 
   #
   # Release connector
   #
-    self.L_pool.acquire()
+    self.C_pool.acquire()
     self.pool.append(db_con)
-    self.L_pool.release()
+    self.C_pool.notify()
+    self.C_pool.release()
+    print 'no'
 
 
