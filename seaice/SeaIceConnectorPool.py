@@ -58,7 +58,6 @@ class SeaIceConnectorPool:
       self.C_pool.wait()
     db_con = self.pool.pop()
     self.C_pool.release()
-    print 'yes'
     return db_con
 
   def enqueue(self, db_con): 
@@ -69,6 +68,5 @@ class SeaIceConnectorPool:
     self.pool.append(db_con)
     self.C_pool.notify()
     self.C_pool.release()
-    print 'no'
 
 

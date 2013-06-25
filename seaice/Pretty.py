@@ -36,13 +36,13 @@ def printPrettyDate(t, gmt=False):
   
 
 
-def printAsJSObject(db_con, rows, fd = sys.stdout):
+def printAsJSObject(rows, fd = sys.stdout):
 #
 # Write table rows in JSON format to 'fd'. 
 #
   for row in rows:
-    row['modified'] = str(row['modified'])
-    row['created'] = str(row['created'])
+    if row.get('modified'): row['modified'] = str(row['modified'])
+    if row.get('created'): row['created'] = str(row['created'])
   print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
 
 def printParagraph(db_con, text, leftMargin=8, width=60): 

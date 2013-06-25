@@ -51,8 +51,8 @@ http://opensource.org/licenses/BSD-3-Clause.
 """
 
 parser.add_option("--config", dest="config_file", metavar="FILE", 
-                  help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice')." + 
-                       "If 'heroku' is given, then a connection to a foreign host specified by" + 
+                  help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice'). " + 
+                       "If 'heroku' is given, then a connection to a foreign host specified by " + 
                        "DATABASE_URL is established.",
                   default=(os.environ['HOME'] + '/.seaice'))
 
@@ -184,11 +184,12 @@ def authorized(resp):
   if not user: 
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
+    g_user['id'] = 'default'
     g_user['last_name'] = "nil"
     g_user['first_name'] = "nil"
     g.db.insertUser(g_user)
     g.db.commit()
-    user = g.db.getUserByAuth('google', g_user['id'])
+    user = g.db.getUserByAuth('google', g_user['auth_id'])
     poop.login_user(seaice.User(user['id'], user['first_name']))
     return render_template("settings.html", user_name = poop.current_user.name,
                                             email = g_user['email'],
@@ -228,6 +229,7 @@ def settings():
                    request.form['last_name'])
     g.db.commit()
     dbPool.enqueue(g.db)
+    poop.current_user.name = request.form['first_name']
     return getUser(str(poop.current_user.id))
   
   user = g.db.getUser(poop.current_user.id)

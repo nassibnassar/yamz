@@ -46,17 +46,21 @@ parser.add_option("-d", "--dump", action="store_true", dest="dump", default=Fals
                   help="Display the contents of the dictionary in the terminal.")
 
 parser.add_option("--config", dest="config_file", metavar="FILE", 
-                  help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice')." + 
-                       "If 'heroku' is given, then a connection to a foreign host specified by" + 
+                  help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice'). " + 
+                       "If 'heroku' is given, then a connection to a foreign host specified by " + 
                        "DATABASE_URL is established.",
                   default=(os.environ['HOME'] + '/.seaice'))
 
-parser.add_option("--import", dest="import_file",
+parser.add_option("--import", dest="import_table",
                   help="Import JSON-formatted FILE into the dictionary.",
-                  metavar="FILE")
+                  metavar="TABLE")
 
-parser.add_option("--export", dest="export_file",
+parser.add_option("--export", dest="export_table",
                   help="Export dictionary as JSON-formatted FILE.",
+                  metavar="TABLE")
+
+parser.add_option("-f", "--file", dest="file_name", 
+                  help="File from which to import, or file to which to export DB.",
                   metavar="FILE")
 
 parser.add_option("-s", "--search", dest="search_term",
@@ -107,15 +111,18 @@ try:
     if not sea.removeTerm(int(options.remove_id)):
       print >>sys.stderr, "sea: no such term (Id=%s not found)" % options.remove_id
 
-  if options.import_file:
-    sea.Import(options.import_file)
+  if options.import_table:
+    if not options.file_name:
+      print >>sys.stderr, "sea (import): must specify file" 
+    else: 
+      sea.Import(options.import_table, options.file_name)
 
-  if options.export_file:
-    sea.Export(options.export_file)
+  if options.export_table:
+    sea.Export(options.export_table, options.file_name)
   
   if options.drop_tables:
     if not options.quiet:
-      print >>sys.stderr, "warning: this will erase all terms. Are you sure? [y/n]",
+      print >>sys.stderr, "warning: this will erase all terms. Are you sure? [y/n] ",
       if raw_input() in ['y', 'yes', 'Y']: 
         sea.dropSchema()
     else:

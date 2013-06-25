@@ -25,6 +25,7 @@
 import os, sys, stat, configparser, urlparse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
+import Pretty
 
 ## Local db configuration $HOME/.seaice ## 
 
@@ -189,8 +190,8 @@ class SeaIceConnector:
     # Default values for table entries.  
     defTerm = { 
       "id" : "default",
-      "term_string" : "<nil>", 
-      "definition" : "<nil>", 
+      "term_string" : "nil", 
+      "definition" : "nil", 
       "score" : "default", 
       "created" : "current_timestamp", 
       "modified" : "current_timestamp",
@@ -203,7 +204,7 @@ class SeaIceConnector:
         defTerm[key] = "'" + str(value) + "'"
       else: 
         defTerm[key] = str(value).replace("'", "\\'")
-    
+
     try:
       cur.execute(
         """insert into SI.Terms( id, 
@@ -225,13 +226,9 @@ class SeaIceConnector:
         return None
 
     except pgdb.DatabaseError, e:
-      #print 'Error %s' % e    
-      #sys.exit(1)
-      # TODO if duplicate key, output warning. Otherwise raise e
-      # This how it looked before migration to postgres:
-      # if e.args[0] == 1062: # Duplicate primary key
-      #   print >>sys.stderr, "warning (%d): %s (ignoring)" % (e.args[0],e.args[1])
-      #   return 0
+      if e.pgcode == '23505': # Duplicate primary key
+         print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defTerm['id']
+         return None 
       raise e
 
   def removeTerm(self, id):
@@ -290,20 +287,43 @@ class SeaIceConnector:
   #
   # Insert a new user into the table and return Users.Id (None if failed) 
   #
-    cur = self.con.cursor()
-    cur.execute("""insert into SI.Users(email, last_name, first_name, authority, auth_id) 
-                    values ('%s', '%s', '%s', '%s', '%s')
-                    returning id""" % (
-                                                     user['email'], 
-                                                     user['last_name'], 
-                                                     user['first_name'], 
-                                                     user['authority'],
-                                                     user['auth_id']))
-    res = cur.fetchone()
-    if res: 
-      return res[0]
-    else:
-      return None
+
+    defUser = { 
+      "id" : "default",
+      "email" : "nil", 
+      "last_name" : "nil", 
+      "first_name" : "nil", 
+      "reputation" : "default", 
+      "authority" : "nil",
+      "auth_id" : "nil"
+    }
+  
+    # Format entries for db query
+    for (key, value) in user.iteritems():
+      defUser[key] = str(value).replace("'", "\\'")
+
+    try:
+      cur = self.con.cursor()
+      cur.execute("""insert into SI.Users(id, email, last_name, first_name, reputation, authority, auth_id) 
+                      values (%s, '%s', '%s', '%s', %s, '%s', '%s')
+                      returning id""" % (defUser['id'],
+                                         defUser['email'], 
+                                         defUser['last_name'], 
+                                         defUser['first_name'], 
+                                         defUser['reputation'], 
+                                         defUser['authority'],
+                                         defUser['auth_id']))
+      res = cur.fetchone()
+      if res: 
+        return res[0]
+      else:
+        return None
+    
+    except pgdb.DatabaseError, e:
+      if e.pgcode == '23505': # Duplicate primary key
+         print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defUser['id']
+         return None 
+      raise e
 
 
   def getUser(self, id):
@@ -348,27 +368,36 @@ class SeaIceConnector:
 
   ## Import/Export tables ##
 
-  def Export(self, outf=None):
+  def Export(self, table, outf=None):
   # 
   # Export database in JSON format to "outf". If no file name 
   # provided, dump to standard out.  
   #
+    if table not in ['Users', 'Terms']:
+      print >>sys.stderr, "error (export): table '%s' is not defined in the db schema" % table
+
     if outf: 
       fd = open(outf, 'w')
     else:
       fd = sys.stdout
 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Terms")
+    cur.execute("select * from SI.%s" % table)
     rows = cur.fetchall()
-    printAsJSObject(rows, fd)
+    Pretty.printAsJSObject(rows, fd)
 
-  def Import(self, inf): 
+  def Import(self, table, inf): 
   #
   # Import database from JSON formated "inf". 
   #
+    if table not in ['Users', 'Terms']:
+      print >>sys.stderr, "error (import): table '%s' is not defined in the db schema" % table
+
     fd = open(inf, 'r')
     for row in json.loads(fd.read()):
-      self.insert(row)
+      if table == "Users":
+        self.insertUser(row)
+      elif table == "Terms":
+        self.insertTerm(row)
   
 
