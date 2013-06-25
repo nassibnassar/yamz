@@ -1,5 +1,7 @@
-# Copyright (c) 2013, Christopher Patton
-# All rights reserved.
+# Auth.py - credentials and datastructures for authenticating users through
+# third party accounts. So far we have Google via the Oauth2 protocol. 
+#
+# Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,9 +30,12 @@ from flask_oauth import OAuth
 
 oauth = OAuth()
 
-REDIRECT_URI = '/authorized' 
+REDIRECT_URI = '/authorized' # TODO Change to '/authorized/google' (also on 
+                             # code.google.com/apis/console). 
 
-# These credentials are for localhost 
+# These credentials are for localhost testing. The actual values for 
+# the SeaIce dictionary deployed to seaice.herokuapp.com are not 
+# published. 
 GOOGLE_CLIENT_ID = '173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = '_Wmt-6SZXRMeaJVFXkuRH-rm'
 

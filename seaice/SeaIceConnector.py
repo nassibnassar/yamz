@@ -1,3 +1,8 @@
+# SeaIceConnector.py - implementation of class SeaIceConnector, the API for 
+# the SeaIce database. This class is capable of connecting to a local 
+# PostgreSQL database, or a foreign one specified by the environment variable 
+# DATABASE_URI. 
+#
 # Copyright (c) 2013, Christopher Patton, Nassib Nassar
 # All rights reserved.
 # 
@@ -45,7 +50,7 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
 
 
 
-## Interface to database ##
+## class SeaIceConnector ##
 
 class SeaIceConnector: 
   

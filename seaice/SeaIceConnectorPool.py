@@ -1,5 +1,10 @@
-# Copyright (c) 2013, Christopher Patton
-# All rights reserved.
+# SeaIceConnectorPool.py - implementation of a thread-safe DB connector 
+# pool for SeaIce. Also defined here is the class ScopedSeaIceConnector 
+# which inherits class SeaIceConnector. This is a DB connector that is 
+# acquired from SeaIceConnectorPool and is automatically released to the 
+# pool when it goes out of scope. 
+# 
+# Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:

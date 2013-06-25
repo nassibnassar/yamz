@@ -1,5 +1,7 @@
-# Copyright (c) 2013, Christopher Patton
-# All rights reserved.
+# Pretty.py - Pretty formatting for db table rows. There are routines defined
+# here for use in a terminal as well as on the web. 
+#
+# Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -81,6 +83,7 @@ def printPretty(db_con, rows):
 def printAsHTML(db_con, rows, owner_id=0): 
 #
 # Print table rows as an HTML table (to string) 
+# TODO think of a better place for this javascript funciton. 
 # 
   script = """
   <script>function ConfirmRemove(id) {

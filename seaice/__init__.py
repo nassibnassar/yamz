@@ -1,5 +1,6 @@
-# Copyright (c) 2013, Christopher Patton
-# All rights reserved.
+# __init__.py - encapsulates 'seaice' in a Python module. 
+# 
+# Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:

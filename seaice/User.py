@@ -1,5 +1,8 @@
-# Copyright (c) 2013, Christopher Patton
-# All rights reserved.
+# User.py - implementation of class User, which is used by the Flask web
+# framework to store properties of active sessions. class AnonymousUser 
+# inherits User. 
+#
+# Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -43,5 +46,6 @@ class User:
 
 class AnonymousUser(User): 
   def __init__(self): 
-    self.id = self.name = None
+    self.id = None
+    self.name = None
     self.logged_in = False
