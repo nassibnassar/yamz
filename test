@@ -1,0 +1,28 @@
+#!/usr/bin/python
+# Testing, testing ...  
+
+import os, sys, optparse
+import json, psycopg2 as pqdb
+import seaice
+
+
+
+## Establish connection to PostgreSQL db ##
+
+try:
+
+  try: 
+    config = seaice.get_config()
+  except OSError: 
+    print >>sys.stderr, "error: config file '%s' not found" % options.config_file
+    sys.exit(1)
+
+  sea = seaice.SeaIceConnector(config.get('default', 'user'),       
+                               config.get('default', 'password'),
+                               config.get('default', 'dbname'))
+
+  print sea.search("IDentifier")
+
+except pqdb.DatabaseError, e:
+  print 'error: %s' % e    
+  sys.exit(1)

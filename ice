@@ -302,7 +302,7 @@ def browse():
 def returnQuery():
   g.db = dbPool.getScoped()
   if request.method == "POST": 
-    terms = g.db.searchByTerm(request.form['term_string'])
+    terms = g.db.search(request.form['term_string'])
     if len(terms) == 0: 
       return render_template("search.html", user_name = l.current_user.name, 
                                             term_string = request.form['term_string'])

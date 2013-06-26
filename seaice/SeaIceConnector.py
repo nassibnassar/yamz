@@ -131,6 +131,7 @@ class SeaIceConnector:
           owner_id integer default 0 not null,
           term_string text not null, 
           definition text not null,
+          tsv tsvector, 
           score integer default 0 not null,
           created timestamp default now() not null, 
           modified timestamp default now() not null, 
@@ -152,10 +153,14 @@ class SeaIceConnector:
          $$;
               
       create trigger t_name
-        before update
-         on SI.Terms
+        before update on SI.Terms
         for each row
-         execute procedure SI.upd_timestamp();"""
+         execute procedure SI.upd_timestamp();
+         
+      create trigger tsv_update 
+        before insert or update on SI.Terms
+        for each row execute procedure
+          tsvector_update_trigger(tsv, 'pg_catalog.english', term_string, definition);"""
     )
 
     # Set user permissions. (Not relevant for Heroku-Postgres.)
@@ -262,20 +267,32 @@ class SeaIceConnector:
       cur.execute("select * from SI.Terms")
     return cur.fetchall()
 
-  def searchByTerm(self, term_string): 
+  def getByTerm(self, term_string): 
   #
   # Search table by term string and return a list of dictionary structures
   #
     term_string = term_string.replace("'", "\\'")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Terms where term_string='%s'" % term_string)
+    cur.execute("select i* from SI.Terms where term_string='%s'" % term_string)
     return list(cur.fetchall())
 
-  def searchByDef(self, string): 
+  def search(self, string): 
   #
-  # Search table by definition. TODO
+  # Search table by definition.
   #
-    pass 
+    string = string.replace("'", "\\'")
+    string = ' & '.join(string.split(' ')) # |'s are also aloud, and pranthesis
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("""
+      SELECT id, owner_id, term_string, definition, 
+             score, created, modified, 
+             ts_rank_cd(tsv, query, 32 /* rank(rank+1) + score */ ) AS rank
+        FROM SI.Terms, to_tsquery('english', '%s') query 
+        WHERE query @@ tsv 
+        ORDER BY rank
+     """ % string)
+    return list(cur.fetchall())
+
 
   def updateTerm(self, id, term): 
   #

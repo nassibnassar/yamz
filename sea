@@ -140,7 +140,7 @@ try:
       seaice.printPretty(sea, sea.getAllTerms())
   
   if options.search_term:
-    terms = sea.searchByTerm(options.search_term)
+    terms = sea.search(options.search_term)
     if options.json: 
       sea.printAsJSObject(terms)
     elif len(terms) == 0: 
