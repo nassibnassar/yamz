@@ -114,10 +114,7 @@ try:
       print >>sys.stderr, "sea: no such term (Id=%s not found)" % options.remove_id
 
   if options.import_table:
-    if not options.file_name:
-      print >>sys.stderr, "sea (import): must specify file" 
-    else: 
-      sea.Import(options.import_table, options.file_name)
+    sea.Import(options.import_table, options.file_name)
 
   if options.export_table:
     sea.Export(options.export_table, options.file_name)

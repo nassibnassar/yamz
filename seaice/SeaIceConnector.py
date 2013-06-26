@@ -408,14 +408,18 @@ class SeaIceConnector:
     rows = cur.fetchall()
     Pretty.printAsJSObject(rows, fd)
 
-  def Import(self, table, inf): 
+  def Import(self, table, inf=None): 
   #
   # Import database from JSON formated "inf". 
   #
     if table not in ['Users', 'Terms']:
       print >>sys.stderr, "error (import): table '%s' is not defined in the db schema" % table
 
-    fd = open(inf, 'r')
+    if inf:
+      fd = open(inf, 'r')
+    else:
+      fd = sys.stdin
+
     for row in json.loads(fd.read()):
       if table == "Users":
         self.insertUser(row)
