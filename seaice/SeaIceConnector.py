@@ -95,8 +95,8 @@ class SeaIceConnector:
   def createSchema(self):
   #
   # Create a schema for the SeaIce database that includes the tables
-  # Users, Terms, Relations(TODO), and CommentHistory(TODO), and an
-  # update trigger funciton. 
+  # Users, Terms, Relations(TODO), and Comments, and an update trigger 
+  # funciton. 
   #
     
     cur = self.con.cursor()
@@ -140,6 +140,19 @@ class SeaIceConnector:
       alter sequence SI.Terms_id_seq restart with 1001;"""
     )
 
+    # Create Comments table if it doesn't exist.
+    cur.execute("""
+      create table if not exists SI.Comments
+        (
+          id serial primary key not null, 
+          owner_id integer default 0 not null, 
+          comment_string text not null, 
+          created timestamp default now() not null,
+          modified timestamp default now() not null, 
+          foreign key (owner_id) references SI.Users(id)
+        )"""
+    )
+
     # Create update triggers.
     cur.execute("""
       create or replace function SI.upd_timestamp() returns trigger 
@@ -152,11 +165,16 @@ class SeaIceConnector:
           end;
          $$;
               
-      create trigger t_name
+      create trigger term_update
         before update on SI.Terms
         for each row
          execute procedure SI.upd_timestamp();
-         
+      
+      create trigger comment_update
+        before update on SI.Comments
+        for each row
+         execute procedure SI.upd_timestamp();
+
       create trigger tsv_update 
         before insert or update on SI.Terms
         for each row execute procedure
