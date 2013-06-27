@@ -90,6 +90,7 @@ class SeaIceConnector:
   def __del__(self): 
     self.con.close()
 
+
   ## Alter Schema ##
 
   def createSchema(self):
@@ -146,10 +147,12 @@ class SeaIceConnector:
         (
           id serial primary key not null, 
           owner_id integer default 0 not null, 
+          term_id integer default 0 not null, 
           comment_string text not null, 
           created timestamp default now() not null,
           modified timestamp default now() not null, 
-          foreign key (owner_id) references SI.Users(id)
+          foreign key (owner_id) references SI.Users(id),
+          foreign key (term_id) references SI.Terms(id)
         )"""
     )
 
@@ -188,7 +191,6 @@ class SeaIceConnector:
        grant select on all tables in schema SI to viewer, contributor; 
        grant insert, delete, update on SI.Terms, SI.Terms_id_seq to contributor"""
       )
-
   
   def dropSchema(self): 
   #
@@ -198,7 +200,8 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("drop schema SI cascade")
 
-  ## Queries ##
+
+  ## Commit transactions ##
 
   def commit(self): 
   #
@@ -208,6 +211,9 @@ class SeaIceConnector:
   #
     cur = self.con.cursor()
     cur.execute("commit")
+
+  
+  ## Term queries ##
 
   def insertTerm(self, term): 
   #
@@ -311,7 +317,6 @@ class SeaIceConnector:
      """ % string)
     return list(cur.fetchall())
 
-
   def updateTerm(self, id, term): 
   #
   # Modify a term's definition and/or term_string. 
@@ -322,7 +327,10 @@ class SeaIceConnector:
       term[key] = str(value).replace("'", "\\'")
     cur.execute("update SI.Terms set term_string='%s', definition='%s' where id=%d" % (
       term['term_string'], term['definition'], id))
-  
+ 
+
+  ## User queries ##
+
   def insertUser(self, user):
   #
   # Insert a new user into the table and return Users.Id (None if failed) 
@@ -365,7 +373,6 @@ class SeaIceConnector:
          return None 
       raise e
 
-
   def getUser(self, id):
   #
   # Get User by Id
@@ -406,12 +413,78 @@ class SeaIceConnector:
       first, last, id))
 
 
+  ## Comment Queries ## 
+
+  def insertComment(self, comment): 
+  #
+  # Insert a new comment into the database. 
+  #
+    defComment = { 
+      "id" : "default",
+      "owner_id" : "default", 
+      "term_id" : "default", 
+      "comment_string" : "nil"
+    }
+  
+    # Format entries for db query
+    for (key, value) in comment.iteritems():
+      defComment[key] = str(value).replace("'", "\\'")
+
+    try:
+      cur = self.con.cursor()
+      cur.execute("""insert into SI.Comments (id, owner_id, term_id, comment_string) 
+                      values (%s, %s, %s, '%s')
+                      returning id""" % (defComment['id'],
+                                         defComment['owner_id'], 
+                                         defComment['term_id'], 
+                                         defComment['comment_string']))
+      res = cur.fetchone()
+      if res: 
+        return res[0]
+      else:
+        return None
+    
+    except pgdb.DatabaseError, e:
+      if e.pgcode == '23505': # Duplicate primary key
+         print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defUser['id']
+         return None 
+      raise e
+
+  def removeComment(self, id):
+  #
+  #  TODO
+  # 
+    pass
+
+  def updateComment(self, id, comment):
+  #
+  #  TODO
+  #
+    pass
+
+  def getComment(self, id):
+  #
+  # Return comment.
+  #
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("select * from SI.Comments where id=%d" % id)
+    return cur.fetchone()
+
+  def getCommentHistory(self, term_id):
+  #
+  # Return a term's comment history, ordered by creation date.
+  #
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("select * from SI.Comments where term_id=%d order by created" % term_id)
+    return list(cur.fetchall())
+
+
   ## Import/Export tables ##
 
   def Export(self, table, outf=None):
   # 
   # Export database in JSON format to "outf". If no file name 
-  # provided, dump to standard out.  
+  # provided, dump to standard out. TODO comments 
   #
     if table not in ['Users', 'Terms']:
       print >>sys.stderr, "error (export): table '%s' is not defined in the db schema" % table
@@ -428,7 +501,7 @@ class SeaIceConnector:
 
   def Import(self, table, inf=None): 
   #
-  # Import database from JSON formated "inf". 
+  # Import database from JSON formated "inf". TODO comments
   #
     if table not in ['Users', 'Terms']:
       print >>sys.stderr, "error (import): table '%s' is not defined in the db schema" % table

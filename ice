@@ -269,8 +269,9 @@ def getTerm(term_id = None, message = ""):
   try: 
     term = g.db.getTerm(int(term_id))
     if term:
-      result = seaice.printAsHTML(g.db, [term], l.current_user.id)
+      result = seaice.printTermsAsHTML(g.db, [term], l.current_user.id)
       result = message + "<hr>" + result
+      result += "<hr>" + seaice.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']))
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "Term - %s" % term_id, 
                                                 headline = "Term", 
@@ -307,7 +308,7 @@ def returnQuery():
       return render_template("search.html", user_name = l.current_user.name, 
                                             term_string = request.form['term_string'])
     else:
-      result = seaice.printAsHTML(g.db, terms, l.current_user.id)
+      result = seaice.printTermsAsHTML(g.db, terms, l.current_user.id)
       return render_template("search.html", user_name = l.current_user.name, 
         term_string = request.form['term_string'], result = Markup(result))
 
@@ -392,6 +393,14 @@ def remTerm():
                                             title = "Remove term",
                                             content = Markup(
                 "Successfully removed term <b>#%s</b> from the metadictionary." % request.form['id']))
+
+
+  ## Comments ##
+
+@app.route("/add_comment", methods=['POST'])
+def addComment():
+  return 'TODO ' + request.form['comment_string']
+
 
 
 ## Start HTTP server. ##

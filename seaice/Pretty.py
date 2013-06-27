@@ -62,9 +62,9 @@ def printParagraph(db_con, text, leftMargin=8, width=60):
       lineLength = 0
   print
     
-def printPretty(db_con, rows):
+def printTermsPretty(db_con, rows):
 #
-# Print table rows to the terminal. 
+# Print Terms table rows to the terminal. 
 #
   for row in rows:
     print "Term: %-26s id No. %-7d created: %s" % ("%s (%d)" % (row['term_string'], 
@@ -80,9 +80,9 @@ def printPretty(db_con, rows):
     print "\n    Ownership: %s" % db_con.getUserNameById(row['owner_id'])
     print
 
-def printAsHTML(db_con, rows, owner_id=0): 
+def printTermsAsHTML(db_con, rows, owner_id=0): 
 #
-# Print table rows as an HTML table (to string) 
+# Print Terms table rows as an HTML table (to string) 
 # TODO think of a better place for this javascript funciton. 
 # 
   script = """
@@ -120,4 +120,22 @@ def printAsHTML(db_con, rows, owner_id=0):
   string += "</table>"
   return string
   
-
+def printCommentsAsHTML(db_con, rows, owner_id=0): 
+#
+# TODO
+# 
+  string = "<table colpadding=16>"
+  string += """ 
+      <form action="add_comment" method="post">
+        <tr>
+          <td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td>
+        </tr>
+        <tr><td with=70%></td>
+          <td align=right><input type="submit" value="Submit"><td>
+        </td>
+      </form>
+  """
+  for row in rows: 
+    string += "<tr><td>%s</td></tr>" % row['comment_string'] 
+  string += "</table>"
+  return string
