@@ -317,7 +317,7 @@ def returnQuery():
       return render_template("search.html", user_name = l.current_user.name, 
                                             term_string = request.form['term_string'])
     else:
-      result = seaice.printTermsAsHTML(g.db, terms, l.current_user.id)
+      result = seaice.printTermsAsHTML(g.db, terms, l.current_user.id, link_to=True)
       return render_template("search.html", user_name = l.current_user.name, 
         term_string = request.form['term_string'], result = Markup(result))
 
@@ -435,6 +435,55 @@ def addComment(term_id):
 
   except AssertionError:
     return redirect(url_for('login'))
+
+@app.route("/comment=<int:comment_id>/edit", methods = ['POST', 'GET'])
+@l.login_required
+def editComment(comment_id = None): 
+
+  try: 
+    g.db = dbPool.dequeue()
+    comment = g.db.getComment(int(comment_id))
+    assert l.current_user.id and comment['owner_id'] == l.current_user.id
+    
+    if request.method == "POST":
+      updatedComment = { 'comment_string' : request.form['comment_string'],
+                         'owner_id' : l.current_user.id } 
+
+      g.db.updateComment(int(comment_id), updatedComment)
+      g.db.commit()
+      dbPool.enqueue(g.db)
+      return getTerm(comment['term_id'], message = "Your comment has been updated.")
+  
+    else: # GET 
+      dbPool.enqueue(g.db)
+      if comment: 
+        form = """ 
+         <form action="/comment={0}/edit" method="post">
+          <table cellpadding=16>
+            <tr><td><textarea cols=50 rows=4 type="text" name="comment_string">{1}</textarea></td></tr>
+            <tr><td with=70%></td><td align=right><input type="submit" value="Update comment"><td>
+            </td>
+          </table>
+         </form>""".format(comment_id, comment['comment_string'])
+        return render_template("basic_page.html", user_name = l.current_user.name,
+                                                  title = "Edit comment", 
+                                                  headline = "Edit your comment",
+                                                  content = Markup(form))
+
+
+  
+  except ValueError:
+    return render_template("basic_page.html", user_name = l.current_user.name, 
+                                              title = "Comment not found",
+                                              content = Markup("Comment <strong>#%s</strong> not found!" % comment_id))
+
+  except AssertionError:
+    return render_template("basic_page.html", user_name = l.current_user.name, 
+                                              title = "Term - %s" % term_id, 
+                                              content = 
+              """Error! You may only edit or remove terms and definitions which 
+                 you've contributed. However, you may comment or vote on this term. """)
+
 
 @app.route("/comment=<int:comment_id>/remove", methods=['POST'])
 def remComment(comment_id):

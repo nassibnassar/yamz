@@ -80,7 +80,7 @@ def printTermsPretty(db_con, rows):
     print "\n    Ownership: %s" % db_con.getUserNameById(row['owner_id'])
     print
 
-def printTermsAsHTML(db_con, rows, owner_id=0): 
+def printTermsAsHTML(db_con, rows, owner_id=0, link_to=False): 
 #
 # Print Terms table rows as an HTML table (to string) 
 # TODO think of a better place for this javascript funciton. 
@@ -92,7 +92,7 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
       x=id; 
       var form = document.createElement("form");
       form.setAttribute("method", "post");
-      form.setAttribute("action", "term=" + id + "/remove");
+      form.setAttribute("action", "/term=" + id + "/remove");
       field = document.createElement("input");
       field.setAttribute("name", "id");
       field.setAttribute("value", id);
@@ -105,10 +105,12 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
     string += "<tr>"
     string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> " % (
       repr("70%"), row['term_string'])
+    if link_to:   
+      string += " <a href=\"/term=%d\">[view comments]</a>" % row['id']
     if owner_id == row['owner_id']:
-      string += " <nobr><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
+      string += " <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
       string += """ <a id="removeTerm" title="Click to delete term" href="#"
-                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a></nobr>""" % row['id']
+                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
     string += "  </td>" 
     string += "  <td valign=top><i>created</i>: %s</td>" % printPrettyDate(row['created'])
     string += "</tr><tr>"
@@ -132,7 +134,7 @@ def printCommentsAsHTML(db_con, rows, owner_id=0):
       x=id; 
       var form = document.createElement("form");
       form.setAttribute("method", "post");
-      form.setAttribute("action", "comment=" + id + "/remove");
+      form.setAttribute("action", "/comment=" + id + "/remove");
       field = document.createElement("input");
       field.setAttribute("name", "id");
       field.setAttribute("value", id);

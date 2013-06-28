@@ -459,9 +459,13 @@ class SeaIceConnector:
 
   def updateComment(self, id, comment):
   #
-  #  TODO
+  #  Update term comment. 
   #
-    pass
+    cur = self.con.cursor()
+    for (key, value) in comment.iteritems():
+      comment[key] = str(value).replace("'", "\\'")
+    cur.execute("update SI.Comments set comment_string='%s' where id=%d" % (
+      comment['comment_string'], id))
 
   def getComment(self, id):
   #
