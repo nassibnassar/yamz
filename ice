@@ -270,8 +270,19 @@ def getTerm(term_id = None, message = ""):
     term = g.db.getTerm(int(term_id))
     if term:
       result = seaice.printTermsAsHTML(g.db, [term], l.current_user.id)
-      result = message + "<hr>" + result
-      result += "<hr>" + seaice.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']))
+      result = message + "<hr>" + result + "<hr>"
+      result += seaice.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']))
+      result += """ 
+      <form action="term={0}/comment" method="post">
+        <table cellpadding=16>
+          <tr>
+            <td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td>
+          </tr>
+          <tr><td with=70%></td>
+            <td align=right><input type="submit" value="Submit"><td>
+          </td>
+        </table>
+      </form>""".format(term['id'])
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "Term - %s" % term_id, 
                                                 headline = "Term", 
@@ -397,9 +408,24 @@ def remTerm():
 
   ## Comments ##
 
-@app.route("/add_comment", methods=['POST'])
-def addComment():
-  return 'TODO ' + request.form['comment_string']
+@app.route("/term=<int:term_id>/comment", methods=['POST'])
+def addComment(term_id):
+
+  try:
+    assert l.current_user.id
+
+    g.db = dbPool.getScoped()
+    comment = { 'comment_string' : request.form['comment_string'],
+                'term_id' : int(term_id),
+                'owner_id' : l.current_user.id }
+      
+    g.db.insertComment(comment) 
+    g.db.commit()
+
+    return redirect("term=%d" % int(term_id))
+
+  except AssertionError:
+    return redirect(url_for('login'))
 
 
 

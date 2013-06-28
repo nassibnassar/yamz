@@ -125,16 +125,6 @@ def printCommentsAsHTML(db_con, rows, owner_id=0):
 # TODO
 # 
   string = "<table colpadding=16>"
-  string += """ 
-      <form action="add_comment" method="post">
-        <tr>
-          <td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td>
-        </tr>
-        <tr><td with=70%></td>
-          <td align=right><input type="submit" value="Submit"><td>
-        </td>
-      </form>
-  """
   for row in rows: 
     string += "<tr><td>%s</td></tr>" % row['comment_string'] 
   string += "</table>"
