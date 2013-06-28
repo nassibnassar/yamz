@@ -152,7 +152,7 @@ class SeaIceConnector:
           created timestamp default now() not null,
           modified timestamp default now() not null, 
           foreign key (owner_id) references SI.Users(id),
-          foreign key (term_id) references SI.Terms(id)
+          foreign key (term_id) references SI.Terms(id) on delete cascade
         )"""
     )
 
@@ -452,9 +452,10 @@ class SeaIceConnector:
 
   def removeComment(self, id):
   #
-  #  TODO
+  # Remove comment and return number of rows affected (1 or 0)
   # 
-    pass
+    cur = self.con.cursor()
+    return cur.execute("delete from SI.Comments where id=%d" % id)
 
   def updateComment(self, id, comment):
   #

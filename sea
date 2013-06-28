@@ -132,7 +132,7 @@ try:
   
   if options.dump: 
     if options.json:
-      sea.Export()
+      sea.Export('Terms')
     else:
       seaice.printTermsPretty(sea, sea.getAllTerms())
   

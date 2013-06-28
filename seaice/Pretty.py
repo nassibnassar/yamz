@@ -34,7 +34,7 @@ def printPrettyDate(t, gmt=False):
 # has elapsed, then give this info. TODO
 #
 
-  return "%s/%s/%s %s:%s %s" % (t.day, t.month, t.year, t.hour, t.minute, t.tzname)
+  return "%s/%s/%s %s:%02d" % (t.day, t.month, t.year, t.hour, t.minute)#, t.tzname)
   
 
 
@@ -86,13 +86,13 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
 # TODO think of a better place for this javascript funciton. 
 # 
   script = """
-  <script>function ConfirmRemove(id) {
+  <script>function ConfirmRemoveTerm(id) {
     var r=window.confirm("Are you sure you want to delete term #" + id + "?");
     if (r==true) { 
       x=id; 
       var form = document.createElement("form");
       form.setAttribute("method", "post");
-      form.setAttribute("action", "remove");
+      form.setAttribute("action", "term=" + id + "/remove");
       field = document.createElement("input");
       field.setAttribute("name", "id");
       field.setAttribute("value", id);
@@ -100,11 +100,16 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
       document.body.appendChild(form); 
       form.submit();
     } else { x="nil"; } } </script>"""
-  string = script + "<table colpadding=16>" 
+  string = script + "<table>" 
   for row in rows:
     string += "<tr>"
-    string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> (#%d)</td>" % (
-      repr("70%"), row['term_string'], row['id'])
+    string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> " % (
+      repr("70%"), row['term_string'])
+    if owner_id == row['owner_id']:
+      string += " <nobr><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
+      string += """ <a id="removeTerm" title="Click to delete term" href="#"
+                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a></nobr>""" % row['id']
+    string += "  </td>" 
     string += "  <td valign=top><i>created</i>: %s</td>" % printPrettyDate(row['created'])
     string += "</tr><tr>"
     string += "  <td valign=top><i>score</i>: %s</td>" % row['score']
@@ -112,10 +117,6 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
     string += "</tr><tr>"
     string += "  <td valign=top><i>definition:</i> %s</td>" % row['definition']
     string += "  <td valign=top><i>Ownership:</i> %s"% db_con.getUserNameById(row['owner_id'])
-    if owner_id == row['owner_id']:
-      string += " <a href=\"/edit=%d\">[edit]</a>" % row['id']
-      string += """ <a id="myLink" title="Click to delete term" href="#"
-                    onclick="return ConfirmRemove(%s);">[remove]</a><br>""" % row['id']
     string += "</td></tr><tr height=16><td></td></tr>"
   string += "</table>"
   return string
@@ -124,8 +125,33 @@ def printCommentsAsHTML(db_con, rows, owner_id=0):
 #
 # TODO
 # 
-  string = "<table colpadding=16>"
+  script = """
+  <script>function ConfirmRemoveComment(id) {
+    var r=window.confirm("Are you sure you want to your comment?");
+    if (r==true) { 
+      x=id; 
+      var form = document.createElement("form");
+      form.setAttribute("method", "post");
+      form.setAttribute("action", "comment=" + id + "/remove");
+      field = document.createElement("input");
+      field.setAttribute("name", "id");
+      field.setAttribute("value", id);
+      form.appendChild(field);
+      document.body.appendChild(form); 
+      form.submit();
+    } else { x="nil"; } } </script>"""
+  string = script + "<table>" 
   for row in rows: 
-    string += "<tr><td>%s</td></tr>" % row['comment_string'] 
+    string += "<tr>"
+    string += "<td align=left valign=top width=70%>{0}".format(row['comment_string'])
+    if owner_id == row['owner_id']:
+      string += " <nobr><a href=\"/comment=%d/edit\">[edit]</a>" % row['id']
+      string += """ <a id="removeComment" title="Click to remove this comment" href="#"
+                    onclick="return ConfirmRemoveComment(%s);">[remove]</a></nobr>""" % row['id']
+    string += "</td>"
+    string += "<td align=right valign=top><font color=\"#B8B8B8\"><i>Submitted {0}<br>by {1}</i></font></td>".format(
+      printPrettyDate(row['created']), db_con.getUserNameById(row['owner_id']))
+    string += "</tr>" 
+    string += "</td></tr><tr height=16><td></td></tr>"
   string += "</table>"
   return string

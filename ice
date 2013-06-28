@@ -143,7 +143,7 @@ def login():
     
   form = '''
     <p>
-      In order to propose new terms or comment on others', you must first
+      In order to propose new terms or comment on others, you must first
       sign in. 
        <li>Sign in with <a href="/login/google">Google</a>.</li>
     </p>
@@ -271,15 +271,13 @@ def getTerm(term_id = None, message = ""):
     if term:
       result = seaice.printTermsAsHTML(g.db, [term], l.current_user.id)
       result = message + "<hr>" + result + "<hr>"
-      result += seaice.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']))
+      result += seaice.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
+                                                 l.current_user.id)
       result += """ 
       <form action="term={0}/comment" method="post">
         <table cellpadding=16>
-          <tr>
-            <td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td>
-          </tr>
-          <tr><td with=70%></td>
-            <td align=right><input type="submit" value="Submit"><td>
+          <tr><td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td></tr>
+          <tr><td with=70%></td><td align=right><input type="submit" value="Comment"><td>
           </td>
         </table>
       </form>""".format(term['id'])
@@ -350,7 +348,7 @@ def addTerm():
                                                   headline = "Add a dictionary term")
 
 
-@app.route("/edit=<term_id>", methods = ['POST', 'GET'])
+@app.route("/term=<int:term_id>/edit", methods = ['POST', 'GET'])
 @l.login_required
 def editTerm(term_id = None): 
 
@@ -392,18 +390,29 @@ def editTerm(term_id = None):
                  you've contributed. However, you may comment or vote on this term. """)
 
 
-@app.route("/remove", methods=["POST"])
-def remTerm():
-  g.db = dbPool.getScoped()
-  term = g.db.getTerm(int(request.form['id']))
-  if term and term['owner_id'] == l.current_user.id: 
+@app.route("/term=<int:term_id>/remove", methods=["POST"])
+@l.login_required
+def remTerm(term_id):
+
+  try:
+    g.db = dbPool.getScoped()
+    term = g.db.getTerm(int(request.form['id']))
+    assert term and term['owner_id'] == l.current_user.id
+
     g.db.removeTerm(int(request.form['id']))
     g.db.commit()
   
-  return render_template("basic_page.html", user_name = l.current_user.name, 
+    return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Remove term",
                                             content = Markup(
-                "Successfully removed term <b>#%s</b> from the metadictionary." % request.form['id']))
+                 "Successfully removed term <b>#%s</b> from the metadictionary." % request.form['id']))
+  
+  except AssertionError:
+    return render_template("basic_page.html", user_name = l.current_user.name, 
+                                              title = "Term - %s" % term_id, 
+                                              content = 
+              """Error! You may only edit or remove terms and definitions which 
+                 you've contributed. However, you may comment or vote on this term. """)
 
 
   ## Comments ##
@@ -427,6 +436,24 @@ def addComment(term_id):
   except AssertionError:
     return redirect(url_for('login'))
 
+@app.route("/comment=<int:comment_id>/remove", methods=['POST'])
+def remComment(comment_id):
+  
+  try:
+    g.db = dbPool.getScoped()
+    comment = g.db.getComment(int(request.form['id']))
+    assert comment and comment['owner_id'] == l.current_user.id
+
+    g.db.removeComment(int(request.form['id']))
+    g.db.commit()
+  
+    return redirect('/term=%d' % comment['term_id'])
+  
+  except AssertionError:
+    return render_template("basic_page.html", user_name = l.current_user.name, 
+                                              title = "Oops!", 
+                                              content = 
+              """Error! You may only edit or remove your own comments.""")
 
 
 ## Start HTTP server. ##
