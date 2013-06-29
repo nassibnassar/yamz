@@ -275,7 +275,7 @@ def getTerm(term_id = None, message = ""):
                                                  l.current_user.id)
       if l.current_user.id:
         result += """ 
-        <form action="term={0}/comment" method="post">
+        <form action="/term={0}/comment" method="post">
           <table cellpadding=16>
             <tr><td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td></tr>
             <tr><td align=right><input type="submit" value="Comment"><td>

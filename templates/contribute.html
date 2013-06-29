@@ -86,7 +86,7 @@
 
       <hr>
 
-      <form action="{% if edit_id %}term={{edit_id}}/edit{% else %}contribute{% endif %}" method="post">
+      <form action="{% if edit_id %}/term={{edit_id}}/edit{% else %}/contribute{% endif %}" method="post">
         <table cellpadding=12>
           <tr>
             <td valign=top width="40%">Term string:</td>
