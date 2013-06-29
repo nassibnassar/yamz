@@ -273,14 +273,15 @@ def getTerm(term_id = None, message = ""):
       result = message + "<hr>" + result + "<hr>"
       result += seaice.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
                                                  l.current_user.id)
-      result += """ 
-      <form action="term={0}/comment" method="post">
-        <table cellpadding=16>
-          <tr><td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td></tr>
-          <tr><td with=70%></td><td align=right><input type="submit" value="Comment"><td>
-          </td>
-        </table>
-      </form>""".format(term['id'])
+      if l.current_user.id:
+        result += """ 
+        <form action="term={0}/comment" method="post">
+          <table cellpadding=16>
+            <tr><td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td></tr>
+            <tr><td align=right><input type="submit" value="Comment"><td>
+            </td>
+          </table>
+        </form>""".format(term['id'])
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "Term - %s" % term_id, 
                                                 headline = "Term", 
@@ -418,6 +419,7 @@ def remTerm(term_id):
   ## Comments ##
 
 @app.route("/term=<int:term_id>/comment", methods=['POST'])
+@l.login_required
 def addComment(term_id):
 
   try:
@@ -461,7 +463,7 @@ def editComment(comment_id = None):
          <form action="/comment={0}/edit" method="post">
           <table cellpadding=16>
             <tr><td><textarea cols=50 rows=4 type="text" name="comment_string">{1}</textarea></td></tr>
-            <tr><td with=70%></td><td align=right><input type="submit" value="Update comment"><td>
+            <tr><td align=right><input type="submit" value="Update comment"><td>
             </td>
           </table>
          </form>""".format(comment_id, comment['comment_string'])
