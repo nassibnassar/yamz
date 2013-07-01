@@ -237,7 +237,7 @@ class SeaIceConnector:
       if key == "created" or key == "modified": 
         defTerm[key] = "'" + str(value) + "'"
       else: 
-        defTerm[key] = str(value).replace("'", "\\'")
+        defTerm[key] = str(value).replace("'", "''")
 
     try:
       cur.execute(
@@ -295,7 +295,7 @@ class SeaIceConnector:
   #
   # Search table by term string and return a list of dictionary structures
   #
-    term_string = term_string.replace("'", "\\'")
+    term_string = term_string.replace("'", "''")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select i* from SI.Terms where term_string='%s'" % term_string)
     return list(cur.fetchall())
@@ -304,7 +304,7 @@ class SeaIceConnector:
   #
   # Search table by definition.
   #
-    string = string.replace("'", "\\'")
+    string = string.replace("'", "''")
     string = ' & '.join(string.split(' ')) # |'s are also aloud, and pranthesis
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
@@ -324,7 +324,7 @@ class SeaIceConnector:
   # 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
-      term[key] = str(value).replace("'", "\\'")
+      term[key] = str(value).replace("'", "''")
     cur.execute("update SI.Terms set term_string='%s', definition='%s' where id=%d" % (
       term['term_string'], term['definition'], id))
  
@@ -348,7 +348,7 @@ class SeaIceConnector:
   
     # Format entries for db query
     for (key, value) in user.iteritems():
-      defUser[key] = str(value).replace("'", "\\'")
+      defUser[key] = str(value).replace("'", "''")
 
     try:
       cur = self.con.cursor()
@@ -428,7 +428,7 @@ class SeaIceConnector:
   
     # Format entries for db query
     for (key, value) in comment.iteritems():
-      defComment[key] = str(value).replace("'", "\\'")
+      defComment[key] = str(value).replace("'", "''")
 
     try:
       cur = self.con.cursor()
@@ -463,7 +463,7 @@ class SeaIceConnector:
   #
     cur = self.con.cursor()
     for (key, value) in comment.iteritems():
-      comment[key] = str(value).replace("'", "\\'")
+      comment[key] = str(value).replace("'", "''")
     cur.execute("update SI.Comments set comment_string='%s' where id=%d" % (
       comment['comment_string'], id))
 
