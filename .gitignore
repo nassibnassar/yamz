@@ -2,3 +2,7 @@
 *.swp
 venv
 *~
+*.toc
+*.log
+*.aux
+*.out
