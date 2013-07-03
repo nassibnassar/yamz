@@ -505,33 +505,52 @@ class SeaIceConnector:
 
   def castVote(self, user_id, term_id, vote): 
   #
-  # TODO
+  # Cast or change a user's vote on a term. Return the change in term's score. 
   #
     cur = self.con.cursor()
-    cur.execute("SELECT vote FROM SI.Tracking WHERE user_id={0} AND term_id={1}".format(user_id, term_id))
+    cur.execute("""SELECT vote FROM SI.Tracking WHERE
+                   user_id={0} AND term_id={1}""".format(user_id, term_id))
     p_vote = cur.fetchone() 
   
     if not p_vote:
-      cur.execute("INSERT INTO SI.Tracking (user_id, term_id, vote) VALUES ({0}, {1}, {2})".format(user_id, term_id, vote))
+      cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
+                     VALUES ({0}, {1}, {2})""".format(user_id, term_id, vote))
       cur.execute("UPDATE SI.Terms SET score=(score+({1})) WHERE id={0}".format(term_id, vote))
+      return vote
       
     elif p_vote[0] != vote:
-      cur.execute("UPDATE SI.Tracking SET vote={2} WHERE user_id={0} AND term_id={1}".format(user_id, term_id, vote))
+      cur.execute("""UPDATE SI.Tracking SET vote={2}
+                     WHERE user_id={0} AND term_id={1}""".format(user_id, term_id, vote))
       cur.execute("UPDATE SI.Terms SET score=(score+({1})) WHERE id={0}".format(term_id, vote - p_vote[0]))
+      return vote - p_vote[0]
 
-
+    else: return 0
 
   def trackTerm(self, user_id, term_id): 
   #
-  # TODO
+  # User is tracking term. Return 1 if a row was inserted into the Tracking 
+  # table, 0 if not. 
   #
-    pass
+    cur = self.con.cursor()
+    cur.execute("""SELECT vote FROM SI.Tracking 
+                   WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
+    if not cur.fetchone(): 
+      cur.execute("""INSERT INTO SI.Tracking (user_id, term_id) 
+                     VALUES ({0}, {1})""".format(user_id, term_id))
+      return 1
+    else: return 0
 
   def untrackTerm(self, user_id, term_id):
   #
-  # TODO
+  # Untrack term. 
   #
-    pass
+    cur = self.con.cursor()
+    cur.execute("""DELETE FROM SI.Tracking 
+                   WHERE user_id={0} AND term_id={1} 
+                   RETURNING vote""".format(user_id, term_id))
+    vote = cur.fetchone()
+    cur.execute("""UPDATE SI.Terms SET score=(score-({1})) 
+                   WHERE id={0}""".format(term_id, vote[0]))
 
 
   ## Import/Export tables ##

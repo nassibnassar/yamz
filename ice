@@ -532,6 +532,7 @@ def trackTerm(term_id):
     g.db.trackTerm(l.current_user.id, term_id)
   else:
     g.db.untrackTerm(l.current_user.id, term_id)
+  g.db.commit()
   print "User #%d %sed term #%d" % (l.current_user.id, request.form['action'], term_id)
   return redirect("/term=%d" % term_id)
 

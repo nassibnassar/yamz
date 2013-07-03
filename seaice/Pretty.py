@@ -147,6 +147,10 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += '    <a id="voteDown" title="-1" href="#down" onclick="return TermAction(%s, \'down\');">[down]</a><br> ' % row['id']
   string += '    <a id="star" title="Track this term" href="#star"' + \
             '     onclick="return TermAction(%s, \'star\');">[star]</a><br> ' % row['id']
+  string += '    <a id="star" title="temp" href="#unstar"' + \
+            '     onclick="return TermAction(%s, \'unstar\');">[unstar]</a><br> ' % row['id']
+  string += '    <a id="reset" title="temp" href="#reset"' + \
+            '     onclick="return TermAction(%s, \'reset\');">[reset]</a><br> ' % row['id']
   string += "  </td></tr>"
   string += "  <tr>"
   string += "    <td valign=top width=65%><i>Term:</i> <strong>{0}</strong> ".format(row['term_string'])
