@@ -21,10 +21,9 @@ try:
                                config.get('default', 'password'),
                                config.get('default', 'dbname'))
 
-  sea.insertComment({'term_id': 1001, 
-                           'owner_id': 10002, 
-                           'comment_string': "This is an awesome term!"}) 
-  print sea.getCommentHistory(1001)
+  print sea.getTermsByUser(10001)
+  print
+  print sea.getTermsByTracking(10001)
 
 except pqdb.DatabaseError, e:
   print 'error: %s' % e    

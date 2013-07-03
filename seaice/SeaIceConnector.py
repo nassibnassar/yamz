@@ -313,7 +313,24 @@ class SeaIceConnector:
   #
     term_string = term_string.replace("'", "''")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select i* from SI.Terms where term_string='%s'" % term_string)
+    cur.execute("select * from SI.Terms where term_string='%s'" % term_string)
+    return list(cur.fetchall())
+
+  def getTermsByUser(self, user_id):
+  #
+  # Return a list of terms owned by User
+  #
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("select * from SI.Terms where owner_id=%d" % user_id) 
+    return list(cur.fetchall())
+
+  def getTermsByTracking(self, user_id):
+  #
+  # Return a list of terms starred by user
+  #
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("""select *from SI.Terms as term, SI.Tracking as track
+                   where track.user_id={0} and track.term_id=term.id and term.owner_id!={0}""".format(user_id))
     return list(cur.fetchall())
 
   def search(self, string): 
@@ -321,7 +338,7 @@ class SeaIceConnector:
   # Search table by definition.
   #
     string = string.replace("'", "''")
-    string = ' & '.join(string.split(' ')) # |'s are also aloud, and pranthesis
+    string = ' & '.join(string.split(' ')) # |'s are also aloud, and paranthesis TODO
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
       SELECT id, owner_id, term_string, definition, 
@@ -558,7 +575,7 @@ class SeaIceConnector:
   def Export(self, table, outf=None):
   # 
   # Export database in JSON format to "outf". If no file name 
-  # provided, dump to standard out. TODO comments 
+  # provided, dump to standard out. 
   #
     if table not in ['Users', 'Terms']:
       print >>sys.stderr, "error (export): table '%s' is not defined in the db schema" % table
