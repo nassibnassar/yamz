@@ -156,6 +156,22 @@ class SeaIceConnector:
         )"""
     )
 
+    # Create Tracking table if it doesn't exist. This table keeps 
+    # track of the terms users have starred as well as their vote
+    # (+1 or -1). If they haven't voted, then vote = 0. This
+    # implies a rule: if a user untracks a term, then his or her 
+    # vote is removed. 
+    cur.execute("""
+      create table if not exists SI.Tracking
+      (
+        user_id integer not null, 
+        term_id integer not null,
+        vote integer default 0 not null, 
+        foreign key (user_id) references SI.Users(id) on delete cascade, 
+        foreign key (term_id) references SI.Terms(id) on delete cascade
+      )"""
+    )
+    
     # Create update triggers.
     cur.execute("""
       create or replace function SI.upd_timestamp() returns trigger 
@@ -482,6 +498,40 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Comments where term_id=%d order by created" % term_id)
     return list(cur.fetchall())
+
+
+
+  ## Term voting and tracking ##
+
+  def castVote(self, user_id, term_id, vote): 
+  #
+  # TODO
+  #
+    cur = self.con.cursor()
+    cur.execute("SELECT vote FROM SI.Tracking WHERE user_id={0} AND term_id={1}".format(user_id, term_id))
+    p_vote = cur.fetchone() 
+  
+    if not p_vote:
+      cur.execute("INSERT INTO SI.Tracking (user_id, term_id, vote) VALUES ({0}, {1}, {2})".format(user_id, term_id, vote))
+      cur.execute("UPDATE SI.Terms SET score=(score+({1})) WHERE id={0}".format(term_id, vote))
+      
+    elif p_vote[0] != vote:
+      cur.execute("UPDATE SI.Tracking SET vote={2} WHERE user_id={0} AND term_id={1}".format(user_id, term_id, vote))
+      cur.execute("UPDATE SI.Terms SET score=(score+({1})) WHERE id={0}".format(term_id, vote - p_vote[0]))
+
+
+
+  def trackTerm(self, user_id, term_id): 
+  #
+  # TODO
+  #
+    pass
+
+  def untrackTerm(self, user_id, term_id):
+  #
+  # TODO
+  #
+    pass
 
 
   ## Import/Export tables ##

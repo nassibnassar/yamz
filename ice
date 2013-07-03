@@ -512,13 +512,26 @@ def remComment(comment_id):
 
 @app.route("/term=<int:term_id>/vote", methods=['POST'])
 @l.login_required
-def upVote(term_id):
+def voteOnTerm(term_id):
+  g.db = dbPool.getScoped()
+  if request.form['action'] == 'up':
+    g.db.castVote(l.current_user.id, term_id, 1)
+  elif request.form['action'] == 'down':
+    g.db.castVote(l.current_user.id, term_id, -1)
+  else:
+    g.db.castVote(l.current_user.id, term_id, 0)
+  g.db.commit()
   print "User #%d voted %s term #%d" % (l.current_user.id, request.form['action'], term_id)
   return redirect("/term=%d" % term_id)
 
 @app.route("/term=<int:term_id>/track", methods=['POST'])
 @l.login_required
-def starTerm(term_id): 
+def trackTerm(term_id): 
+  g.db = dbPool.getScoped()
+  if request.form['action'] == "star":
+    g.db.trackTerm(l.current_user.id, term_id)
+  else:
+    g.db.untrackTerm(l.current_user.id, term_id)
   print "User #%d %sed term #%d" % (l.current_user.id, request.form['action'], term_id)
   return redirect("/term=%d" % term_id)
 
