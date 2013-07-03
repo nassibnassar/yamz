@@ -39,37 +39,70 @@
   </head>
   <body>
 
-      <div class="container-narrow">
-        <div class="masthead">
-          <ul class="nav nav-pills pull-right">
-            <li><a href="/browse">Browse</a></li>
-            <li><a href="/contribute">Contribute</a></li>
-            <li><a href="/about">About</a></li>
-            <li><a href="/contact">Contact</a></li>
-            <li><a href="/settings">Settings</a></li>
-            <li class="active">{% if user_name %}
-               <a href="/logout">Log out of {{ user_name }}</a>
-              {% else %}
-               <a href="/login">Login</a>
-              {% endif %} 
-          </ul>
-          <h3 class="muted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">SeaIce</h3>
-        </div>
+    <div class="container-narrow">
+      
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="/browse">Browse</a></li>
+          <li><a href="/contribute">Contribute</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/settings">Settings</a></li>
+          <li class="active">{% if user_name %}
+             <a href="/logout">Log out of {{ user_name }}</a>
+            {% else %}
+             <a href="/login">Login</a>
+            {% endif %} 
+        </ul>
+        <h3 class="muted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">SeaIce</h3>
+      </div>
 
+      
+      {% if not user_name %}
+      
         <hr>
-
         <div class="jumbotron">
           <h1 style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">Metadictionary</h1>
-          <p class="lead" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">A crowd sourced metadata dictionary. Search for terms, upvote useful ones.</p>
-
+          <p class="lead" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">
+            A crowd sourced metadata dictionary. Search for terms, upvote useful ones.</p>
         </div>
-        
-        <form action="search" method="post">
-          <div class="control-group"><label class="control-label"></label><div class="controls"><input name="term_string" type="text" class="input-large search-query" placeholder="Search for a term"></div></div><hr>
-        </form>
 
+      {% endif %}
+      
+      <form action="search" method="post">
+        <div class="control-group"><label class="control-label"></label><div class="controls">
+        <input name="term_string" type="text" class="input-large search-query" placeholder="Search for a term"></div></div><hr>
+      </form>
+
+      {% if user_name %}
+     
         <div class="row-fluid marketing">
-  <!--         <div class="span6">
+          <table width=100%>
+            <tr>
+              <td rowspan=2 width=5%></td>
+
+              <td rowspan=2 width=80% valign=top>
+                <h4>Notifications</h4>
+                {{ notifcations }}
+                TODO
+              </td>
+            
+              <td valign=top>
+                <h4>My terms</h4>
+                {{ my_list }}
+                <br>
+              </td>
+    
+            <tr>
+              <td valign=top>
+                <hr><h4>Starred</h4>
+                {{ starred_list }}
+                <br>
+              </td>
+            </tr>
+          </table>
+        
+     <!-- <div class="span6">
             <h4>Subheading</h4>
             <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
 
@@ -90,13 +123,16 @@
             <h4>Subheading</h4>
             <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
           </div> -->
-        </div>
+        
+        <!-- </div> -->
 
-        <hr>
+      {% endif %}
 
-      <div class="footer" align=right>Contributions to the SeaIce metadictionary are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">CC-BY licensee</a>. <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/88x31.png" /></a></div><hr>
+      <hr>
 
-      </div> <!-- /container -->
+    <div class="footer" align=right>Contributions to the SeaIce metadictionary are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">CC-BY licensee</a>. <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/88x31.png" /></a></div><hr>
+
+    </div> <!-- /container -->
 
 
     <style>

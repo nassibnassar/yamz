@@ -121,6 +121,16 @@ def teardown_request(exception):
 
 @app.route("/")
 def index():
+  if l.current_user.id:
+    g.db = dbPool.getScoped()
+      # TODO Store these values in class User in order to prevent
+      # these queries every time the homepage is accessed.  
+    my_list = seaice.printTermsAsLinks(g.db.getTermsByUser(l.current_user.id))
+    starred_list = seaice.printTermsAsLinks(g.db.getTermsByTracking(l.current_user.id))
+    return render_template("index.html", user_name = l.current_user.name,
+                                         my_list = Markup(my_list),
+                                         starred_list = Markup(starred_list))
+
   return render_template("index.html", user_name = l.current_user.name)
 
 @app.route("/about")

@@ -134,10 +134,19 @@ def printTermsPretty(db_con, rows):
     print
 
 
+
+def printTermsAsLinks(rows): 
+#
+# Print a list of terms with HTML links to term pages (to string)
+#
+  string = ""
+  for row in rows: 
+    string += '<li><a href="/term=%d">%s</a></li>' % (row['id'], row['term_string'])
+  return string
+
 def printTermAsHTML(db_con, row, owner_id=0): 
 #
 # Print Term in HTML (to string) 
-# TODO add voting 
 # 
   string = '<script>' + js_confirmRemoveTerm + js_termAction + '</script>'
   string += "<table>" 

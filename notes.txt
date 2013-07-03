@@ -1,6 +1,11 @@
-As more terms are contributed and there are more active users, it will become
-important make efficient use of the database. I.e., going to the browse page
-should not cause a query everytime ... only if a new term is added. 
+7/3/13
+
+When the DB is reset and exported terms are imported, this causes a conflict 
+with the autoincrementing Terms.id. Either figure out how to add a trigger 
+that sets the next assigned id on insert -OR- do this check in the Python
+insertTerm/Comment/User code. 
+
+
 
 Three levels of db acces: 
 root - drop/create table, read/write queries
