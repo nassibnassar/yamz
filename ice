@@ -269,7 +269,7 @@ def getTerm(term_id = None, message = ""):
   try: 
     term = g.db.getTerm(int(term_id))
     if term:
-      result = seaice.printTermsAsHTML(g.db, [term], l.current_user.id)
+      result = seaice.printTermAsHTML(g.db, term, l.current_user.id)
       result = message + "<hr>" + result + "<hr>"
       result += seaice.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
                                                  l.current_user.id)
@@ -318,7 +318,7 @@ def returnQuery():
       return render_template("search.html", user_name = l.current_user.name, 
                                             term_string = request.form['term_string'])
     else:
-      result = seaice.printTermsAsHTML(g.db, terms, l.current_user.id, link_to=True)
+      result = seaice.printTermsAsHTML(g.db, terms, l.current_user.id)
       return render_template("search.html", user_name = l.current_user.name, 
         term_string = request.form['term_string'], result = Markup(result))
 

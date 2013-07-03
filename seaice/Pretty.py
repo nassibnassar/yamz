@@ -26,6 +26,40 @@
 
 import sys, json, time, re
 
+## TODO find a better home for these scripts ##
+
+js_confirmRemoveTerm = """
+  <script>function ConfirmRemoveTerm(id) {
+    var r=window.confirm("Are you sure you want to delete term #" + id + "?");
+    if (r==true) { 
+      x=id; 
+      var form = document.createElement("form");
+      form.setAttribute("method", "post");
+      form.setAttribute("action", "/term=" + id + "/remove");
+      field = document.createElement("input");
+      field.setAttribute("name", "id");
+      field.setAttribute("value", id);
+      form.appendChild(field);
+      document.body.appendChild(form); 
+      form.submit();
+    } else { x="nil"; } } </script>"""
+
+js_confirmRemoveComment = """
+  <script>function ConfirmRemoveComment(id) {
+    var r=window.confirm("Are you sure you want to your comment?");
+    if (r==true) { 
+      x=id; 
+      var form = document.createElement("form");
+      form.setAttribute("method", "post");
+      form.setAttribute("action", "/comment=" + id + "/remove");
+      field = document.createElement("input");
+      field.setAttribute("name", "id");
+      field.setAttribute("value", id);
+      form.appendChild(field);
+      document.body.appendChild(form); 
+      form.submit();
+    } else { x="nil"; } } </script>"""
+
 ## Pretty prints ##
 
 def printPrettyDate(t, gmt=False): 
@@ -80,33 +114,43 @@ def printTermsPretty(db_con, rows):
     print "\n    Ownership: %s" % db_con.getUserNameById(row['owner_id'])
     print
 
-def printTermsAsHTML(db_con, rows, owner_id=0, link_to=False): 
+
+def printTermAsHTML(db_con, row, owner_id=0): 
+#
+# Print Term in HTML (to string) 
+# TODO add voting 
+# 
+  string = js_confirmRemoveTerm + "<table>" 
+  string += "<tr>"
+  string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> " % (
+    repr("70%"), row['term_string'])
+  if owner_id == row['owner_id']:
+    string += " <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
+    string += """ <a id="removeTerm" title="Click to delete term" href="#"
+                  onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
+  string += "  </td>" 
+  string += "  <td valign=top><i>created</i>: %s</td>" % printPrettyDate(row['created'])
+  string += "</tr><tr>"
+  string += "  <td valign=top><i>score</i>: %s</td>" % row['score']
+  string += "  <td valign=top><i>Last modified</i>: %s</td>" % printPrettyDate(row['modified'])
+  string += "</tr><tr>"
+  string += "  <td valign=top><i>definition:</i> %s</td>" % row['definition']
+  string += "  <td valign=top><i>Ownership:</i> %s"% db_con.getUserNameById(row['owner_id'])
+  string += "</td></tr><tr height=16><td></td></tr>"
+  string += "</table>"
+  return string
+
+
+def printTermsAsHTML(db_con, rows, owner_id=0): 
 #
 # Print Terms table rows as an HTML table (to string) 
-# TODO think of a better place for this javascript funciton. 
 # 
-  script = """
-  <script>function ConfirmRemoveTerm(id) {
-    var r=window.confirm("Are you sure you want to delete term #" + id + "?");
-    if (r==true) { 
-      x=id; 
-      var form = document.createElement("form");
-      form.setAttribute("method", "post");
-      form.setAttribute("action", "/term=" + id + "/remove");
-      field = document.createElement("input");
-      field.setAttribute("name", "id");
-      field.setAttribute("value", id);
-      form.appendChild(field);
-      document.body.appendChild(form); 
-      form.submit();
-    } else { x="nil"; } } </script>"""
-  string = script + "<table>" 
+  string = js_confirmRemoveTerm + "<table>" 
   for row in rows:
     string += "<tr>"
     string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> " % (
       repr("70%"), row['term_string'])
-    if link_to:   
-      string += " <a href=\"/term=%d\">[view comments]</a>" % row['id']
+    string += " <a href=\"/term=%d\">[view comments]</a>" % row['id']
     if owner_id == row['owner_id']:
       string += " <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
       string += """ <a id="removeTerm" title="Click to delete term" href="#"
@@ -125,24 +169,9 @@ def printTermsAsHTML(db_con, rows, owner_id=0, link_to=False):
   
 def printCommentsAsHTML(db_con, rows, owner_id=0): 
 #
-# TODO
+# Print Comments table rows as an HTML table (to string)
 # 
-  script = """
-  <script>function ConfirmRemoveComment(id) {
-    var r=window.confirm("Are you sure you want to your comment?");
-    if (r==true) { 
-      x=id; 
-      var form = document.createElement("form");
-      form.setAttribute("method", "post");
-      form.setAttribute("action", "/comment=" + id + "/remove");
-      field = document.createElement("input");
-      field.setAttribute("name", "id");
-      field.setAttribute("value", id);
-      form.appendChild(field);
-      document.body.appendChild(form); 
-      form.submit();
-    } else { x="nil"; } } </script>"""
-  string = script + "<table>" 
+  string = js_confirmRemoveComment + "<table>" 
   for row in rows: 
     string += "<tr>"
     string += "<td align=left valign=top width=70%>{0}".format(row['comment_string'])
