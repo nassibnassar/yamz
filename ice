@@ -507,6 +507,23 @@ def remComment(comment_id):
               """Error! You may only edit or remove your own comments.""")
 
 
+
+  ## Voting! ##
+
+@app.route("/term=<int:term_id>/vote", methods=['POST'])
+@l.login_required
+def upVote(term_id):
+  print "User #%d voted %s term #%d" % (l.current_user.id, request.form['action'], term_id)
+  return redirect("/term=%d" % term_id)
+
+@app.route("/term=<int:term_id>/track", methods=['POST'])
+@l.login_required
+def starTerm(term_id): 
+  print "User #%d %sed term #%d" % (l.current_user.id, request.form['action'], term_id)
+  return redirect("/term=%d" % term_id)
+
+
+
 ## Start HTTP server. ##
 
 if __name__ == '__main__':

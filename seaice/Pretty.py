@@ -29,7 +29,7 @@ import sys, json, time, re
 ## TODO find a better home for these scripts ##
 
 js_confirmRemoveTerm = """
-  <script>function ConfirmRemoveTerm(id) {
+  function ConfirmRemoveTerm(id) {
     var r=window.confirm("Are you sure you want to delete term #" + id + "?");
     if (r==true) { 
       x=id; 
@@ -42,10 +42,10 @@ js_confirmRemoveTerm = """
       form.appendChild(field);
       document.body.appendChild(form); 
       form.submit();
-    } else { x="nil"; } } </script>"""
+    } else { x="nil"; } } """
 
 js_confirmRemoveComment = """
-  <script>function ConfirmRemoveComment(id) {
+  function ConfirmRemoveComment(id) {
     var r=window.confirm("Are you sure you want to your comment?");
     if (r==true) { 
       x=id; 
@@ -58,7 +58,26 @@ js_confirmRemoveComment = """
       form.appendChild(field);
       document.body.appendChild(form); 
       form.submit();
-    } else { x="nil"; } } </script>"""
+    } else { x="nil"; } } """
+
+js_termAction = """
+  function TermAction(id, v) {
+    var form = document.createElement("form"); 
+    form.setAttribute("method", "post");
+    if (v == "up" || v == "down") {
+      var action = "vote"; 
+    } else {
+      var action = "track"; 
+    }
+    form.setAttribute("action", "/term=" + id + "/" + action); 
+    field = document.createElement("input"); 
+    field.setAttribute("name", "action")
+    field.setAttribute("value", v);
+    form.appendChild(field);
+    document.body.appendChild(form);
+    form.submit(); 
+  } """
+
 
 ## Pretty prints ##
 
@@ -120,23 +139,29 @@ def printTermAsHTML(db_con, row, owner_id=0):
 # Print Term in HTML (to string) 
 # TODO add voting 
 # 
-  string = js_confirmRemoveTerm + "<table>" 
-  string += "<tr>"
-  string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> " % (
-    repr("70%"), row['term_string'])
+  string = '<script>' + js_confirmRemoveTerm + js_termAction + '</script>'
+  string += "<table>" 
+  string += "  <tr><td width=15% rowspan=4 align=center valign=top>"
+  string += '    <a id="voteUp" title="+1" href="#up" onclick="return TermAction(%s, \'up\');">[up]</a><br>' % row['id']
+  string += '    %s<br>' % (row['score'])
+  string += '    <a id="voteDown" title="-1" href="#down" onclick="return TermAction(%s, \'down\');">[down]</a><br> ' % row['id']
+  string += '    <a id="star" title="Track this term" href="#star"' + \
+            '     onclick="return TermAction(%s, \'star\');">[star]</a><br> ' % row['id']
+  string += "  </td></tr>"
+  string += "  <tr>"
+  string += "    <td valign=top width=65%><i>Term:</i> <strong>{0}</strong> ".format(row['term_string'])
   if owner_id == row['owner_id']:
-    string += " <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
-    string += """ <a id="removeTerm" title="Click to delete term" href="#"
-                  onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
-  string += "  </td>" 
-  string += "  <td valign=top><i>created</i>: %s</td>" % printPrettyDate(row['created'])
-  string += "</tr><tr>"
-  string += "  <td valign=top><i>score</i>: %s</td>" % row['score']
-  string += "  <td valign=top><i>Last modified</i>: %s</td>" % printPrettyDate(row['modified'])
-  string += "</tr><tr>"
-  string += "  <td valign=top><i>definition:</i> %s</td>" % row['definition']
-  string += "  <td valign=top><i>Ownership:</i> %s"% db_con.getUserNameById(row['owner_id'])
-  string += "</td></tr><tr height=16><td></td></tr>"
+    string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
+    string += """  <a id="removeTerm" title="Click to delete term" href="#"
+                   onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
+  string += "    </td>" 
+  string += "    <td valign=top><i>created</i>: %s</td>" % printPrettyDate(row['created'])
+  string += "  </tr><tr>"
+  string += "    <td></td><td valign=top><i>Last modified</i>: %s</td>" % printPrettyDate(row['modified'])
+  string += "  </tr><tr>"
+  string += "    <td valign=top><i>definition:</i> %s</td>" % row['definition']
+  string += "    <td valign=top><i>Ownership:</i> %s"% db_con.getUserNameById(row['owner_id'])
+  string += "  </td></tr><tr height=16><td></td></tr>"
   string += "</table>"
   return string
 
@@ -145,12 +170,12 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
 #
 # Print Terms table rows as an HTML table (to string) 
 # 
-  string = js_confirmRemoveTerm + "<table>" 
+  string = '<script>' + js_confirmRemoveTerm + '</script><table>'
   for row in rows:
     string += "<tr>"
     string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> " % (
       repr("70%"), row['term_string'])
-    string += " <a href=\"/term=%d\">[view comments]</a>" % row['id']
+    string += " <a href=\"/term=%d\">[view]</a>" % row['id']
     if owner_id == row['owner_id']:
       string += " <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
       string += """ <a id="removeTerm" title="Click to delete term" href="#"
@@ -171,7 +196,7 @@ def printCommentsAsHTML(db_con, rows, owner_id=0):
 #
 # Print Comments table rows as an HTML table (to string)
 # 
-  string = js_confirmRemoveComment + "<table>" 
+  string = '<script>' + js_confirmRemoveComment + '</script><table>'
   for row in rows: 
     string += "<tr>"
     string += "<td align=left valign=top width=70%>{0}".format(row['comment_string'])
