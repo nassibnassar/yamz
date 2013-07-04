@@ -566,8 +566,9 @@ class SeaIceConnector:
                    WHERE user_id={0} AND term_id={1} 
                    RETURNING vote""".format(user_id, term_id))
     vote = cur.fetchone()
-    cur.execute("""UPDATE SI.Terms SET score=(score-({1})) 
-                   WHERE id={0}""".format(term_id, vote[0]))
+    if vote: 
+      cur.execute("""UPDATE SI.Terms SET score=(score-({1})) 
+                     WHERE id={0}""".format(term_id, vote[0]))
 
 
   ## Import/Export tables ##
