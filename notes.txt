@@ -1,3 +1,10 @@
+7/5/13
+
+BUTTONS
+
+See if Tracking entry is deleted. It seems None=0 in Python grammar. 
+
+
 7/3/13
 
 When the DB is reset and exported terms are imported, this causes a conflict 

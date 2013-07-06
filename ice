@@ -524,10 +524,17 @@ def remComment(comment_id):
 @l.login_required
 def voteOnTerm(term_id):
   g.db = dbPool.getScoped()
+  p_vote = g.db.getVote(l.current_user.id, term_id) 
   if request.form['action'] == 'up':
-    g.db.castVote(l.current_user.id, term_id, 1)
+    if p_vote == 1:
+      g.db.castVote(l.current_user.id, term_id, 0)
+    else:      
+      g.db.castVote(l.current_user.id, term_id, 1)
   elif request.form['action'] == 'down':
-    g.db.castVote(l.current_user.id, term_id, -1)
+    if p_vote == -1:
+      g.db.castVote(l.current_user.id, term_id, 0)
+    else: 
+      g.db.castVote(l.current_user.id, term_id, -1)
   else:
     g.db.castVote(l.current_user.id, term_id, 0)
   g.db.commit()

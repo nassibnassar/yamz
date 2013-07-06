@@ -543,6 +543,18 @@ class SeaIceConnector:
 
     else: return 0
 
+  def getVote(self, user_id, term_id): 
+  #
+  # Get user's vote for a term
+  #
+    cur = self.con.cursor()
+    cur.execute("""SELECT vote FROM SI.Tracking WHERE
+                   user_id={0} AND term_id={1}""".format(user_id, term_id))
+    res = cur.fetchone()
+    if res: 
+      return res[0]
+    return 0
+
   def trackTerm(self, user_id, term_id): 
   #
   # User is tracking term. Return 1 if a row was inserted into the Tracking 
@@ -553,7 +565,7 @@ class SeaIceConnector:
                    WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
     if not cur.fetchone(): 
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id) 
-                     VALUES ({0}, {1})""".format(user_id, term_id))
+                     VALUES ({0}, {1}, 0)""".format(user_id, term_id))
       return 1
     else: return 0
 

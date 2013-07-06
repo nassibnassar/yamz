@@ -151,15 +151,18 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string = '<script>' + js_confirmRemoveTerm + js_termAction + '</script>'
   string += "<table>" 
   string += "  <tr><td width=15% rowspan=4 align=center valign=top>"
-  string += '    <a id="voteUp" title="+1" href="#up" onclick="return TermAction(%s, \'up\');">[up]</a><br>' % row['id']
-  string += '    %s<br>' % (row['score'])
-  string += '    <a id="voteDown" title="-1" href="#down" onclick="return TermAction(%s, \'down\');">[down]</a><br> ' % row['id']
-  string += '    <a id="star" title="Track this term" href="#star"' + \
-            '     onclick="return TermAction(%s, \'star\');">[star]</a><br> ' % row['id']
-  string += '    <a id="star" title="temp" href="#unstar"' + \
-            '     onclick="return TermAction(%s, \'unstar\');">[unstar]</a><br> ' % row['id']
-  string += '    <a id="reset" title="temp" href="#reset"' + \
-            '     onclick="return TermAction(%s, \'reset\');">[reset]</a><br> ' % row['id']
+
+  vote = db_con.getVote(0 if not owner_id else owner_id, row['id'])
+  string += '    <a id="voteUp" title="+1" href="#up" onclick="return TermAction(%s, \'up\');">' % row['id']
+  string += '     <img src="/static/img/%s.png"></a><br>' % ('up_set' if vote == 1 else 'up')
+  string += '    <h4>%s</h4>' % (row['score'])
+  string += '    <a id="voteDown" title="-1" href="#down" onclick="return TermAction(%s, \'down\');">' % row['id']
+  string += '     <img src="/static/img/%s.png"></a><br>' % ('down_set' if vote == -1 else 'down')
+  
+  string += '    <br><a id="star" title="Track this term" href="#star"' + \
+            '     onclick="return TermAction({1}, \'{0}\');">[{0}]</a><br> '.format(
+             ("unstar" if vote else "star"), row['id']) # FIXME
+  
   string += "  </td></tr>"
   string += "  <tr>"
   string += "    <td valign=top width=65%><i>Term:</i> <strong>{0}</strong> ".format(row['term_string'])
