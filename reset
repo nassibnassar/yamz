@@ -1,0 +1,6 @@
+#!/bin/bash
+./sea --drop-db -q
+./sea --init-db
+./sea --import=Users <../users.json
+./sea --import=Terms <../terms.json
+

@@ -166,7 +166,7 @@ class SeaIceConnector:
       (
         user_id integer not null, 
         term_id integer not null,
-        vote integer default 0 not null, 
+        vote integer, 
         foreign key (user_id) references SI.Users(id) on delete cascade, 
         foreign key (term_id) references SI.Terms(id) on delete cascade
       )"""
@@ -528,7 +528,7 @@ class SeaIceConnector:
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
     p_vote = cur.fetchone() 
-  
+ 
     if not p_vote:
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
                      VALUES ({0}, {1}, {2})""".format(user_id, term_id, vote))
@@ -553,7 +553,7 @@ class SeaIceConnector:
     res = cur.fetchone()
     if res: 
       return res[0]
-    return 0
+    return None 
 
   def trackTerm(self, user_id, term_id): 
   #
@@ -564,7 +564,7 @@ class SeaIceConnector:
     cur.execute("""SELECT vote FROM SI.Tracking 
                    WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
     if not cur.fetchone(): 
-      cur.execute("""INSERT INTO SI.Tracking (user_id, term_id) 
+      cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote) 
                      VALUES ({0}, {1}, 0)""".format(user_id, term_id))
       return 1
     else: return 0
