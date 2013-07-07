@@ -1,9 +1,3 @@
-7/5/13
-
-BUTTONS
-
-See if Tracking entry is deleted. It seems None=0 in Python grammar. 
-
 
 7/3/13
 
@@ -11,6 +5,10 @@ When the DB is reset and exported terms are imported, this causes a conflict
 with the autoincrementing Terms.id. Either figure out how to add a trigger 
 that sets the next assigned id on insert -OR- do this check in the Python
 insertTerm/Comment/User code. 
+
+  To solve this, I'm going to collect unassigned id's in the sequence's 
+contiguous range and find the highest value to assigned. This will run 
+whenever ice starts. 
 
 
 
