@@ -77,9 +77,18 @@ try:
 
   else: 
     db_config = seaice.get_config(options.config_file)
+
+    # DB Connection pool 
+
     dbPool = seaice.SeaIceConnectorPool(20, db_config.get('default', 'user'),
                                             db_config.get('default', 'password'),
                                             db_config.get('default', 'dbname'))
+
+    # Id pools
+
+    userIdPool = seaice.IdPool(dbPool.getScoped(), "Users")
+    termIdPool = seaice.IdPool(dbPool.getScoped(), "Terms")
+    commentIdPool = seaice.IdPool(dbPool.getScoped(), "Comments")
 
 except pgdb.DatabaseError, e:
   print 'error: %s' % e    
@@ -188,7 +197,7 @@ def authorized(resp):
   if not user: 
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
-    g_user['id'] = 'default'
+    g_user['id'] = userIdPool.ConsumeId()
     g_user['last_name'] = "nil"
     g_user['first_name'] = "nil"
     g.db.insertUser(g_user)
@@ -347,7 +356,8 @@ def addTerm():
     g.db = dbPool.dequeue()
     term = { 'term_string' : request.form['term_string'],
              'definition' : request.form['definition'],
-             'owner_id' : l.current_user.id }
+             'owner_id' : l.current_user.id,
+             'id' : termIdPool.ConsumeId() }
 
     id = g.db.insertTerm(term)
     g.db.commit()
@@ -410,7 +420,8 @@ def remTerm(term_id):
     term = g.db.getTerm(int(request.form['id']))
     assert term and term['owner_id'] == l.current_user.id
 
-    g.db.removeTerm(int(request.form['id']))
+    id = g.db.removeTerm(int(request.form['id']))
+    termIdPool.ReleaseId(id)
     g.db.commit()
   
     return render_template("basic_page.html", user_name = l.current_user.name, 
@@ -438,7 +449,8 @@ def addComment(term_id):
     g.db = dbPool.getScoped()
     comment = { 'comment_string' : request.form['comment_string'],
                 'term_id' : int(term_id),
-                'owner_id' : l.current_user.id }
+                'owner_id' : l.current_user.id,
+                'id' : commentIdPool.ConsumeId()}
       
     g.db.insertComment(comment) 
     g.db.commit()

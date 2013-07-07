@@ -29,11 +29,61 @@ from threading import Lock
 class IdPool:
   
   def __init__(self, db_con, table): 
-    pass
+  #
+  # Query table for all Ids and sort in ascending order. 
+  # Add non-contiguous regions to pool and determine the 
+  # next Id to assign. 
+  #
+    assert table in ['Users', 'Terms', 'Comments']
+    
+    self.L_pool = Lock()
 
-  def getId(): 
-    pass
+    cur = db_con.con.cursor()
+    cur.execute("select id from SI.%s order by id" % table)
+    
+    self.pool = []
+    prev = 1000  
+    for row in map(lambda x : x[0], cur.fetchall()):
+      if row > prev + 1:
+        self.pool += range(prev + 1, row)
+      prev = row 
+   
+    self.next = prev + 1
 
-  def releaseId(id): 
-    pass
+    print "Table %s pool:" % table, (self.pool, self.next)
+      
+  def ConsumeId(self): 
+  #
+  # Consume the next Id.  
+  #
+    self.L_pool.acquire()
+    if len(self.pool) > 0: 
+      ret = self.pool.pop()
+    else:
+      ret = self.next
+      self.next += 1
+    self.L_pool.release()
+    return ret
+
+  def GetNextId(self): 
+  #
+  # Get the next Id to assign without consuming it. 
+  #
+    self.L_pool.acquire()
+    if len(self.pool) > 0: 
+      ret = self.pool[-1]
+    else:
+      ret = self.next
+    self.L_pool.release()
+    return ret
+
+  def ReleaseId(self, id): 
+  #
+  # Release Id to the pool
+  #
+    self.L_pool.acquire()
+    if id < self.next: 
+      self.pool.append(id)
+    self.L_pool.release()
+      
 

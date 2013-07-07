@@ -25,6 +25,7 @@
 
 from SeaIceConnector import *
 from SeaIceConnectorPool import *
+from IdPool import *
 from User import *
 from Auth import *
 from Pretty import *

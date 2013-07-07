@@ -121,7 +121,7 @@ class SeaIceConnector:
           first_name varchar(64) not null,
           reputation integer default 0 not null
         );
-      alter sequence SI.Users_id_seq restart with 10001;"""
+      alter sequence SI.Users_id_seq restart with 1001;"""
     )
 
     # Create Terms table if it doesn't exist.
@@ -153,7 +153,8 @@ class SeaIceConnector:
           modified timestamp default now() not null, 
           foreign key (owner_id) references SI.Users(id),
           foreign key (term_id) references SI.Terms(id) on delete cascade
-        )"""
+        );
+      alter sequence SI.Comments_id_seq restart with 1001;"""
     )
 
     # Create Tracking table if it doesn't exist. This table keeps 
@@ -283,10 +284,14 @@ class SeaIceConnector:
 
   def removeTerm(self, id):
   #
-  # Remove term from the database and return number of rows affected (1 or 0). 
+  # Remove term from the database and return id of deleted
   #
     cur = self.con.cursor()
-    return cur.execute("delete from SI.Terms where id=%d" % id)
+    cur.execute("delete from SI.Terms where id=%d returning id" % id)
+    res = cur.fetchone()
+    if res: return res[0]
+    else:   return None
+
 
   def getTerm(self, id): 
   # 
@@ -485,10 +490,13 @@ class SeaIceConnector:
 
   def removeComment(self, id):
   #
-  # Remove comment and return number of rows affected (1 or 0)
+  # Remove comment and return id of removed
   # 
     cur = self.con.cursor()
-    return cur.execute("delete from SI.Comments where id=%d" % id)
+    cur.execute("delete from SI.Comments where id=%d returning id" % id)
+    res = cur.fetchone()
+    if res: return res[0]
+    else: return None
 
   def updateComment(self, id, comment):
   #

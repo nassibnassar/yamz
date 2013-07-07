@@ -21,9 +21,7 @@ try:
                                config.get('default', 'password'),
                                config.get('default', 'dbname'))
 
-  print sea.getTermsByUser(10001)
-  print
-  print sea.getTermsByTracking(10001)
+  term_id_pool = seaice.IdPool(sea, "Terms")
 
 except pqdb.DatabaseError, e:
   print 'error: %s' % e    
