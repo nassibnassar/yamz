@@ -84,11 +84,11 @@ try:
                                             db_config.get('default', 'password'),
                                             db_config.get('default', 'dbname'))
 
-    # Id pools
+  # Id pools
 
-    userIdPool = seaice.IdPool(dbPool.getScoped(), "Users")
-    termIdPool = seaice.IdPool(dbPool.getScoped(), "Terms")
-    commentIdPool = seaice.IdPool(dbPool.getScoped(), "Comments")
+  userIdPool = seaice.IdPool(dbPool.getScoped(), "Users")
+  termIdPool = seaice.IdPool(dbPool.getScoped(), "Terms")
+  commentIdPool = seaice.IdPool(dbPool.getScoped(), "Comments")
 
 except pgdb.DatabaseError, e:
   print 'error: %s' % e    
