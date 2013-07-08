@@ -430,14 +430,16 @@ class SeaIceConnector:
     res = cur.fetchone()
     return res
 
-  def getUserNameById(self, Userid): 
+  def getUserNameById(self, Userid, full=False): 
   #
   # Return Users.Name where Users.id = Userid
   #
     cur = self.con.cursor()
-    cur.execute("select first_name from SI.Users where id=%d" % Userid)
+    cur.execute("select first_name, last_name from SI.Users where id=%d" % Userid)
     res = cur.fetchone()
-    if res: 
+    if res and full: 
+      return res[0] + " " + res[1]
+    elif res and not full: 
       return res[0]
     else: 
       return None

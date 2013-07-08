@@ -1,52 +1,27 @@
 
-7/3/13
-
-When the DB is reset and exported terms are imported, this causes a conflict 
-with the autoincrementing Terms.id. Either figure out how to add a trigger 
-that sets the next assigned id on insert -OR- do this check in the Python
-insertTerm/Comment/User code. 
-
-  To solve this, I'm going to collect unassigned id's in the sequence's 
-contiguous range and find the highest value to assigned. This will run 
-whenever ice starts. 
-
-
-
-Three levels of db acces: 
+Currently, the dbPool is made of write level access. Eventually I want to
+implement three levels. Since Heroku-Postgres doesn't allow you to do to
+create roles, maybe this can be accomplished with views. 
 root - drop/create table, read/write queries
 read - only do read queries
 write - read/write queries
 
-render_template_string(source_string, context)
-
-6/4/13
-
-sudo apt-get install python-flask python-pip mysql-server
-
-sudo pip install configparser
-
-``Name'' is probably good for ``TermString''
-
-SeaIceDb.cur attribute? The quesiton is whether MySQL serializes
-transactions across cursors or only within one. 
-
-The API handles db entries as dictionaries. I'll prboably do this with tuples
-instead, since this is more efficient. 
-
 Here are the development stages: 
 
-1. Basic functionality: add/delete/look-up term. Database, API, command-line UI. 
+1. DONE Basic functionality: add/delete/look-up term. Database, API, 
+   command-line UI. 
 
-2. Web UI, term ownership, user credentials. Term population, browse terms. 
+2. DONE Web UI, term ownership, user credentials. Term population, browse 
+   terms. 
 
-3. Term discovery via definition search, edit definition form. 
+3. DONE Term discovery via definition search, edit definition form. 
 
-4. Term comment history. 
+4. DONE Term comment history. 
 
 5. add/delete/look-up relations, discovery via related terms. 
 
-6. Basic scoring (up/down vote), rank search results by score and last
-modified. 
+6. DONE Basic voting (up/down vote), TODO scoring and rank search results by 
+   score and last modified. 
 
 7. Vernacular, canon, and archive. Call for votes (term frozen) period.
 

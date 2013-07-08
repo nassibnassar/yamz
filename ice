@@ -320,7 +320,7 @@ def browse():
 
   for term in terms: 
     result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
-      term['id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
+      term['id'], term['term_string'], g.db.getUserNameById(term['owner_id'], full=True))
 
   return render_template("browse.html", user_name = l.current_user.name, 
                                         title = "Browse", 

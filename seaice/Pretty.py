@@ -148,11 +148,10 @@ def printTermAsHTML(db_con, row, owner_id=0):
 #
 # Print Term in HTML (to string) 
 # 
+  vote = db_con.getVote(0 if not owner_id else owner_id, row['id'])
   string = '<script>' + js_confirmRemoveTerm + js_termAction + '</script>'
   string += "<table>" 
   string += "  <tr><td width=15% rowspan=4 align=center valign=top>"
-
-  vote = db_con.getVote(0 if not owner_id else owner_id, row['id'])
   string += '    <a id="voteUp" title="+1" href="#up" onclick="return TermAction(%s, \'up\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('up_set' if vote == 1 else 'up')
   string += '    <h4>%s</h4>' % (row['score'])
@@ -165,19 +164,27 @@ def printTermAsHTML(db_con, row, owner_id=0):
   
   string += "  </td></tr>"
   string += "  <tr>"
-  string += "    <td valign=top width=65%><i>Term:</i> <strong>{0}</strong> ".format(row['term_string'])
+  string += "    <td valign=top width=7%><i>Term:</i></td>"
+  string += "    <td valign=top width=60%><font size=\"3\"><strong>{0}</strong></font>".format(row['term_string'])
   if owner_id == row['owner_id']:
     string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
   string += "    </td>" 
-  string += "    <td valign=top><i>created</i>: %s</td>" % printPrettyDate(row['created'])
-  string += "  </tr><tr>"
-  string += "    <td></td><td valign=top><i>Last modified</i>: %s</td>" % printPrettyDate(row['modified'])
-  string += "  </tr><tr>"
-  string += "    <td valign=top><i>definition:</i> %s</td>" % row['definition']
-  string += "    <td valign=top><i>Ownership:</i> %s"% db_con.getUserNameById(row['owner_id'])
-  string += "  </td></tr><tr height=16><td></td></tr>"
+  string += "    <td valign=top rowspan=3>"
+  string += "      <nobr><i>Created</i> %s</nobr><br>" % printPrettyDate(row['created'])
+  string += "      <nobr><i>Last modified</i> %s</nobr><br>" % printPrettyDate(row['modified'])
+  string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
+  string += "    </td>"
+  string += "  </tr>"
+  string += "  <tr>"
+  string += "    <td valign=top><i>Definition:</i></td>"
+  string += "    <td valign=top><font size=\"3\"> %s</font></td>" % row['definition']
+  string += "  </tr>"
+  string += "  <tr>"
+  string += "    <td valign=top><i>Examples:</i></td>"
+  string += "    <td valign=top><font size=\"3\"> TODO</font></td>" 
+  string += "  </tr>"
   string += "</table>"
   return string
 
@@ -188,23 +195,26 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
 # 
   string = '<script>' + js_confirmRemoveTerm + '</script><table>'
   for row in rows:
-    string += "<tr>"
-    string += "  <td valign=top width=%s><i>Term:</i> <strong>%s</strong> " % (
-      repr("70%"), row['term_string'])
-    string += " <a href=\"/term=%d\">[view]</a>" % row['id']
+    string += "  <tr>"
+    string += "    <td valign=top width=75%><i>Term:</i>"
+    string += "     <font size=\"3\"><strong>{0}</strong></font>".format(row['term_string'])
+    string += "      <a href=\"/term=%d\">[view]</a>" % row['id']
     if owner_id == row['owner_id']:
-      string += " <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
-      string += """ <a id="removeTerm" title="Click to delete term" href="#"
-                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
-    string += "  </td>" 
-    string += "  <td valign=top><i>created</i>: %s</td>" % printPrettyDate(row['created'])
-    string += "</tr><tr>"
-    string += "  <td valign=top><i>score</i>: %s</td>" % row['score']
-    string += "  <td valign=top><i>Last modified</i>: %s</td>" % printPrettyDate(row['modified'])
-    string += "</tr><tr>"
-    string += "  <td valign=top><i>definition:</i> %s</td>" % row['definition']
-    string += "  <td valign=top><i>Ownership:</i> %s"% db_con.getUserNameById(row['owner_id'])
-    string += "</td></tr><tr height=16><td></td></tr>"
+      string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
+      string += """  <a id="removeTerm" title="Click to delete term" href="#"
+                     onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
+    string += "    </td>" 
+    string += "    <td valign=top rowspan=2>"
+    string += "      <nobr><i>Created</i> %s</nobr><br>" % printPrettyDate(row['created'])
+    string += "      <nobr><i>Last modified</i> %s</nobr><br>" % printPrettyDate(row['modified'])
+    string += "      <nobr><i>Contributed by</i> %s</nobr><br>" % db_con.getUserNameById(row['owner_id'], full=True)
+    string += "    </td>"
+    string += "  </tr>"
+    string += "  <tr>"
+    string += "    <td valign=top><i>Definition:</i>"
+    string += "     <font size=\"3\"> %s</font></td>" % row['definition']
+    string += "  </tr>"
+    string += "  <tr height=16><td></td></tr>"
   string += "</table>"
   return string
   
