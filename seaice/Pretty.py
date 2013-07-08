@@ -165,7 +165,7 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += "  </td></tr>"
   string += "  <tr>"
   string += "    <td valign=top width=7%><i>Term:</i></td>"
-  string += "    <td valign=top width=60%><font size=\"3\"><strong>{0}</strong></font>".format(row['term_string'])
+  string += "    <td valign=top width=53%><font size=\"3\"><strong>{0}</strong></font>".format(row['term_string'])
   if owner_id == row['owner_id']:
     string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
@@ -223,17 +223,17 @@ def printCommentsAsHTML(db_con, rows, owner_id=0):
 # Print Comments table rows as an HTML table (to string)
 # 
   string = '<script>' + js_confirmRemoveComment + '</script><table>'
-  for row in rows: 
+  for row in rows:
     string += "<tr>"
-    string += "<td align=left valign=top width=70%>{0}".format(row['comment_string'])
+    string += "  <td align=left valign=top width=70%>{0}".format(row['comment_string'])
     if owner_id == row['owner_id']:
       string += " <nobr><a href=\"/comment=%d/edit\">[edit]</a>" % row['id']
       string += """ <a id="removeComment" title="Click to remove this comment" href="#"
                     onclick="return ConfirmRemoveComment(%s);">[remove]</a></nobr>""" % row['id']
-    string += "</td>"
-    string += "<td align=right valign=top><font color=\"#B8B8B8\"><i>Submitted {0}<br>by {1}</i></font></td>".format(
+    string += "  </td>"
+    string += "  <td align=right valign=top><font color=\"#B8B8B8\"><i>Submitted {0}<br>by {1}</i></font></td>".format(
       printPrettyDate(row['created']), db_con.getUserNameById(row['owner_id']))
     string += "</tr>" 
-    string += "</td></tr><tr height=16><td></td></tr>"
+    string += "</tr><tr height=16><td></td></tr>"
   string += "</table>"
   return string

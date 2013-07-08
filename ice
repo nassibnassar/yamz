@@ -303,7 +303,7 @@ def getTerm(term_id = None, message = ""):
         </form>""".format(term['id'])
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "Term - %s" % term_id, 
-                                                headline = "Term", 
+                                              headline = "Term", 
                                                 content = Markup(result))
   except ValueError: pass
 
@@ -313,14 +313,36 @@ def getTerm(term_id = None, message = ""):
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
 @app.route("/browse")
-def browse():
+@app.route("/browse/<listing>")
+def browse(listing = None):
   g.db = dbPool.getScoped()
   terms = g.db.getAllTerms(sortBy="term_string")
-  result = "<hr>"
+  letter = '~'
+  result = "<h4>{0} | {1} | {2} | {3}</h4><hr>".format(
+     '<a href="/browse">alphabetical</a>' if listing else 'alphabetical',
+     '<a href="/browse/stable">stable</a>' if listing != "stable" else 'stable',
+     '<a href="/browse/recent">recent</a>' if listing != "recent" else 'recent',
+     '<a href="/browse/volatile">volatile</a>' if listing != "volatile" else 'volatile'
+    )
+ 
+  if listing == "recent": # Most recently added listing 
+    result += "TODO"
 
-  for term in terms: 
-    result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
-      term['id'], term['term_string'], g.db.getUserNameById(term['owner_id'], full=True))
+  elif listing == "volatile": # Least stable (Frequent updates, commenting, and voting)
+    result += "TODO"
+
+  elif listing == "stable": # Most stable, highest consensus
+    result += "TODO"
+    
+  else: # Alphabetical listing 
+    result += "<table>"
+    for term in terms: 
+      if term['term_string'][0] != letter:
+        letter = term['term_string'][0].upper()
+        result += "</td></tr><tr><td width=20% align=center valign=top><h4>{0}</h4></td><td width=80%>".format(letter)
+      result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
+        term['id'], term['term_string'], g.db.getUserNameById(term['owner_id'], full=True))
+    result += "</table>"
 
   return render_template("browse.html", user_name = l.current_user.name, 
                                         title = "Browse", 
