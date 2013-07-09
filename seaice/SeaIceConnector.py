@@ -141,6 +141,7 @@ class SeaIceConnector:
           definition text not null,
           tsv tsvector, 
           score integer default 0 not null,
+          consensus float default 0 not null, 
           created timestamp default now() not null, 
           modified timestamp default now() not null, 
           foreign key (owner_id) references SI.Users(id)
@@ -449,7 +450,12 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("update SI.Users set first_name='%s', last_name='%s' where id=%d" % (
       first, last, id))
-
+  ##
+  # Set reputation of user
+  #
+  def updateUserReputation(self, user_id, rep): 
+    cur = self.con.cursor()
+    cur.execute("update SI.Users set reputation=%d where id=%d" % (rep, user_id))
 
   ##
   # Insert a new comment into the database. 
@@ -583,6 +589,51 @@ class SeaIceConnector:
     if vote: 
       cur.execute("""UPDATE SI.Terms SET score=(score-({1})) 
                      WHERE id={0}""".format(term_id, vote[0]))
+
+  ##
+  # Prescore term. Returns a tuple of pair of dictionaries 
+  # (User.Id -> User.Reputation) of up voters and down voters
+  # (U, D). 
+  # 
+  def preScore(self, term_id):
+    cur = self.con.cursor()
+    cur.execute("""SELECT v.user_id, v.vote, u.reputation
+                   FROM SI.Users as u, SI.Tracking as v
+                   WHERE v.term_id = %d AND v.user_id = u.id""" % term_id)
+    U = {}; D = {}
+    for (user_id, vote, rep) in cur.fetchall():
+      if vote == 1: 
+        U[user_id] = rep
+      elif vote == -1:
+        D[user_id] = rep
+
+    return (U, D) 
+
+  ##
+  # Postscore term. Input the reputations of upvoters and downvoters 
+  # and compute the consensus score. 
+  #
+  def postScore(self, U, D):
+    cur = self.con.cursor()
+    cur.execute("SELECT COUNT(*) FROM SI.Users")
+    t = cur.fetchone()[0] # total users
+    u = len(U) 
+    d = len(D)
+    v = u + d             # total voters
+
+    R = reduce(lambda Ri,Rj: Ri+Rj, U.values() + D.values()) # total reputatio
+                                                             # of voters
+    
+    if R: 
+      R = float(R) 
+      U_sum = reduce(lambda ri,rj: ri+rj, 
+                      [0] + map(lambda Ri: Ri/R, U.values()))
+      D_sum = reduce(lambda ri,rj: ri+rj, 
+                      [0] + map(lambda Ri: Ri/R, D.values()))
+    else:
+      U_sum = D_sum = 0.0
+
+    return (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v))
 
 
   ## 

@@ -21,7 +21,11 @@ try:
                                config.get('default', 'password'),
                                config.get('default', 'dbname'))
 
-  term_id_pool = seaice.IdPool(sea, "Terms")
+  #term_id_pool = seaice.IdPool(sea, "Terms")
+  sea.updateUserReputation(1001, 10)
+  sea.updateUserReputation(1007, 36)
+  (U, D) = sea.preScore(1004)
+  print sea.postScore(U, D)
 
 except pqdb.DatabaseError, e:
   print 'error: %s' % e    
