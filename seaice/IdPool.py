@@ -26,14 +26,20 @@
 from SeaIceConnector import *
 from threading import Lock
 
+##
+# class IdPool 
+# 
+# A thread-safe object for producing and consuming table row Ids within 
+# a particluar context, i.e. Terms, Users, Comments. 
+#
 class IdPool:
   
-  def __init__(self, db_con, table): 
-  #
+  ## 
   # Query table for all Ids and sort in ascending order. 
   # Add non-contiguous regions to pool and determine the 
   # next Id to assign. 
   #
+  def __init__(self, db_con, table): 
     assert table in ['Users', 'Terms', 'Comments']
     
     self.L_pool = Lock()
@@ -51,11 +57,11 @@ class IdPool:
     self.next = prev + 1
 
     print "Table %s pool:" % table, (self.pool, self.next)
-      
+     
+  ##
+  # Assign (consume) the next Id.
+  #
   def ConsumeId(self): 
-  #
-  # Consume the next Id.  
-  #
     self.L_pool.acquire()
     if len(self.pool) > 0: 
       ret = self.pool.pop()
@@ -65,10 +71,10 @@ class IdPool:
     self.L_pool.release()
     return ret
 
-  def GetNextId(self): 
-  #
+  ##
   # Get the next Id to assign without consuming it. 
   #
+  def GetNextId(self): 
     self.L_pool.acquire()
     if len(self.pool) > 0: 
       ret = self.pool[-1]
@@ -77,10 +83,10 @@ class IdPool:
     self.L_pool.release()
     return ret
 
+  ##
+  # Release Id to the pool (produce) 
+  #
   def ReleaseId(self, id): 
-  #
-  # Release Id to the pool
-  #
     self.L_pool.acquire()
     if id < self.next: 
       self.pool.append(id)

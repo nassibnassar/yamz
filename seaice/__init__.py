@@ -23,6 +23,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+## @package seaice
+# 
+# This is the documentation for the SeaIce Python API. 
+#
 from SeaIceConnector import *
 from SeaIceConnectorPool import *
 from IdPool import *

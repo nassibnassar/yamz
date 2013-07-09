@@ -30,15 +30,23 @@ from flask_oauth import OAuth
 
 oauth = OAuth()
 
+##
+# Google redirect URI 
+# @REDIRECT_URI
 REDIRECT_URI = '/authorized' # TODO Change to '/authorized/google' (also on 
                              # code.google.com/apis/console). 
-
+##
 # These credentials are for localhost testing. The actual values for 
 # the SeaIce dictionary deployed to seaice.herokuapp.com are not 
 # published. 
+# @GOOGLE_CLIENT_ID
+# @GOOGLE_CLIENT_SECRET
 GOOGLE_CLIENT_ID = '173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = '_Wmt-6SZXRMeaJVFXkuRH-rm'
 
+##
+# Google authentication. 
+#
 google = oauth.remote_app('google',
                           base_url='https://www.google.com/accounts/',
                           authorize_url='https://accounts.google.com/o/oauth2/auth',

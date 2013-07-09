@@ -81,29 +81,26 @@ js_termAction = """
 
 ## Pretty prints ##
 
-def printPrettyDate(t, gmt=False): 
-#
+##
 # Print date (to string). If a small amount of time 
 # has elapsed, then give this info. TODO
 #
-
+def printPrettyDate(t, gmt=False): 
   return "%s/%s/%s %s:%02d" % (t.day, t.month, t.year, t.hour, t.minute)#, t.tzname)
   
-
-
-def printAsJSObject(rows, fd = sys.stdout):
-#
+##
 # Write table rows in JSON format to 'fd'. 
 #
+def printAsJSObject(rows, fd = sys.stdout):
   for row in rows:
     if row.get('modified'): row['modified'] = str(row['modified'])
     if row.get('created'): row['created'] = str(row['created'])
   print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
 
-def printParagraph(db_con, text, leftMargin=8, width=60): 
-#
+##
 # Print a nice paragraph. 
 #
+def printParagraph(db_con, text, leftMargin=8, width=60): 
   lineLength = 0
   print " " * (leftMargin-1), 
   for word in text.split(" "):
@@ -115,10 +112,10 @@ def printParagraph(db_con, text, leftMargin=8, width=60):
       lineLength = 0
   print
     
-def printTermsPretty(db_con, rows):
-#
+##
 # Print Terms table rows to the terminal. 
 #
+def printTermsPretty(db_con, rows):
   for row in rows:
     print "Term: %-26s id No. %-7d created: %s" % ("%s (%d)" % (row['term_string'], 
                                                                 row["score"]),
@@ -133,21 +130,19 @@ def printTermsPretty(db_con, rows):
     print "\n    Ownership: %s" % db_con.getUserNameById(row['owner_id'])
     print
 
-
-
-def printTermsAsLinks(rows): 
-#
+##
 # Print a list of terms with HTML links to term pages (to string)
 #
+def printTermsAsLinks(rows): 
   string = ""
   for row in rows: 
     string += '<li><a href="/term=%d">%s</a></li>' % (row['id'], row['term_string'])
   return string
 
-def printTermAsHTML(db_con, row, owner_id=0): 
-#
+##
 # Print Term in HTML (to string) 
 # 
+def printTermAsHTML(db_con, row, owner_id=0): 
   vote = db_con.getVote(0 if not owner_id else owner_id, row['id'])
   string = '<script>' + js_confirmRemoveTerm + js_termAction + '</script>'
   string += "<table>" 
@@ -189,10 +184,10 @@ def printTermAsHTML(db_con, row, owner_id=0):
   return string
 
 
-def printTermsAsHTML(db_con, rows, owner_id=0): 
-#
+##
 # Print Terms table rows as an HTML table (to string) 
 # 
+def printTermsAsHTML(db_con, rows, owner_id=0): 
   string = '<script>' + js_confirmRemoveTerm + '</script><table>'
   for row in rows:
     string += "  <tr>"
@@ -218,10 +213,10 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
   string += "</table>"
   return string
   
-def printCommentsAsHTML(db_con, rows, owner_id=0): 
-#
+##
 # Print Comments table rows as an HTML table (to string)
 # 
+def printCommentsAsHTML(db_con, rows, owner_id=0): 
   string = '<script>' + js_confirmRemoveComment + '</script><table>'
   for row in rows:
     string += "<tr>"

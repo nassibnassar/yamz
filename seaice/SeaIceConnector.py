@@ -32,12 +32,17 @@ import json, psycopg2 as pgdb
 import psycopg2.extras  
 import Pretty
 
-## Local db configuration $HOME/.seaice ## 
-
+##
+# Verify permissions of configuration file. 
+#
 def accessible_by_group_or_world(file):
   st = os.stat(file)
   return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
 
+## 
+# Get Local db configuration from $HOME/.seaice 
+# or file specified. 
+#
 def get_config(config_file = os.environ['HOME'] + '/.seaice'):
   if accessible_by_group_or_world(config_file):
     print ('error: config file ' + config_file +
@@ -50,18 +55,22 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
 
 
 
-## class SeaIceConnector ##
-
+## 
+# class SeaIceConnector 
+# 
+# Connection to the PostgreSQL database. Create or drop schema, 
+# tables, and triggers, encapsulation of all the queries we need. 
+#
 class SeaIceConnector: 
   
-  def __init__(self, user=None, password=None, db=None):
-  #
+  ##
   # Establish connection to database. For a local database, this is
   # specified by the paramters. If the parameters are unspecified, 
   # then attempt to connect to a foreign database sepcified by the 
   # environment variable DATABASE_URL. This is to support Heroku's
   # functionality. 
   # 
+  def __init__(self, user=None, password=None, db=None):
   
     if not user: 
 
@@ -91,14 +100,12 @@ class SeaIceConnector:
     self.con.close()
 
 
-  ## Alter Schema ##
-
-  def createSchema(self):
-  #
+  ## Alter Schema 
   # Create a schema for the SeaIce database that includes the tables
   # Users, Terms, Relations(TODO), and Comments, and an update trigger 
   # funciton. 
   #
+  def createSchema(self):
     
     cur = self.con.cursor()
 
@@ -209,33 +216,26 @@ class SeaIceConnector:
        grant insert, delete, update on SI.Terms, SI.Terms_id_seq to contributor"""
       )
   
-  def dropSchema(self): 
-  #
+  ##
   # Drop SeaIce schema. 
   #
-  
+  def dropSchema(self): 
     cur = self.con.cursor()
     cur.execute("drop schema SI cascade")
 
-
-  ## Commit transactions ##
-
-  def commit(self): 
-  #
+  ##
   # Commit changes to database made while the connection was open. This 
   # should be called before the class destructor is called in order to 
   # save changes. 
   #
+  def commit(self): 
     cur = self.con.cursor()
     cur.execute("commit")
 
-  
-  ## Term queries ##
-
-  def insertTerm(self, term): 
-  #
+  ##
   # Add a term to the database and return Terms.Id (None if failed) 
   #
+  def insertTerm(self, term): 
     cur = self.con.cursor()
 
     # Default values for table entries.  
@@ -282,10 +282,10 @@ class SeaIceConnector:
          return None 
       raise e
 
-  def removeTerm(self, id):
-  #
+  ##
   # Remove term from the database and return id of deleted
   #
+  def removeTerm(self, id):
     cur = self.con.cursor()
     cur.execute("delete from SI.Terms where id=%d returning id" % id)
     res = cur.fetchone()
@@ -293,18 +293,18 @@ class SeaIceConnector:
     else:   return None
 
 
-  def getTerm(self, id): 
-  # 
+  ## 
   # Retrieve term by id. Return dictionary structure or None. 
   # 
+  def getTerm(self, id): 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Terms where id=%d" % id)
     return cur.fetchone()
   
-  def getAllTerms(self, sortBy=None): 
-  # 
+  ## 
   # Return a list of all terms (rows) in table. 
   # 
+  def getAllTerms(self, sortBy=None): 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     if sortBy:
       cur.execute("select * from SI.Terms order by %s" % sortBy)
@@ -312,36 +312,36 @@ class SeaIceConnector:
       cur.execute("select * from SI.Terms")
     return cur.fetchall()
 
-  def getByTerm(self, term_string): 
-  #
+  ##
   # Search table by term string and return a list of dictionary structures
   #
+  def getByTerm(self, term_string): 
     term_string = term_string.replace("'", "''")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Terms where term_string='%s'" % term_string)
     return list(cur.fetchall())
 
-  def getTermsByUser(self, user_id):
-  #
+  ##
   # Return a list of terms owned by User
   #
+  def getTermsByUser(self, user_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Terms where owner_id=%d" % user_id) 
     return list(cur.fetchall())
 
-  def getTermsByTracking(self, user_id):
-  #
+  ##
   # Return a list of terms starred by user
   #
+  def getTermsByTracking(self, user_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""select *from SI.Terms as term, SI.Tracking as track
                    where track.user_id={0} and track.term_id=term.id and term.owner_id!={0}""".format(user_id))
     return list(cur.fetchall())
 
-  def search(self, string): 
-  #
+  ##
   # Search table by definition.
   #
+  def search(self, string): 
     string = string.replace("'", "''")
     string = ' & '.join(string.split(' ')) # |'s are also aloud, and paranthesis TODO
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -355,11 +355,11 @@ class SeaIceConnector:
      """ % string)
     return list(cur.fetchall())
 
-  def updateTerm(self, id, term): 
-  #
+  ##
   # Modify a term's definition and/or term_string. 
   # Note: term ownership authenticated upstream! 
   # 
+  def updateTerm(self, id, term): 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = str(value).replace("'", "''")
@@ -367,13 +367,11 @@ class SeaIceConnector:
       term['term_string'], term['definition'], id))
  
 
-  ## User queries ##
-
-  def insertUser(self, user):
-  #
+  ##
   # Insert a new user into the table and return Users.Id (None if failed) 
   #
-
+  def insertUser(self, user):
+    
     defUser = { 
       "id" : "default",
       "email" : "nil", 
@@ -411,29 +409,29 @@ class SeaIceConnector:
          return None 
       raise e
 
-  def getUser(self, id):
-  #
+  ##
   # Get User by Id
   #
+  def getUser(self, id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Users where id=%d" % id)
     return cur.fetchone()
       
-  def getUserByAuth(self, authority, auth_id):
-  #
+  ##
   # Return Users.Id where Users.auth_id = auth_id and 
   # Users.authority = authority
   #
+  def getUserByAuth(self, authority, auth_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Users where auth_id = '%s' and authority = '%s'" % 
                  (auth_id, authority))
     res = cur.fetchone()
     return res
 
-  def getUserNameById(self, Userid, full=False): 
-  #
+  ##
   # Return Users.Name where Users.id = Userid
   #
+  def getUserNameById(self, Userid, full=False): 
     cur = self.con.cursor()
     cur.execute("select first_name, last_name from SI.Users where id=%d" % Userid)
     res = cur.fetchone()
@@ -444,21 +442,19 @@ class SeaIceConnector:
     else: 
       return None
   
-  def updateUser(self, id, first, last): 
-  #
+  ##
   # Update User name
   # 
+  def updateUser(self, id, first, last): 
     cur = self.con.cursor()
     cur.execute("update SI.Users set first_name='%s', last_name='%s' where id=%d" % (
       first, last, id))
 
 
-  ## Comment Queries ## 
-
-  def insertComment(self, comment): 
-  #
+  ##
   # Insert a new comment into the database. 
   #
+  def insertComment(self, comment): 
     defComment = { 
       "id" : "default",
       "owner_id" : "default", 
@@ -490,50 +486,46 @@ class SeaIceConnector:
          return None 
       raise e
 
-  def removeComment(self, id):
-  #
+  ##
   # Remove comment and return id of removed
   # 
+  def removeComment(self, id):
     cur = self.con.cursor()
     cur.execute("delete from SI.Comments where id=%d returning id" % id)
     res = cur.fetchone()
     if res: return res[0]
     else: return None
 
-  def updateComment(self, id, comment):
-  #
+  ##
   #  Update term comment. 
   #
+  def updateComment(self, id, comment):
     cur = self.con.cursor()
     for (key, value) in comment.iteritems():
       comment[key] = str(value).replace("'", "''")
     cur.execute("update SI.Comments set comment_string='%s' where id=%d" % (
       comment['comment_string'], id))
 
-  def getComment(self, id):
-  #
+  ##
   # Return comment.
   #
+  def getComment(self, id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Comments where id=%d" % id)
     return cur.fetchone()
 
-  def getCommentHistory(self, term_id):
-  #
+  ##
   # Return a term's comment history, ordered by creation date.
   #
+  def getCommentHistory(self, term_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Comments where term_id=%d order by created" % term_id)
     return list(cur.fetchall())
 
-
-
-  ## Term voting and tracking ##
-
-  def castVote(self, user_id, term_id, vote): 
-  #
+  ##
   # Cast or change a user's vote on a term. Return the change in term's score. 
   #
+  def castVote(self, user_id, term_id, vote): 
     cur = self.con.cursor()
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
@@ -553,10 +545,10 @@ class SeaIceConnector:
 
     else: return 0
 
-  def getVote(self, user_id, term_id): 
-  #
+  ##
   # Get user's vote for a term
   #
+  def getVote(self, user_id, term_id): 
     cur = self.con.cursor()
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
@@ -565,11 +557,11 @@ class SeaIceConnector:
       return res[0]
     return None 
 
-  def trackTerm(self, user_id, term_id): 
-  #
+  ##
   # User is tracking term. Return 1 if a row was inserted into the Tracking 
   # table, 0 if not. 
   #
+  def trackTerm(self, user_id, term_id): 
     cur = self.con.cursor()
     cur.execute("""SELECT vote FROM SI.Tracking 
                    WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
@@ -579,10 +571,10 @@ class SeaIceConnector:
       return 1
     else: return 0
 
-  def untrackTerm(self, user_id, term_id):
-  #
+  ##
   # Untrack term. 
   #
+  def untrackTerm(self, user_id, term_id):
     cur = self.con.cursor()
     cur.execute("""DELETE FROM SI.Tracking 
                    WHERE user_id={0} AND term_id={1} 
@@ -593,13 +585,11 @@ class SeaIceConnector:
                      WHERE id={0}""".format(term_id, vote[0]))
 
 
-  ## Import/Export tables ##
-
-  def Export(self, table, outf=None):
-  # 
+  ## 
   # Export database in JSON format to "outf". If no file name 
   # provided, dump to standard out. 
   #
+  def Export(self, table, outf=None):
     if table not in ['Users', 'Terms']:
       print >>sys.stderr, "error (export): table '%s' is not defined in the db schema" % table
 
@@ -613,10 +603,10 @@ class SeaIceConnector:
     rows = cur.fetchall()
     Pretty.printAsJSObject(rows, fd)
 
+  ##
+  # Import database from JSON formated "inf".
+  #
   def Import(self, table, inf=None): 
-  #
-  # Import database from JSON formated "inf". TODO comments
-  #
     if table not in ['Users', 'Terms']:
       print >>sys.stderr, "error (import): table '%s' is not defined in the db schema" % table
 

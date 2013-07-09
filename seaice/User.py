@@ -25,6 +25,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+##
+# class User 
+#
+# Store information about active user sessions. So far, this is just the 
+# id and name of the user. Eventually this datastructure will store 
+# notifications and other stuff for users.  
+# 
 class User:
 
   def __init__(self, id, name): 
@@ -44,6 +51,11 @@ class User:
   def get_id(self):
     return unicode(self.id)
 
+##
+# class AnonymousUser
+# 
+# Non logged in session. 
+#
 class AnonymousUser(User): 
   def __init__(self): 
     self.id = None

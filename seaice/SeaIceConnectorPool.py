@@ -30,6 +30,13 @@
 from SeaIceConnector import *
 from threading import Condition
 
+##
+# class ScopedSeaIceConnector
+#
+# Sub-class of SeaIceConnector which is released to the pool it comes
+# from once it goes out of scope. This allows for a fancy short-hand. 
+# See SeaIceconnectorPool.getScoped(). 
+#
 class ScopedSeaIceConnector (SeaIceConnector): 
 
   def __init__(self, pool, db_con):
@@ -41,7 +48,11 @@ class ScopedSeaIceConnector (SeaIceConnector):
   def __del__(self):
     self.pool.enqueue(self.db_con)
 
-
+##
+# class SeaIceConnectorPool
+# 
+# A thread-safe connection pool implementation for SeaIce. 
+#
 class SeaIceConnectorPool:
   
   def __init__(self, count=20, user=None, password=None, db=None):
