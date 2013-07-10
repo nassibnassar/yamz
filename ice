@@ -318,7 +318,7 @@ def browse(listing = None):
   g.db = dbPool.getScoped()
   terms = g.db.getAllTerms(sortBy="term_string")
   letter = '~'
-  result = "<h4>{0} | {1} | {2} | {3}</h4><hr>".format(
+  result = "<h5>{0} | {1} | {2} | {3}</h5><hr>".format(
      '<a href="/browse">alphabetical</a>' if listing else 'alphabetical',
      '<a href="/browse/stable">stable</a>' if listing != "stable" else 'stable',
      '<a href="/browse/recent">recent</a>' if listing != "recent" else 'recent',
@@ -341,7 +341,7 @@ def browse(listing = None):
         letter = term['term_string'][0].upper()
         result += "</td></tr><tr><td width=20% align=center valign=top><h4>{0}</h4></td><td width=80%>".format(letter)
       result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
-        term['id'], term['term_string'], l.current_user.name)
+        term['id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
     result += "</table>"
 
   return render_template("browse.html", user_name = l.current_user.name, 
