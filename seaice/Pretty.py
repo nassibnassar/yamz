@@ -78,6 +78,9 @@ js_termAction = """
     form.submit(); 
   } """
 
+colorOf = { 'vernacular' : '#FFFF66', 
+            'stable' : '#339933', 
+            'deprecated' : '#E8E8E8' }
 
 ## Pretty prints ##
 
@@ -145,7 +148,9 @@ def printTermsAsLinks(rows):
 def printTermAsHTML(db_con, row, owner_id=0): 
   vote = db_con.getVote(0 if not owner_id else owner_id, row['id'])
   string = '<script>' + js_confirmRemoveTerm + js_termAction + '</script>'
-  string += "<table>" 
+
+  # Voting
+  string += '<table>' 
   string += "  <tr><td width=15% rowspan=4 align=center valign=top>"
   string += '    <a id="voteUp" title="+1" href="#up" onclick="return TermAction(%s, \'up\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('up_set' if vote == 1 else 'up')
@@ -156,29 +161,37 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += '    <br><a id="star" title="Track this term" href="#star"' + \
             '     onclick="return TermAction({1}, \'{0}\');">[{0}]</a><br> '.format(
              ("unstar" if vote != None else "star"), row['id'])
-  
   string += "  </td></tr>"
+  
+  # Name/Class
   string += "  <tr>"
-  string += "    <td valign=top width=7%><i>Term:</i></td>"
-  string += "    <td valign=top width=53%><font size=\"3\"><strong>{0}</strong></font>".format(row['term_string'])
-  if owner_id == row['owner_id']:
-    string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
-    string += """  <a id="removeTerm" title="Click to delete term" href="#"
-                   onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
-  string += "    </td>" 
-  string += "    <td valign=top rowspan=3>"
+  string += "    <td valign=top width=8%><i>Term:</i></td>"
+  string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(row['term_string']) 
+  string += "    <td valign=top width=5%><i>Class:</i></td>"
+  string += '    <td valign=top width=16%>&nbsp'
+  string += '      <font style="background-color:{2}"> {0} </font> <i>&nbsp({1}%)</i></td>'.format(
+              row['class'], int(100 * row['consensus']), colorOf[row['class']])
+
+  # Created/modified/Owner 
+  string += "    <td valign=top width=20% rowspan=3>"
   string += "      <nobr><i>Created</i> %s</nobr><br>" % printPrettyDate(row['created'])
   string += "      <nobr><i>Last modified</i> %s</nobr><br>" % printPrettyDate(row['modified'])
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
+  if owner_id == row['owner_id']:
+    string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
+    string += """  <a id="removeTerm" title="Click to delete term" href="#"
+                   onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
   string += "    </td>"
   string += "  </tr>"
+
+  # Definition/Examples
   string += "  <tr>"
   string += "    <td valign=top><i>Definition:</i></td>"
-  string += "    <td valign=top><font size=\"3\"> %s</font></td>" % row['definition']
+  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % row['definition']
   string += "  </tr>"
   string += "  <tr>"
   string += "    <td valign=top><i>Examples:</i></td>"
-  string += "    <td valign=top><font size=\"3\"> TODO</font></td>" 
+  string += "    <td colspan=4 valign=top><font size=\"3\"> TODO</font></td>" 
   string += "  </tr>"
   string += "</table>"
   return string
@@ -198,6 +211,8 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
       string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
       string += """  <a id="removeTerm" title="Click to delete term" href="#"
                      onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
+    string += '      &nbsp<i>Class:</i>&nbsp<font style="background-color:{2}"> {0} </font> <i>&nbsp({1}%)</i>'.format(
+                 row['class'], int(100 * row['consensus']), colorOf[row['class']])
     string += "    </td>" 
     string += "    <td valign=top rowspan=2>"
     string += "      <nobr><i>Created</i> %s</nobr><br>" % printPrettyDate(row['created'])

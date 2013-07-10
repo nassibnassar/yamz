@@ -133,6 +133,7 @@ class SeaIceConnector:
 
     # Create Terms table if it doesn't exist.
     cur.execute("""
+      create type SI.Class as enum ('vernacular', 'canonical', 'deprecated');
       create table if not exists SI.Terms
         (
           id serial primary key not null, 
@@ -141,12 +142,29 @@ class SeaIceConnector:
           definition text not null,
           tsv tsvector, 
           score integer default 0 not null,
-          consensus float default 0 not null, 
+          consensus float default 0 not null,
+          class SI.Class default 'vernacular' not null,
           created timestamp default now() not null, 
           modified timestamp default now() not null, 
           foreign key (owner_id) references SI.Users(id)
         ); 
       alter sequence SI.Terms_id_seq restart with 1001;"""
+    )
+
+    # Create TermStats table if it doesn't exist. 
+    cur.execute("""
+      create table if not exists SI.TermStats
+        (
+          term_id integer not null, 
+          R integer default 0 not null,
+          U_sum integer default 0 not null,
+          D_sum integer default 0 not null,
+          u integer default 0 not null,
+          d integer default 0 not null,
+          T_last   timestamp default now() not null, 
+          T_stable timestamp default now() not null, 
+          foreign key (term_id) references SI.Terms(id) on delete cascade
+        )"""
     )
 
     # Create Comments table if it doesn't exist.
@@ -348,7 +366,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
       SELECT id, owner_id, term_string, definition, 
-             score, created, modified, 
+             score, created, modified, consensus, class,
              ts_rank_cd(tsv, query, 32 /* rank(rank+1) + score */ ) AS rank
         FROM SI.Terms, to_tsquery('english', '%s') query 
         WHERE query @@ tsv 

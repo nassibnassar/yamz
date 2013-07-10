@@ -318,14 +318,18 @@ def browse(listing = None):
   g.db = dbPool.getScoped()
   terms = g.db.getAllTerms(sortBy="term_string")
   letter = '~'
-  result = "<h5>{0} | {1} | {2} | {3}</h5><hr>".format(
+  result = "<h5>{0} | {1} | {2} | {3} | {4}</h5><hr>".format(
      '<a href="/browse">alphabetical</a>' if listing else 'alphabetical',
-     '<a href="/browse/stable">stable</a>' if listing != "stable" else 'stable',
+     '<a href="/browse/score">high score</a>' if listing != "score" else 'high score',
      '<a href="/browse/recent">recent</a>' if listing != "recent" else 'recent',
-     '<a href="/browse/volatile">volatile</a>' if listing != "volatile" else 'volatile'
+     '<a href="/browse/volatile">volatile</a>' if listing != "volatile" else 'volatile',
+     '<a href="/browse/stable">stable</a>' if listing != "stable" else 'stable',
     )
  
   if listing == "recent": # Most recently added listing 
+    result += "TODO"
+  
+  elif listing == "score": # Highest consensus
     result += "TODO"
 
   elif listing == "volatile": # Least stable (Frequent updates, commenting, and voting)
