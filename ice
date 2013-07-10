@@ -110,7 +110,7 @@ login_manager.anonymous_user = seaice.AnonymousUser
 @login_manager.user_loader
 def load_user(id):
   db = dbPool.getScoped()
-  name = db.getUserNameById(int(id))
+  name = db.getUserNameById(int(id), full=False)
   if name:
     return seaice.User(int(id), name)
   return None
@@ -337,11 +337,11 @@ def browse(listing = None):
   else: # Alphabetical listing 
     result += "<table>"
     for term in terms: 
-      if term['term_string'][0] != letter:
+      if term['term_string'][0].upper() != letter:
         letter = term['term_string'][0].upper()
         result += "</td></tr><tr><td width=20% align=center valign=top><h4>{0}</h4></td><td width=80%>".format(letter)
       result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
-        term['id'], term['term_string'], g.db.getUserNameById(term['owner_id'], full=True))
+        term['id'], term['term_string'], l.current_user.name)
     result += "</table>"
 
   return render_template("browse.html", user_name = l.current_user.name, 

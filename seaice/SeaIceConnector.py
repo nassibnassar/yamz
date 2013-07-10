@@ -590,6 +590,12 @@ class SeaIceConnector:
       cur.execute("""UPDATE SI.Terms SET score=(score-({1})) 
                      WHERE id={0}""".format(term_id, vote[0]))
 
+
+
+      # FIXME preScore()/postScore() This expression can be simplified
+      # and all we have to do is store R, u, d, and t, U_sum, D_sum. 
+      # Then updateScore() is in O(1). ~9 Jul 2013
+
   ##
   # Prescore term. Returns a tuple of pair of dictionaries 
   # (User.Id -> User.Reputation) of up voters and down voters
