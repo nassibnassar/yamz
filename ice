@@ -66,7 +66,8 @@ parser.add_option("-d", "--debug", action="store_true", dest="debug", default=Fa
 
 
 
-## Connect to PostgreSQL databse ## 
+## Db Connection pool ##
+print "ice: creating Db connector pool"
 
 db_config = None
 
@@ -77,23 +78,32 @@ try:
 
   else: 
     db_config = seaice.get_config(options.config_file)
-
-    # DB Connection pool 
-
     dbPool = seaice.SeaIceConnectorPool(20, db_config.get('default', 'user'),
                                             db_config.get('default', 'password'),
                                             db_config.get('default', 'dbname'))
 
-  # Id pools
-
-  userIdPool = seaice.IdPool(dbPool.getScoped(), "Users")
-  termIdPool = seaice.IdPool(dbPool.getScoped(), "Terms")
-  commentIdPool = seaice.IdPool(dbPool.getScoped(), "Comments")
-
 except pgdb.DatabaseError, e:
-  print 'error: %s' % e    
+  print >>sys.stderr, 'error: %s' % e    
   sys.exit(1)
 
+
+## Id pools ##
+print "ice: setting up database Id pools" 
+
+userIdPool = seaice.IdPool(dbPool.getScoped(), "Users")
+termIdPool = seaice.IdPool(dbPool.getScoped(), "Terms")
+commentIdPool = seaice.IdPool(dbPool.getScoped(), "Comments")
+
+
+## Prescore terms TODO ##
+print "ice: checking score consistency"
+"""
+  for each term: 
+    (U, V) = preScore(term) 
+    (S, u, d, U_sum, D_sum, R) = postScore(U, V) 
+    setScore(term, u, d, U_sum, D_sum, R)
+    updateTerm(S)
+"""
 
 
 ## Setup flask application ##

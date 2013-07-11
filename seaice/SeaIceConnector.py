@@ -470,6 +470,7 @@ class SeaIceConnector:
       first, last, id))
   ##
   # Set reputation of user
+  # TODO update consensus for terms user has voted on.
   #
   def updateUserReputation(self, user_id, rep): 
     cur = self.con.cursor()
@@ -548,6 +549,7 @@ class SeaIceConnector:
 
   ##
   # Cast or change a user's vote on a term. Return the change in term's score. 
+  # TODO update consensus score and commit immediately.  
   #
   def castVote(self, user_id, term_id, vote): 
     cur = self.con.cursor()
@@ -658,6 +660,8 @@ class SeaIceConnector:
       U_sum = D_sum = 0.0
 
     return (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v))
+ 
+
 
 
   ## 
@@ -665,7 +669,7 @@ class SeaIceConnector:
   # provided, dump to standard out. 
   #
   def Export(self, table, outf=None):
-    if table not in ['Users', 'Terms']:
+    if table not in ['Users', 'Terms', 'Comments']:
       print >>sys.stderr, "error (export): table '%s' is not defined in the db schema" % table
 
     if outf: 
@@ -682,7 +686,7 @@ class SeaIceConnector:
   # Import database from JSON formated "inf".
   #
   def Import(self, table, inf=None): 
-    if table not in ['Users', 'Terms']:
+    if table not in ['Users', 'Terms', 'Comments']:
       print >>sys.stderr, "error (import): table '%s' is not defined in the db schema" % table
 
     if inf:
