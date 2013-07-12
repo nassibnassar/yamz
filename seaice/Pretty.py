@@ -191,7 +191,7 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += "  </tr>"
   string += "  <tr>"
   string += "    <td valign=top><i>Examples:</i></td>"
-  string += "    <td colspan=4 valign=top><font size=\"3\"> TODO</font></td>" 
+  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % row['examples']
   string += "  </tr>"
   string += "</table>"
   return string
@@ -221,8 +221,9 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
     string += "    </td>"
     string += "  </tr>"
     string += "  <tr>"
-    string += "    <td valign=top><i>Definition:</i>"
-    string += "     <font size=\"3\"> %s</font></td>" % row['definition']
+    string += "    <td valign=top>"
+    string += "     <i>Definition:</i>&nbsp;<font size=\"3\"> %s</font>&nbsp;" % row['definition']
+    string += "     <i>Examples:</i>&nbsp;<font size=\"3\"> %s</font></td>" % row['examples']
     string += "  </tr>"
     string += "  <tr height=16><td></td></tr>"
   string += "</table>"

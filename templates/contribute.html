@@ -49,7 +49,7 @@
             <ul class="nav">
               <li><a href="/search">Search</a></li>
               <li><a href="/browse">Browse</a></li>
-              <li class="active"><a href="/contribute">Contribute</a></li>
+              <li class="active"><a href="/contribute">Add</a></li>
               <li><a href="/about">About</a></li>
               <li><a href="/contact">Contact</a></li>
               <li><a href="/settings">Settings</a></li>
@@ -95,6 +95,10 @@
           <tr>
             <td valign=top>Definition:</td>
             <td><textarea cols=80 rows=12 type="text" name="definition">{% if definition_edit %}{{ definition_edit }}{% endif %}</textarea></td>
+          </tr>
+          <tr>
+            <td valign=top>Example(s):</td>
+            <td><textarea cols=80 rows=12 type="text" name="examples">{% if examples_edit %}{{ examples_edit }}{% endif %}</textarea></td>
           </tr>
           <tr><td></td>
             <td align=right><input type="submit" value="Submit"><td>

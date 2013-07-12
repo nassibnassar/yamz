@@ -140,6 +140,7 @@ class SeaIceConnector:
           owner_id integer default 0 not null,
           term_string text not null, 
           definition text not null,
+          examples text not null, 
           tsv tsvector, 
           score integer default 0 not null,
           consensus float default 0 not null,
@@ -217,7 +218,7 @@ class SeaIceConnector:
       create trigger tsv_update 
         before insert or update on SI.Terms
         for each row execute procedure
-          tsvector_update_trigger(tsv, 'pg_catalog.english', term_string, definition);"""
+          tsvector_update_trigger(tsv, 'pg_catalog.english', term_string, definition, examples);"""
     )
 
     # Set user permissions. (Not relevant for Heroku-Postgres.)
@@ -255,6 +256,7 @@ class SeaIceConnector:
       "id" : "default",
       "term_string" : "nil", 
       "definition" : "nil", 
+      "examples" : "nil", 
       "score" : "default", 
       "created" : "current_timestamp", 
       "modified" : "current_timestamp",
@@ -273,14 +275,15 @@ class SeaIceConnector:
         """insert into SI.Terms( id, 
                               term_string, 
                               definition, 
+                              examples, 
                               score,
                               created,
                               modified,
                               owner_id ) 
-            values(%s, '%s', '%s', %s, %s, %s, %s) 
+            values(%s, '%s', '%s', '%s', %s, %s, %s, %s) 
             returning id
-        """ % (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['score'], 
-               defTerm['created'], defTerm['modified'], defTerm['owner_id']))
+        """ % (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['examples'], 
+               defTerm['score'], defTerm['created'], defTerm['modified'], defTerm['owner_id']))
     
       res = cur.fetchone()
       if res: 
@@ -358,7 +361,7 @@ class SeaIceConnector:
     string = ' & '.join(string.split(' ')) # |'s are also aloud, and paranthesis TODO
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
-      SELECT id, owner_id, term_string, definition, 
+      SELECT id, owner_id, term_string, definition, examples,  
              score, created, modified, consensus, class,
              ts_rank_cd(tsv, query, 32 /* rank(rank+1) + score */ ) AS rank
         FROM SI.Terms, to_tsquery('english', '%s') query 
@@ -375,8 +378,8 @@ class SeaIceConnector:
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = str(value).replace("'", "''")
-    cur.execute("update SI.Terms set term_string='%s', definition='%s' where id=%d" % (
-      term['term_string'], term['definition'], id))
+    cur.execute("update SI.Terms set term_string='%s', definition='%s', examples='%s' where id=%d" % (
+      term['term_string'], term['definition'], term['examples'], id))
  
 
   ##
@@ -645,8 +648,8 @@ class SeaIceConnector:
     d = len(D)
     v = u + d             # total voters
 
-    R = reduce(lambda Ri,Rj: Ri+Rj, U.values() + D.values()) # total reputation
-                                                             # of voters
+    R = reduce(lambda Ri,Rj: Ri+Rj, [0] + U.values() + D.values()) # total reputation
+                                                                   # of voters
     
     if R: 
       R = float(R) 
@@ -657,7 +660,7 @@ class SeaIceConnector:
     else:
       U_sum = D_sum = 0.0
 
-    return (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v))
+    return (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v)) if v else 0
 
   ##
   # Check that Terms.Consensus is consistent. Update if it wasn't 

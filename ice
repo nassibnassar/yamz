@@ -397,6 +397,7 @@ def addTerm():
     g.db = dbPool.dequeue()
     term = { 'term_string' : request.form['term_string'],
              'definition' : request.form['definition'],
+             'examples' : request.form['examples'],
              'owner_id' : l.current_user.id,
              'id' : termIdPool.ConsumeId() }
 
@@ -420,8 +421,10 @@ def editTerm(term_id = None):
     assert l.current_user.id and term['owner_id'] == l.current_user.id
     
     if request.method == "POST":
+      assert request.form.get('examples') != None
       updatedTerm = { 'term_string' : request.form['term_string'],
                       'definition' : request.form['definition'],
+                      'examples' : request.form['examples'],
                       'owner_id' : l.current_user.id } 
 
       g.db.updateTerm(int(term_id), updatedTerm)
@@ -437,7 +440,8 @@ def editTerm(term_id = None):
                                                   headline = "Edit term",
                                                   edit_id = term_id,
                                                   term_string_edit = term['term_string'],
-                                                  definition_edit = term['definition'])
+                                                  definition_edit = term['definition'],
+                                                  examples_edit = term['examples'])
   except ValueError:
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                               title = "Term not found",
