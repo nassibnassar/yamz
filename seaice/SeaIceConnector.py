@@ -146,16 +146,7 @@ class SeaIceConnector:
           class SI.Class default 'vernacular' not null,
           created timestamp default now() not null, 
           modified timestamp default now() not null, 
-          foreign key (owner_id) references SI.Users(id)
-        ); 
-      alter sequence SI.Terms_id_seq restart with 1001;"""
-    )
-
-    # Create TermStats table if it doesn't exist. 
-    cur.execute("""
-      create table if not exists SI.TermStats
-        (
-          term_id integer not null, 
+          
           R integer default 0 not null,
           U_sum integer default 0 not null,
           D_sum integer default 0 not null,
@@ -163,8 +154,10 @@ class SeaIceConnector:
           d integer default 0 not null,
           T_last   timestamp default now() not null, 
           T_stable timestamp default now() not null, 
-          foreign key (term_id) references SI.Terms(id) on delete cascade
-        )"""
+          
+          foreign key (owner_id) references SI.Users(id)
+        ); 
+      alter sequence SI.Terms_id_seq restart with 1001;"""
     )
 
     # Create Comments table if it doesn't exist.
@@ -549,13 +542,18 @@ class SeaIceConnector:
 
   ##
   # Cast or change a user's vote on a term. Return the change in term's score. 
-  # TODO update consensus score and commit immediately.  
+  # TODO update consensus score. Precompute scores to check consistency and 
+  # startup. 
   #
   def castVote(self, user_id, term_id, vote): 
     cur = self.con.cursor()
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
-    p_vote = cur.fetchone() 
+    p_vote = cur.fetchone()
+
+    cur.execute("""SELECT R, u, d, U_sum, D_sum, T_last, T_stable
+                   FROM SI.Terms where id={0}""".format(term_id))
+    (R, u, d, U_sum, D_sum, T_last, T_stable) = cur.fetchone()
  
     if not p_vote:
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
