@@ -32,6 +32,8 @@ try:
   cur.execute("""insert into SI.Users (id, first_name, last_name, email, authority, auth_id) 
                     values (1005, 'Tony', 'Wong', 'es ok', 'your mother', '42')""")
   sea.updateUserReputation(1005, 10)
+  sea.updateUserReputation(1001, 10)
+  sea.updateUserReputation(1002, 90)
   sea.commit()
   
   #(U, D) = sea.preScore(1004)

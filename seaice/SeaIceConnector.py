@@ -471,7 +471,7 @@ class SeaIceConnector:
 
   ##
   # Insert a new comment into the database. 
-  #
+  1#
   def insertComment(self, comment): 
     defComment = { 
       "id" : "default",
@@ -542,8 +542,6 @@ class SeaIceConnector:
 
   ##
   # Cast or change a user's vote on a term. Return the change in term's score. 
-  # TODO update consensus score. Precompute scores to check consistency and 
-  # startup. 
   #
   def castVote(self, user_id, term_id, vote): 
     cur = self.con.cursor()
@@ -551,23 +549,27 @@ class SeaIceConnector:
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
     p_vote = cur.fetchone()
 
-    cur.execute("""SELECT R, u, d, U_sum, D_sum, T_last, T_stable
-                   FROM SI.Terms where id={0}""".format(term_id))
-    (R, u, d, U_sum, D_sum, T_last, T_stable) = cur.fetchone()
- 
+    res = 0
+
     if not p_vote:
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
                      VALUES ({0}, {1}, {2})""".format(user_id, term_id, vote))
       cur.execute("UPDATE SI.Terms SET score=(score+({1})) WHERE id={0}".format(term_id, vote))
-      return vote
+      res = vote
       
     elif p_vote[0] != vote:
       cur.execute("""UPDATE SI.Tracking SET vote={2}
                      WHERE user_id={0} AND term_id={1}""".format(user_id, term_id, vote))
       cur.execute("UPDATE SI.Terms SET score=(score+({1})) WHERE id={0}".format(term_id, vote - p_vote[0]))
-      return vote - p_vote[0]
+      res = vote - p_vote[0]
+    
+    (U, V) = self.preScore(term_id) # TODO implement O(1) 
+    S = self.postScore(U, V)
+      
+    cur.execute("""UPDATE SI.Terms SET consensus={1}
+                   WHERE id={0}""".format(term_id, S))
 
-    else: return 0
+    return res
 
   ##
   # Get user's vote for a term
@@ -605,14 +607,12 @@ class SeaIceConnector:
                    RETURNING vote""".format(user_id, term_id))
     vote = cur.fetchone()
     if vote: 
-      cur.execute("""UPDATE SI.Terms SET score=(score-({1})) 
-                     WHERE id={0}""".format(term_id, vote[0]))
+      (U, V) = self.preScore(term_id) # TODO implement O(1) 
+      S = self.postScore(U, V) 
 
+      cur.execute("""UPDATE SI.Terms SET score=(score-({1})), consensus={2}
+                     WHERE id={0}""".format(term_id, vote[0], S))
 
-
-      # FIXME preScore()/postScore() This expression can be simplified
-      # and all we have to do is store R, u, d, and t, U_sum, D_sum. 
-      # Then updateScore() is in O(1). ~9 Jul 2013
 
   ##
   # Prescore term. Returns a tuple of pair of dictionaries 
@@ -658,8 +658,21 @@ class SeaIceConnector:
       U_sum = D_sum = 0.0
 
     return (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v))
- 
 
+  ##
+  # Check that Terms.Consensus is consistent. Update if it wasn't 
+  #
+  def checkTermConsensus(self, term_id):
+    cur = self.con.cursor()
+    cur.execute("SELECT consensus FROM SI.Terms where id=%d" % term_id)
+    p_S = cur.fetchone()[0]
+    (U, V) = self.preScore(term_id)
+    S = self.postScore(U, V)
+    if int(p_S) != int(S):
+      cur.execute("UPDATE SI.Terms SET consensus=%d WHERE id=%d" % (S, term_id))
+      return False
+    return True
+      
 
 
   ## 

@@ -66,7 +66,20 @@ parser.add_option("-d", "--debug", action="store_true", dest="debug", default=Fa
 
 
 
-## Db Connection pool ##
+
+## Setup flask application ##
+
+app = Flask(__name__)
+app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
+
+  ## Session logins ##
+
+login_manager = l.LoginManager()
+login_manager.init_app(app)
+login_manager.anonymous_user = seaice.AnonymousUser
+
+  ## Db Connection pool ##
+
 print "ice: creating Db connector pool"
 
 db_config = None
@@ -87,35 +100,27 @@ except pgdb.DatabaseError, e:
   sys.exit(1)
 
 
-## Id pools ##
+  ## Id pools ##
+
 print "ice: setting up database Id pools" 
+db_con = dbPool.dequeue()
 
-userIdPool = seaice.IdPool(dbPool.getScoped(), "Users")
-termIdPool = seaice.IdPool(dbPool.getScoped(), "Terms")
-commentIdPool = seaice.IdPool(dbPool.getScoped(), "Comments")
-
-
-## Prescore terms TODO ##
-print "ice: checking score consistency"
-"""
-  for each term: 
-    (U, V) = preScore(term) 
-    (S, u, d, U_sum, D_sum, R) = postScore(U, V) 
-    setScore(term, u, d, U_sum, D_sum, R)
-    updateTerm(S)
-"""
+userIdPool = seaice.IdPool(db_con, "Users")
+termIdPool = seaice.IdPool(db_con, "Terms")
+commentIdPool = seaice.IdPool(db_con, "Comments")
 
 
-## Setup flask application ##
+  ## Prescore terms ##
 
-app = Flask(__name__)
-app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
+print "ice: precomputing term scores"
+for term in db_con.getAllTerms():
+  if not db_con.checkTermConsensus(term['id']):
+    print "warning: corrected inconsistent consensus score for term %d" % term['id']
+  db_con.commit()
 
-  ## Session logins ##
+dbPool.enqueue(db_con)
 
-login_manager = l.LoginManager()
-login_manager.init_app(app)
-login_manager.anonymous_user = seaice.AnonymousUser
+print "ice: setup complete."
 
 @login_manager.user_loader
 def load_user(id):
@@ -607,5 +612,5 @@ def trackTerm(term_id):
 
 if __name__ == '__main__':
     app.debug = True
-    app.run('0.0.0.0', 5000)
+    app.run('0.0.0.0', 5000, use_reloader=False)
 

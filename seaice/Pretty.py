@@ -211,7 +211,7 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
       string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
       string += """  <a id="removeTerm" title="Click to delete term" href="#"
                      onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
-    string += '      &nbsp<i>Class:</i>&nbsp<font style="background-color:{2}"> {0} </font> <i>&nbsp({1}%)</i>'.format(
+    string += '      &nbsp<i>Class:</i>&nbsp<font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i>'.format(
                  row['class'], int(100 * row['consensus']), colorOf[row['class']])
     string += "    </td>" 
     string += "    <td valign=top rowspan=2>"
