@@ -85,6 +85,9 @@ parser.add_option("-j", "--json", action="store_true", dest="json", default=Fals
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
                   help="Don't prompt for comfirmation when dropping tables.")
 
+parser.add_option("--score-terms", action="store_true", dest="score", default=False,
+                  help="Compute and print scores of terms")
+
 (options, args) = parser.parse_args()
 
 
@@ -135,6 +138,19 @@ try:
       sea.Export('Terms')
     else:
       seaice.printTermsPretty(sea, sea.getAllTerms())
+
+  header = True
+  if options.score: 
+    for term in sea.getAllTerms():
+      (U, V) = sea.preScore(term['id'])
+      s = sea.postScore(U, V)
+      if header: 
+        print "%-8s%-13s%-8s%-8s" % ('Id', 'Term', 'Vote', 'Score')
+        header = False
+      print "%-8d%-13s%-8d%-8.2f" % (term['id'], 
+                                   term['term_string'], 
+                                   term['score'], 
+                                   (100 * s))
   
   if options.search_term:
     terms = sea.search(options.search_term)

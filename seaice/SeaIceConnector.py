@@ -647,7 +647,7 @@ class SeaIceConnector:
     d = len(D)
     v = u + d             # total voters
 
-    R = reduce(lambda Ri,Rj: Ri+Rj, U.values() + D.values()) # total reputatio
+    R = reduce(lambda Ri,Rj: Ri+Rj, U.values() + D.values()) # total reputation
                                                              # of voters
     
     if R: 

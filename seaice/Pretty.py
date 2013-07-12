@@ -169,7 +169,7 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(row['term_string']) 
   string += "    <td valign=top width=5%><i>Class:</i></td>"
   string += '    <td valign=top width=16%>&nbsp'
-  string += '      <font style="background-color:{2}"> {0} </font> <i>&nbsp({1}%)</i></td>'.format(
+  string += '      <font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i></td>'.format(
               row['class'], int(100 * row['consensus']), colorOf[row['class']])
 
   # Created/modified/Owner 
