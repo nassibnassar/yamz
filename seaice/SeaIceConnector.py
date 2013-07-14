@@ -116,7 +116,7 @@ class SeaIceConnector:
     )
     
     # Create Users table if it doesn't exist. 
-    # TODO unique constraint on (auth_id, authority)
+    # TODO unique constraint on enail
     cur.execute("""
       create table if not exists SI.Users
         (
@@ -188,6 +188,7 @@ class SeaIceConnector:
         user_id integer not null, 
         term_id integer not null,
         vote integer, 
+        UNIQUE (user_id, term_id),
         foreign key (user_id) references SI.Users(id) on delete cascade, 
         foreign key (term_id) references SI.Terms(id) on delete cascade
       )"""
@@ -294,6 +295,7 @@ class SeaIceConnector:
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': # Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defTerm['id']
+         cur.execute("rollback;")
          return None 
       raise e
 
@@ -421,6 +423,7 @@ class SeaIceConnector:
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': # Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defUser['id']
+         cur.execute("rollback;")
          return None 
       raise e
 
@@ -474,7 +477,7 @@ class SeaIceConnector:
 
   ##
   # Insert a new comment into the database. 
-  1#
+  #
   def insertComment(self, comment): 
     defComment = { 
       "id" : "default",
@@ -503,7 +506,8 @@ class SeaIceConnector:
     
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': # Duplicate primary key
-         print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defUser['id']
+         print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defComment['id']
+         cur.execute("rollback;")
          return None 
       raise e
 
@@ -542,6 +546,34 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("select * from SI.Comments where term_id=%d order by created" % term_id)
     return list(cur.fetchall())
+  
+  ##
+  # Insert a tracking row, skipping if (term_id, user_id) pair exists
+  #
+  def insertTracking(self, tracking): 
+    defTracking = { 
+      "vote" : "default" 
+    }
+    
+    for (key, value) in tracking.iteritems():
+      defTracking[key] = str(value)
+  
+    try:
+      cur = self.con.cursor()
+      cur.execute("""insert into SI.Tracking (user_id, term_id, vote) 
+                      values (%s, %s, %s)
+                      returning user_id, term_id""" % (defTracking['user_id'], 
+                                                       defTracking['term_id'], 
+                                                       defTracking['vote']))
+      return cur.fetchone()
+    
+    except pgdb.DatabaseError, e:
+      if e.pgcode == '23505': # Duplicate primary key
+         print >>sys.stderr, "warning: skipping duplicate (TermId=%s, UserId=%s)" % (
+          defTracking['term_id'], defTracking['user_id'])
+         cur.execute("rollback;")
+         return None 
+      raise e
 
   ##
   # Cast or change a user's vote on a term. Return the change in term's score. 
@@ -683,8 +715,9 @@ class SeaIceConnector:
   # provided, dump to standard out. 
   #
   def Export(self, table, outf=None):
-    if table not in ['Users', 'Terms', 'Comments']:
+    if table not in ['Users', 'Terms', 'Comments', 'Tracking']:
       print >>sys.stderr, "error (export): table '%s' is not defined in the db schema" % table
+      return
 
     if outf: 
       fd = open(outf, 'w')
@@ -700,8 +733,9 @@ class SeaIceConnector:
   # Import database from JSON formated "inf".
   #
   def Import(self, table, inf=None): 
-    if table not in ['Users', 'Terms', 'Comments']:
+    if table not in ['Users', 'Terms', 'Comments', 'Tracking']:
       print >>sys.stderr, "error (import): table '%s' is not defined in the db schema" % table
+      return 
 
     if inf:
       fd = open(inf, 'r')
@@ -713,5 +747,9 @@ class SeaIceConnector:
         self.insertUser(row)
       elif table == "Terms":
         self.insertTerm(row)
+      elif table == "Comments":
+        self.insertComment(row)
+      elif table == "Tracking":
+        self.insertTracking(row)
   
 

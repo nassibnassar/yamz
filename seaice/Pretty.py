@@ -24,7 +24,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys, json, time, re
+import sys, json, time, re, datetime
 
 ## TODO find a better home for these scripts ##
 
@@ -96,8 +96,9 @@ def printPrettyDate(t, gmt=False):
 #
 def printAsJSObject(rows, fd = sys.stdout):
   for row in rows:
-    if row.get('modified'): row['modified'] = str(row['modified'])
-    if row.get('created'): row['created'] = str(row['created'])
+    for (col, value) in row.iteritems(): 
+      if type(value) == datetime.datetime:
+        row[col] = str(value)
   print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
 
 ##
