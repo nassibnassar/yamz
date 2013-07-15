@@ -269,8 +269,9 @@ def settings():
                                           email = user['email'].decode('utf-8'),
                                           last_name_edit = user['last_name'].decode('utf-8'),
                                           first_name_edit = user['first_name'].decode('utf-8'),
+                                          reputation = user['reputation'],
                                           message = """
-                    Here you can change how your name will appear""")
+                    Here you can change how your name will appear.""")
 
 @app.route("/user=<user_id>")
 def getUser(user_id = None): 
@@ -350,10 +351,9 @@ def browse(listing = None):
                                            l.current_user.id)
   
   elif listing == "score": # Highest consensus
+    terms = sorted(terms, key=lambda term: term['consensus'], reverse=True)
     result += seaice.printTermsAsBriefHTML(g.db, 
-                                           sorted(terms, key=lambda term: term['consensus'],
-                                                         reverse=True),
-                                           l.current_user.id)
+      sorted(terms, key=lambda term: term['score'], reverse=True), l.current_user.id)
 
   elif listing == "volatile": # Least stable (Frequent updates, commenting, and voting)
     result += "TODO"
@@ -452,7 +452,7 @@ def editTerm(term_id = None):
                                                   title = "Edit - %s" % term_id,
                                                   headline = "Edit term",
                                                   edit_id = term_id,
-                                                  term_string_edit = term['term_string'].dedcode('utf-8'),
+                                                  term_string_edit = term['term_string'].decode('utf-8'),
                                                   definition_edit = term['definition'].decode('utf-8'),
                                                   examples_edit = term['examples'].decode('utf-8'))
   except ValueError:

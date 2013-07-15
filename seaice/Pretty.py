@@ -25,6 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys, json, time, re, datetime
+from dateutil import tz
 
 ## TODO find a better home for these scripts ##
 
@@ -88,7 +89,9 @@ colorOf = { 'vernacular' : '#FFFF66',
 # Print date (to string). If a small amount of time 
 # has elapsed, then give this info. TODO
 #
-def printPrettyDate(t, gmt=False): 
+def printPrettyDate(t):
+  t = t.replace(tzinfo=tz.tzutc())
+  t = t.astimezone(tz.tzlocal())
   return "%s/%s/%s %s:%02d" % (t.day, t.month, t.year, t.hour, t.minute)#, t.tzname)
   
 ##
