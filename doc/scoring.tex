@@ -46,27 +46,28 @@
 The \textit{SeaIce} metadictionary classifies terms in three categories. \textit{Vernacular} 
 terms are those for which there is no community consensus. The debate may be centered around
 the term's definition or the usefulness of the term itself. The owner has the oppurtunity to 
-modify the defintion or term itself; therefore, Vernacular terms are subject to 
+modify the defintion or term itself; therefore, vernacular terms are subject to 
 change as the debate proceeds. \textit{Canonical} terms are those whose definitions stabilize
 over time and upon which the community largely agrees. Finally, \textit{deprecated} terms 
-are stable terms that the community has largely deemed to not be useful. The goal of 
+are stable terms that the community has largely deemed to not be useful, or for which there is a 
+better alternative. The goal of 
 \textit{SeaIce} is to evolve a set of stable, canonical terms within the context of a reputation-based 
-social ecosystem by promoting vernacular terms to the canon and deprecating those deemed 
+social ecosystem by promoting vernacular terms to the canon (shorthand meaning the canonical class) and deprecating those deemed 
 not useful. I propose a scoring and classification system that automates this process 
-for the online metadictionary. In this document I refer to community as the body of SeaIce users. 
+for the online metadictionary. In this document I refer to community as the body of \textit{SeaIce} users. 
 \end{abstract}
 
 %\tableofcontents
 
 \section{Scoring}
 The first step is to quantify consensus. The most obvious definition is the percentage of the 
-community that finds the term and its definition useful; we'll call this score. Let $u$ be the 
+community that finds the term and its definition useful. We'll call this score. Let $u$ be the 
 number of up-votes and $d$ be the number of down-votes. If every user casts a vote, then a 
 term's score is simply 
 $$ S = \frac{u}{u+d} $$
 We could declare a term canonical if the term stabilizes (the owner makes no modifications for some
-period of time) and the score is above some threshold (for the same time period). This applies 
-in the converse case, when we deprecate a term. However, and this is the central observation, we
+period of time) and the score remains above some threshold (for the same time period). Similarly, 
+when a stable term's score falls below some threshold (deprecation). However, and this is the central observation, we
 can't assume that every user will vote on every term as the dictionary increases in size. 
 We therfore need to introduce a heuristic for community consensus based on user repuation. This
 makes it possible for domain-experts to promote useful terms that don't need to be verified 
@@ -75,10 +76,11 @@ a term from entering the canon.
 
 A user's reputation is a positive integer value that is initially seeded in the database. A user gains 
 reputation by participating in the community (voting and commenting on terms) and contributing 
-terms that enter the canon. Let $R_i$ be the reputation acquired by user $i$ and $R$ be the total reputation of the users 
+terms that enter the canon.\footnote{Note that the actual rules for gaining reputation within 
+the community have yet to be defined.} Let $R_i$ be the reputation acquired by user $i$ and let $R$ be the total reputation of the users 
 who have voted on a particular term. Let $r_i = R_i / R$ for each user $i$ who voted on the 
 term. Let $t$ be the total number of users in the community and $v$ be the number of votes cast 
-such that $d = v - u$. The weight of a user's vote is based on his or her 
+such that $d = v - u$. The weight $w_i$ of a user's vote is based on his or her 
 reputation in the following relationship: 
 $$ w_i = 1 + r_i \cdot (t-v) $$
 The influence of the user's reputation decreases linearily as the number of voters for the term
@@ -86,42 +88,59 @@ approaches the total number of users. However, everyone is guarenteed one vote.
 Now let $U = \{w_1, w_2, \dots w_u\}$ be the set of weighted up-votes and $D = \{v_1, v_2, \dots v_d\}$
 the set of weighted down-votes. Substituting these values into the equation for $S$, we have
 \begin{align*} 
-S &= \frac{\sum_U{w_i}}{\sum_U{w_i} + \sum_D{v_i}} \\
-  &= \frac{u + \sum_U{r^w_i} \cdot (t - v)}{u + d + \big( \sum_U{r^w_i} + \sum_D{r^v_i} \big) \cdot (t-v)} \\
-  &= \cfrac{1}{1 + \cfrac{\sum_D{r^v_i} \cdot (t-v) + d}{\sum_U{r^w_i} \cdot (t-v) + u}}
+S &= \frac{\sum_U{w_i}}{\sum_U{w_i} + \sum_D{v_i}}
 \end{align*}
-This equation has the property that as $v$ approaches $t$, votes become increasingly fair (equal). 
+Pulling out some terms from the sums and substituting $w_i = 1 + U_i / R \cdot (t-v)$ for each up voter $i$ 
+and $v_i = 1 + D_i / R \cdot (t-v)$ for each down voter $i$:
+\begin{align*}
+  &= \frac{u + (t - v) \cdot \sum_U{U_i/R}}{u + d + (t-v) \cdot \big( \sum_U{U_i/R} + \sum_D{D_i/R} \big)} \\
+  &= \frac{u + (t - v) \cdot \sum_U{U_i/R}}{u + d + (t-v) \cdot 1} \\
+S &= \frac{u + \sum{U_i/R} \cdot (t - v)}{t} \\
+\end{align*}
+This equation has the property that as $v$ approaches $t$, votes become increasingly fair; i.e., 
+$S$ approaches $ u / (u + d)$
 Notice as well that we don't use a user's community-wide reputation percentage; this gives every term an 
 equal chance of reaching a stable, canonical state despite the proposer's reputation. At the same time, 
 it allows users with high reputation to debunk bad ones immediately with a single down-vote. 
 
-I think this is a pretty good place to start, but we may find that a linear function (in terms of $v$) 
-isn't adequate in practice. For instance, it may be useful to scale down reputation faster: 
+An advantage of this equation is that it's easy to compute. To collect the reputations of users voting
+on a particular term would normally require a join on the \textit{Users} and \textit{Tracking} tables. 
+However, we need only keep track of $u$, $v$, $t$, $R$ and $\sum{U_i}$ for each term. Then when a user
+casts or changes a vote, we update these values and calculate the new score in constant time. The other
+instance when it's necessary to update a term score is when a user's reputation changes.
+
+We can refine this relationship a bit more if a lineear function with respect to $v$ isn't adequate
+in practice. For instance, it may be useful to scale down reputation exponentially: 
 $$ w_i = 1 + \frac{r_i \cdot t}{v} $$
 Howver, we'll have a better idea of how to do this once we get users and a sense of the distribution 
 of reputation values. 
 
-\section{Stabilization and classificaiton}
-Once a term stabilizes, we decide whether to deprecate it or include it in the canon. I suggest two 
+\section{Stabilization and classification}
+Once a vernacular term stabilizes, we decide whether to include it in the canon. I suggest two 
 conditions for this property: (1) the owner hasn't modifed the term or its defnition for some 
 predefined time interval and (2) the rate at which the term's score changes has dropped below some
 threshold close to zero. The time interval could be two days to start. 
 
 Now, to decide whether to promote or demote a term, we need only to decide on reasonable threshold
-values. To start, I suggest a stabile term should require 75\% consenus to be promoted to the canon. If 
+values. To start, I suggest a stabile term should require 75\% consensus to be promoted to the canon. If 
 consnesus drops below 25\% after it stabilizes, it should be deprecated. Otherwise, the term should 
 remain in the vernacular. 
 
+We expect that terms will be
+deprecated by the community when there is a viable alternative. In this case, the standard practice should 
+be to include a reference to the new term in the old's definition. 
+
 Another set of rules we need to define are when a canonical or deprecated term reenters the vernacular. 
-We could base this on the rate of chang eof the score. 
+This should be based on the rate of change of the score. 
 
 \section{Software components}
 In Chicago, we were brainstorming about a consistency issue related to voting and the term being 
 modified. The solution we discussed was to require a call-for-votes and a score reset when the 
-owner modifies the term. It was remarked that this is a bit clunky; I'd like to suggest an alternative.
+owner modifies the term. It was remarked that this is a bit clunky. An alternative approach would be
+to notify users with a term they're interested in get's updated, promoted, or demoted. 
 
 \subsection{Notifications}
-First, we will allow uesrs to "star" and "unstar" terms that they're interested in. 
+First, we will allow users to "star" and "unstar" terms that they're interested in. 
 On the homepage of the SeaIce website, we could have a notification page, much like facebook, which 
 provides updates on terms you own and terms your're tracking:
 \begin{enumerate}
@@ -129,7 +148,7 @@ provides updates on terms you own and terms your're tracking:
   \item User X has updated term B 
   \item Term B has been promoted to the canon
   \item Term C has been deprecated
-  \item Term C has rentered the vernacular
+  \item Term C has reentered the vernacular
 \end{enumerate}
 
 Once you see the notifcation, you can respond by commenting, changing your vote, unstarring the term,
