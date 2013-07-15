@@ -243,8 +243,7 @@ class SeaIceConnector:
   # save changes. 
   #
   def commit(self): 
-    cur = self.con.cursor()
-    cur.execute("commit")
+    self.con.commit()
 
   ##
   # Add a term to the database and return Terms.Id (None if failed) 
@@ -266,10 +265,10 @@ class SeaIceConnector:
 
     # Format entries for db query
     for (key, value) in term.iteritems():
-      if key == "created" or key == "modified": 
+      if key in ["created", "modified", "t_stable", "t_last"]:
         defTerm[key] = "'" + str(value) + "'"
       else: 
-        defTerm[key] = str(value).replace("'", "''")
+        defTerm[key] = unicode(value).replace("'", "''")
 
     try:
       cur.execute(
@@ -380,7 +379,7 @@ class SeaIceConnector:
   def updateTerm(self, id, term): 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
-      term[key] = str(value).replace("'", "''")
+      term[key] = unicode(value).replace("'", "''")
     cur.execute("update SI.Terms set term_string='%s', definition='%s', examples='%s' where id=%d" % (
       term['term_string'], term['definition'], term['examples'], id))
  
@@ -402,7 +401,7 @@ class SeaIceConnector:
   
     # Format entries for db query
     for (key, value) in user.iteritems():
-      defUser[key] = str(value).replace("'", "''")
+      defUser[key] = unicode(value).replace("'", "''")
 
     try:
       cur = self.con.cursor()
@@ -489,7 +488,9 @@ class SeaIceConnector:
   
     # Format entries for db query
     for (key, value) in comment.iteritems():
-      defComment[key] = str(value).replace("'", "''")
+      if key in ["created", "modified"]:
+        defTerm[key] = "'" + str(value) + "'"
+      else: defComment[key] = unicode(value).replace("'", "''")
 
     try:
       cur = self.con.cursor()
@@ -528,7 +529,7 @@ class SeaIceConnector:
   def updateComment(self, id, comment):
     cur = self.con.cursor()
     for (key, value) in comment.iteritems():
-      comment[key] = str(value).replace("'", "''")
+      comment[key] = unicode(value).replace("'", "''")
     cur.execute("update SI.Comments set comment_string='%s' where id=%d" % (
       comment['comment_string'], id))
 
@@ -557,7 +558,7 @@ class SeaIceConnector:
     }
     
     for (key, value) in tracking.iteritems():
-      defTracking[key] = str(value)
+      defTracking[key] = unicode(value)
   
     try:
       cur = self.con.cursor()

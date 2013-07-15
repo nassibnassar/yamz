@@ -137,7 +137,7 @@ try:
     if options.json:
       sea.Export('Terms')
     else:
-      seaice.printTermsPretty(sea, sea.getAllTerms())
+      seaice.printTermsPretty(sea, sea.getAllTerms(sortBy="term_string"))
 
   header = True
   if options.score: 

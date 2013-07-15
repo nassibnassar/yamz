@@ -87,13 +87,13 @@ db_config = None
 try:
 
   if options.config_file == "heroku": 
-    dbPool = seaice.SeaIceConnectorPool(20)
+    dbPool = seaice.SeaIceConnectorPool(1)
 
   else: 
     db_config = seaice.get_config(options.config_file)
-    dbPool = seaice.SeaIceConnectorPool(20, db_config.get('default', 'user'),
-                                            db_config.get('default', 'password'),
-                                            db_config.get('default', 'dbname'))
+    dbPool = seaice.SeaIceConnectorPool(1, db_config.get('default', 'user'),
+                                           db_config.get('default', 'password'),
+                                           db_config.get('default', 'dbname'))
 
 except pgdb.DatabaseError, e:
   print >>sys.stderr, 'error: %s' % e    
@@ -111,12 +111,14 @@ commentIdPool = seaice.IdPool(db_con, "Comments")
 
 
   ## Prescore terms ##
+  # This will be used to check for consistency errors in live scoring
+  # and isn't needed until I implement O(1) scoring. 
 
-print "ice: precomputing term scores"
-for term in db_con.getAllTerms():
-  if not db_con.checkTermConsensus(term['id']):
-    print "warning: corrected inconsistent consensus score for term %d" % term['id']
-  db_con.commit()
+#print "ice: precomputing term scores"
+#for term in db_con.getAllTerms():
+#  if not db_con.checkTermConsensus(term['id']):
+#    print "warning: corrected inconsistent consensus score for term %d" % term['id']
+#  db_con.commit()
 
 dbPool.enqueue(db_con)
 
@@ -127,7 +129,7 @@ def load_user(id):
   db = dbPool.getScoped()
   name = db.getUserNameById(int(id), full=False)
   if name:
-    return seaice.User(int(id), name)
+    return seaice.User(int(id), name.decode('utf-8'))
   return None
 
   ## Request wrappers (may have use for these later) ##
@@ -152,8 +154,8 @@ def index():
     my_list = seaice.printTermsAsLinks(g.db.getTermsByUser(l.current_user.id))
     starred_list = seaice.printTermsAsLinks(g.db.getTermsByTracking(l.current_user.id))
     return render_template("index.html", user_name = l.current_user.name,
-                                         my_list = Markup(my_list),
-                                         starred_list = Markup(starred_list))
+                                         my_list = Markup(my_list.decode('utf-8')),
+                                         starred_list = Markup(starred_list.decode('utf-8')))
 
   return render_template("index.html", user_name = l.current_user.name)
 
@@ -184,7 +186,7 @@ def login():
     '''
   return render_template("basic_page.html", title = "Login page", 
                                             headline = "Login", 
-                                            content = Markup(form))
+                                            content = Markup(form.decode('utf-8')))
 
 @app.route("/login/google")
 def login_google():
@@ -264,9 +266,9 @@ def settings():
   user = g.db.getUser(l.current_user.id)
   dbPool.enqueue(g.db)
   return render_template("settings.html", user_name = l.current_user.name,
-                                          email = user['email'],
-                                          last_name_edit = user['last_name'],
-                                          first_name_edit = user['first_name'],
+                                          email = user['email'].decode('utf-8'),
+                                          last_name_edit = user['last_name'].decode('utf-8'),
+                                          first_name_edit = user['first_name'].decode('utf-8'),
                                           message = """
                     Here you can change how your name will appear""")
 
@@ -286,7 +288,7 @@ def getUser(user_id = None):
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "User - %s" % user_id, 
                                                 headline = "User", 
-                                                content = Markup(result))
+                                                content = Markup(result.decode('utf')))
   except IndexError: pass
   
   return render_template("basic_page.html", user_name = l.current_user.name, 
@@ -318,8 +320,8 @@ def getTerm(term_id = None, message = ""):
         </form>""".format(term['id'])
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "Term - %s" % term_id, 
-                                              headline = "Term", 
-                                                content = Markup(result))
+                                                headline = "Term", 
+                                                content = Markup(result.decode('utf-8')))
   except ValueError: pass
 
   return render_template("basic_page.html", user_name = l.current_user.name, 
@@ -375,7 +377,7 @@ def browse(listing = None):
   return render_template("browse.html", user_name = l.current_user.name, 
                                         title = "Browse", 
                                         headline = "Browse dictionary",
-                                        content = Markup(result))
+                                        content = Markup(result.decode('utf-8')))
 
 
 
@@ -391,7 +393,7 @@ def returnQuery():
     else:
       result = seaice.printTermsAsHTML(g.db, terms, l.current_user.id)
       return render_template("search.html", user_name = l.current_user.name, 
-        term_string = request.form['term_string'], result = Markup(result))
+        term_string = request.form['term_string'], result = Markup(result.decode('utf-8')))
 
   else: # GET
     return render_template("search.html", user_name = l.current_user.name)
@@ -450,9 +452,9 @@ def editTerm(term_id = None):
                                                   title = "Edit - %s" % term_id,
                                                   headline = "Edit term",
                                                   edit_id = term_id,
-                                                  term_string_edit = term['term_string'],
-                                                  definition_edit = term['definition'],
-                                                  examples_edit = term['examples'])
+                                                  term_string_edit = term['term_string'].dedcode('utf-8'),
+                                                  definition_edit = term['definition'].decode('utf-8'),
+                                                  examples_edit = term['examples'].decode('utf-8'))
   except ValueError:
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                               title = "Term not found",
@@ -483,7 +485,7 @@ def remTerm(term_id):
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Remove term",
                                             content = Markup(
-                 "Successfully removed term <b>#%s</b> from the metadictionary." % request.form['id']))
+                 "Successfully removed term <b>#%s</b> from the metadictionary." % request.form['id'].decode('utf-8')))
   
   except AssertionError:
     return render_template("basic_page.html", user_name = l.current_user.name, 
@@ -548,7 +550,7 @@ def editComment(comment_id = None):
         return render_template("basic_page.html", user_name = l.current_user.name,
                                                   title = "Edit comment", 
                                                   headline = "Edit your comment",
-                                                  content = Markup(form))
+                                                  content = Markup(form.decode('utf-8')))
 
 
   
