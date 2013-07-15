@@ -229,6 +229,25 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
     string += "  <tr height=16><td></td></tr>"
   string += "</table>"
   return string
+
+##
+# Print Terms table rows as abbreviated HTML table (to string)
+#
+def printTermsAsBriefHTML(db_con, rows, owner_id=0): 
+  string =  '<table width=70%>'
+  string += '''<tr style="background-color:#E8E8E8"><td>Term</td>
+                  <td>Votes</td><td>Consensus</td><td>Class</td><td>Contributed by</td>
+                  <td>Last modified</td></tr>'''
+  for row in rows:
+    string += '''<tr><td><a href=/term={5}>{0}</a></td><td>{1}</td><td>{2}%</td>
+                     <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
+                     <td>{4}</td>
+                     <td>{7}</tr>'''.format(
+      row['term_string'], row['score'], int(100 * row['consensus']), row['class'], 
+      db_con.getUserNameById(row['owner_id'], full=True), row['id'], colorOf[row['class']],
+      printPrettyDate(row['modified']))
+  string += "</table>"
+  return string
   
 ##
 # Print Comments table rows as an HTML table (to string)

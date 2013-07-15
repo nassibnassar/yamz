@@ -334,18 +334,24 @@ def browse(listing = None):
   terms = g.db.getAllTerms(sortBy="term_string")
   letter = '~'
   result = "<h5>{0} | {1} | {2} | {3} | {4}</h5><hr>".format(
-     '<a href="/browse">alphabetical</a>' if listing else 'alphabetical',
      '<a href="/browse/score">high score</a>' if listing != "score" else 'high score',
      '<a href="/browse/recent">recent</a>' if listing != "recent" else 'recent',
      '<a href="/browse/volatile">volatile</a>' if listing != "volatile" else 'volatile',
      '<a href="/browse/stable">stable</a>' if listing != "stable" else 'stable',
+     '<a href="/browse/alphabetical">alphabetical</a>' if listing != "alphabetical" else 'alphabetical'
     )
  
   if listing == "recent": # Most recently added listing 
-    result += "TODO"
+    result += seaice.printTermsAsBriefHTML(g.db, 
+                                           sorted(terms, key=lambda term: term['modified'],
+                                                         reverse=True),
+                                           l.current_user.id)
   
   elif listing == "score": # Highest consensus
-    result += "TODO"
+    result += seaice.printTermsAsBriefHTML(g.db, 
+                                           sorted(terms, key=lambda term: term['consensus'],
+                                                         reverse=True),
+                                           l.current_user.id)
 
   elif listing == "volatile": # Least stable (Frequent updates, commenting, and voting)
     result += "TODO"
@@ -353,7 +359,7 @@ def browse(listing = None):
   elif listing == "stable": # Most stable, highest consensus
     result += "TODO"
     
-  else: # Alphabetical listing 
+  elif listing == "alphabetical": # Alphabetical listing 
     result += "<table>"
     for term in terms: 
       if term['term_string'][0].upper() != letter:
@@ -363,10 +369,15 @@ def browse(listing = None):
         term['id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
     result += "</table>"
 
+  else:
+    return redirect("/browse/recent")
+
   return render_template("browse.html", user_name = l.current_user.name, 
                                         title = "Browse", 
                                         headline = "Browse dictionary",
                                         content = Markup(result))
+
+
 
 
 @app.route("/search", methods = ['POST', 'GET'])
@@ -616,5 +627,5 @@ def trackTerm(term_id):
 
 if __name__ == '__main__':
     app.debug = True
-    app.run('0.0.0.0', 5000, use_reloader=False)
+    app.run('0.0.0.0', 5000, use_reloader=True)
 

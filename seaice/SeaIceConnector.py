@@ -365,11 +365,12 @@ class SeaIceConnector:
     cur.execute("""
       SELECT id, owner_id, term_string, definition, examples,  
              score, created, modified, consensus, class,
-             ts_rank_cd(tsv, query, 32 /* rank(rank+1) + score */ ) AS rank
+             ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank
         FROM SI.Terms, to_tsquery('english', '%s') query 
         WHERE query @@ tsv 
-        ORDER BY rank
+        ORDER BY rank DESC
      """ % string)
+
     return list(cur.fetchall())
 
   ##
