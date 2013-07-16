@@ -37,7 +37,7 @@ import Pretty
 # 
 stabilityError = 0.10 # consensus score per hour    
 stabilityFactor = 360 # convert seconds to hours  
-stabilityUpdateThreshold = 4 # hours
+stabilityThreshold = 4 # hours
 
 
 ##
@@ -591,60 +591,6 @@ class SeaIceConnector:
          return None 
       raise e
 
-  ##
-  # Cast or change a user's vote on a term. Return the term's new consensus score.
-  #
-  def castVote(self, user_id, term_id, vote): 
-    cur = self.con.cursor()
-  
-    cur.execute("SELECT now()") 
-    T_now = cur.fetchone()[0] 
-
-    # Get current state
-    cur.execute("""SELECT vote FROM SI.Tracking WHERE
-                   user_id={0} AND term_id={1}""".format(user_id, term_id))
-    p_vote = cur.fetchone()
-
-    cur.execute("""SELECT t_last, t_stable, consensus FROM SI.Terms
-                   WHERE id={0}""".format(term_id))
-    (T_last, T_stable, p_S) = cur.fetchone() 
-
-    # Cast vote
-    if not p_vote:
-      cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
-                     VALUES ({0}, {1}, {2})""".format(user_id, term_id, vote))
-      p_vote = 0
-      
-    elif p_vote[0] != vote:
-      cur.execute("""UPDATE SI.Tracking SET vote={2}
-                     WHERE user_id={0} AND term_id={1}""".format(user_id, term_id, vote))
-      p_vote = p_vote[0]
-
-    # Calculate new consensus score  
-    (U, V) = self.preScore(term_id) # TODO implement O(1) 
-    S = self.postScore(U, V)
-      
-    # Calculate the consensus score rate of change 
-    try: 
-      delta_S = abs((S - p_S) * stabilityFactor / (T_now - T_last).seconds) 
-    except ZeroDivisionError: 
-      delta_S = float('+inf')
-
-    if delta_S < stabilityError and T_stable == None: # Score becomes stable
-      T_stable = T_now
-
-    elif delta_S > stabilityError: # Score has become unstable, reset T_stable
-      T_stable = None
-
-    else: # Score is stable
-      pass
-    
-    # Update term 
-    cur.execute("""UPDATE SI.Terms SET consensus={1}, t_last='{2}', t_stable={3},
-                   score=(score+({4})) WHERE id={0}""".format(
-      term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", vote - p_vote))
-
-    return S
 
   ##
   # Get user's vote for a term
@@ -702,6 +648,9 @@ class SeaIceConnector:
   
   
   
+
+
+
   ##
   # Prescore term. Returns a tuple of pair of dictionaries 
   # (User.Id -> User.Reputation) of up voters and down voters
@@ -746,6 +695,99 @@ class SeaIceConnector:
       U_sum = D_sum = 0.0
 
     return (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v)) if v else 0
+
+  ##
+  # Cast or change a user's vote on a term. Return the term's new consensus score.
+  #
+  def castVote(self, user_id, term_id, vote): 
+    cur = self.con.cursor()
+  
+    cur.execute("SELECT now()") 
+    T_now = cur.fetchone()[0] 
+
+    # Get current state
+    cur.execute("""SELECT vote FROM SI.Tracking WHERE
+                   user_id={0} AND term_id={1}""".format(user_id, term_id))
+    p_vote = cur.fetchone()
+
+    cur.execute("""SELECT t_last, t_stable, consensus FROM SI.Terms
+                   WHERE id={0}""".format(term_id))
+    (T_last, T_stable, p_S) = cur.fetchone() 
+
+    # Cast vote
+    if not p_vote:
+      cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
+                     VALUES ({0}, {1}, {2})""".format(user_id, term_id, vote))
+      p_vote = 0
+      
+    elif p_vote[0] != vote:
+      cur.execute("""UPDATE SI.Tracking SET vote={2}
+                     WHERE user_id={0} AND term_id={1}""".format(user_id, term_id, vote))
+      p_vote = p_vote[0]
+
+    # Calculate new consensus score  
+    (U, V) = self.preScore(term_id) # TODO implement O(1) 
+    S = self.postScore(U, V)
+      
+    # Calculate the consensus score rate of change 
+    try: 
+      delta_S = abs((S - p_S) * stabilityFactor / (T_now - T_last).seconds) 
+    except ZeroDivisionError: 
+      delta_S = float('+inf')
+
+    if delta_S < stabilityError and T_stable == None: # Score becomes stable
+      T_stable = T_now
+
+    elif delta_S > stabilityError: # Score has become unstable, reset T_stable
+      T_stable = None
+
+    else: # Score is stable and below threshold, do nothing
+      pass
+    
+    # Update term 
+    cur.execute("""UPDATE SI.Terms SET consensus={1}, t_last='{2}', t_stable={3},
+                   score=(score+({4})) WHERE id={0}""".format(
+      term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", vote - p_vote))
+
+    return S
+
+
+  ##
+  # Check if Term is stable. If so, classify it as being 
+  # canonical, vernacular, or deprecated. Update term 
+  # and Return class as string.
+  # 
+  def classifyTerm(self, term_id):
+    cur = self.con.cursor()  
+
+    cur.execute("SELECT now()")
+    T_now = cur.fetchone()[0]
+
+    cur.execute("SELECT consensus, T_stable, T_last, modified FROM SI.Terms where id=%d" % term_id)
+    (S, T_stable, T_last, T_modified) = cur.fetchone()
+
+    if ((T_stable and ((T_now - T_stable).seconds / stabilityFactor) < stabilityThreshold) \
+        or ((T_now - T_last).seconds / stabilityFactor) < stabilityThreshold) \
+        and ((T_now - T_modified).seconds / stabilityFactor) < stabilityThreshold: 
+      
+      if S > 0.75:
+        return "canonical"
+      
+      elif S < 0.25: 
+        return "deprecated"
+
+    return "vernacular"
+
+    
+    
+
+    
+
+
+
+
+
+
 
   ##
   # Check that Terms.Consensus is consistent. Update if it wasn't 
