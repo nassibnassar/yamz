@@ -164,7 +164,7 @@ def printTermAsHTML(db_con, row, owner_id=0):
   
   string += '    <br><a id="star" title="Track this term" href="#star"' + \
             '     onclick="return TermAction({1}, \'{0}\');">[{0}]</a><br> '.format(
-             ("unstar" if vote != None else "star"), row['id'])
+             ("unstar" if db_con.checkTracking(owner_id, row['id']) else "star"), row['id'])
   string += "  </td></tr>"
   
   # Name/Class

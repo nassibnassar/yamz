@@ -187,7 +187,8 @@ class SeaIceConnector:
       (
         user_id integer not null, 
         term_id integer not null,
-        vote integer, 
+        vote integer default 0 not null, 
+        star boolean default true not null,
         UNIQUE (user_id, term_id),
         foreign key (user_id) references SI.Users(id) on delete cascade, 
         foreign key (term_id) references SI.Terms(id) on delete cascade
@@ -207,7 +208,7 @@ class SeaIceConnector:
          $$;
               
       create trigger term_update
-        before update on SI.Terms
+        before update of term_string, definition, examples on SI.Terms
         for each row
          execute procedure SI.upd_timestamp();
       
@@ -351,7 +352,10 @@ class SeaIceConnector:
   def getTermsByTracking(self, user_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""select *from SI.Terms as term, SI.Tracking as track
-                   where track.user_id={0} and track.term_id=term.id and term.owner_id!={0}""".format(user_id))
+                   where track.user_id={0} 
+                     and track.term_id=term.id 
+                     and term.owner_id!={0}
+                     and track.star=true""".format(user_id))
     return list(cur.fetchall())
 
   ##
@@ -632,25 +636,38 @@ class SeaIceConnector:
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote) 
                      VALUES ({0}, {1}, 0)""".format(user_id, term_id))
       return 1
-    else: return 0
+    else: 
+      cur.execute("""UPDATE SI.Tracking SET star=True
+                     WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
+      return 0
 
   ##
   # Untrack term. 
   #
   def untrackTerm(self, user_id, term_id):
     cur = self.con.cursor()
-    cur.execute("""DELETE FROM SI.Tracking 
+    cur.execute("""UPDATE SI.Tracking SET star=False
                    WHERE user_id={0} AND term_id={1} 
                    RETURNING vote""".format(user_id, term_id))
     vote = cur.fetchone()
     if vote: 
-      (U, V) = self.preScore(term_id) # TODO implement O(1) 
-      S = self.postScore(U, V) 
+      return 1
+    else: return 0
 
-      cur.execute("""UPDATE SI.Terms SET score=(score-({1})), consensus={2}
-                     WHERE id={0}""".format(term_id, vote[0], S))
-
-
+  ##
+  # Check tracking
+  #
+  def checkTracking(self, user_id, term_id):
+    cur = self.con.cursor()
+    cur.execute("""SELECT star FROM SI.Tracking 
+                   WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
+    star = cur.fetchone()
+    if star:
+      return star[0]
+    else: return False
+  
+  
+  
   ##
   # Prescore term. Returns a tuple of pair of dictionaries 
   # (User.Id -> User.Reputation) of up voters and down voters
