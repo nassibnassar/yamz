@@ -33,6 +33,14 @@ import psycopg2.extras
 import Pretty
 
 ##
+# Some constants for stability calculation
+# 
+stabilityError = 0.10 # consensus score per hour    
+stabilityFactor = 360 # convert seconds to hours  
+stabilityUpdateThreshold = 4 # hours
+
+
+##
 # Verify permissions of configuration file. 
 #
 def accessible_by_group_or_world(file):
@@ -145,16 +153,16 @@ class SeaIceConnector:
           score integer default 0 not null,
           consensus float default 0 not null,
           class SI.Class default 'vernacular' not null,
-          created timestamp default now() not null, 
-          modified timestamp default now() not null, 
+          created timestamp with time zone default now() not null, 
+          modified timestamp with time zone default now() not null, 
           
           R integer default 0 not null,
           U_sum integer default 0 not null,
           D_sum integer default 0 not null,
           u integer default 0 not null,
           d integer default 0 not null,
-          T_last   timestamp default now() not null, 
-          T_stable timestamp default now() not null, 
+          T_last   timestamp with time zone default now() not null, 
+          T_stable timestamp with time zone default now(), 
           
           foreign key (owner_id) references SI.Users(id)
         ); 
@@ -169,8 +177,8 @@ class SeaIceConnector:
           owner_id integer default 0 not null, 
           term_id integer default 0 not null, 
           comment_string text not null, 
-          created timestamp default now() not null,
-          modified timestamp default now() not null, 
+          created timestamp with time zone default now() not null,
+          modified timestamp with time zone default now() not null, 
           foreign key (owner_id) references SI.Users(id),
           foreign key (term_id) references SI.Terms(id) on delete cascade
         );
@@ -259,8 +267,10 @@ class SeaIceConnector:
       "definition" : "nil", 
       "examples" : "nil", 
       "score" : "default", 
-      "created" : "current_timestamp", 
-      "modified" : "current_timestamp",
+      "created" : "now()", 
+      "modified" : "now()",
+      "T_stable" : "NULL", 
+      "T_last" : "now()", 
       "owner_id" : "default"
     }
 
@@ -582,35 +592,59 @@ class SeaIceConnector:
       raise e
 
   ##
-  # Cast or change a user's vote on a term. Return the change in term's score. 
+  # Cast or change a user's vote on a term. Return the term's new consensus score.
   #
   def castVote(self, user_id, term_id, vote): 
     cur = self.con.cursor()
+  
+    cur.execute("SELECT now()") 
+    T_now = cur.fetchone()[0] 
+
+    # Get current state
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
     p_vote = cur.fetchone()
 
-    res = 0
+    cur.execute("""SELECT t_last, t_stable, consensus FROM SI.Terms
+                   WHERE id={0}""".format(term_id))
+    (T_last, T_stable, p_S) = cur.fetchone() 
 
+    # Cast vote
     if not p_vote:
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
                      VALUES ({0}, {1}, {2})""".format(user_id, term_id, vote))
-      cur.execute("UPDATE SI.Terms SET score=(score+({1})) WHERE id={0}".format(term_id, vote))
-      res = vote
+      p_vote = 0
       
     elif p_vote[0] != vote:
       cur.execute("""UPDATE SI.Tracking SET vote={2}
                      WHERE user_id={0} AND term_id={1}""".format(user_id, term_id, vote))
-      cur.execute("UPDATE SI.Terms SET score=(score+({1})) WHERE id={0}".format(term_id, vote - p_vote[0]))
-      res = vote - p_vote[0]
-    
+      p_vote = p_vote[0]
+
+    # Calculate new consensus score  
     (U, V) = self.preScore(term_id) # TODO implement O(1) 
     S = self.postScore(U, V)
       
-    cur.execute("""UPDATE SI.Terms SET consensus={1}
-                   WHERE id={0}""".format(term_id, S))
+    # Calculate the consensus score rate of change 
+    try: 
+      delta_S = abs((S - p_S) * stabilityFactor / (T_now - T_last).seconds) 
+    except ZeroDivisionError: 
+      delta_S = float('+inf')
 
-    return res
+    if delta_S < stabilityError and T_stable == None: # Score becomes stable
+      T_stable = T_now
+
+    elif delta_S > stabilityError: # Score has become unstable, reset T_stable
+      T_stable = None
+
+    else: # Score is stable
+      pass
+    
+    # Update term 
+    cur.execute("""UPDATE SI.Terms SET consensus={1}, t_last='{2}', t_stable={3},
+                   score=(score+({4})) WHERE id={0}""".format(
+      term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", vote - p_vote))
+
+    return S
 
   ##
   # Get user's vote for a term

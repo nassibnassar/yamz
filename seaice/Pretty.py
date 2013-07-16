@@ -92,6 +92,8 @@ colorOf = { 'vernacular' : '#FFFF66',
 def printPrettyDate(t):
   t = t.replace(tzinfo=tz.tzutc())
   t = t.astimezone(tz.tzlocal())
+      # This doesn't work on heroku since the server's time zone is not the user's 
+      # time zone. (DUh.) Maybe the time zone is part of the GET/POST requests? TODO
   return "%s/%s/%s %s:%02d" % (t.day, t.month, t.year, t.hour, t.minute)#, t.tzname)
   
 ##
