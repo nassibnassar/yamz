@@ -353,7 +353,7 @@ def browse(listing = None):
   elif listing == "score": # Highest consensus
     terms = sorted(terms, key=lambda term: term['consensus'], reverse=True)
     result += seaice.printTermsAsBriefHTML(g.db, 
-      sorted(terms, key=lambda term: term['score'], reverse=True), l.current_user.id)
+      sorted(terms, key=lambda term: term['up'] - term['down'], reverse=True), l.current_user.id)
 
   elif listing == "volatile": # Least stable (Frequent updates, commenting, and voting)
     result += "TODO"

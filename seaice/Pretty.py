@@ -127,7 +127,7 @@ def printParagraph(db_con, text, leftMargin=8, width=60):
 def printTermsPretty(db_con, rows):
   for row in rows:
     print "Term: %-26s id No. %-7d created: %s" % ("%s (%d)" % (row['term_string'], 
-                                                                row["score"]),
+                                                                row["up"] - row["down"]),
                                                    row['id'],
                                                    row['created']) 
 
@@ -160,7 +160,7 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += "  <tr><td width=15% rowspan=4 align=center valign=top>"
   string += '    <a id="voteUp" title="+1" href="#up" onclick="return TermAction(%s, \'up\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('up_set' if vote == 1 else 'up')
-  string += '    <h4>%s</h4>' % (row['score'])
+  string += '    <h4>%s</h4>' % (row['up'] - row['down'])
   string += '    <a id="voteDown" title="-1" href="#down" onclick="return TermAction(%s, \'down\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('down_set' if vote == -1 else 'down')
   
@@ -248,7 +248,7 @@ def printTermsAsBriefHTML(db_con, rows, owner_id=0):
                      <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
                      <td>{4}</td>
                      <td>{7}</tr>'''.format(
-      row['term_string'], row['score'], int(100 * row['consensus']), row['class'], 
+      row['term_string'], row['up'] - row['down'], int(100 * row['consensus']), row['class'], 
       db_con.getUserNameById(row['owner_id'], full=True), row['id'], colorOf[row['class']],
       printPrettyDate(row['modified']))
   string += "</table>"

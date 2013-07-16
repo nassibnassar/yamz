@@ -150,17 +150,16 @@ class SeaIceConnector:
           definition text not null,
           examples text not null, 
           tsv tsvector, 
-          score integer default 0 not null,
-          consensus float default 0 not null,
           class SI.Class default 'vernacular' not null,
           created timestamp with time zone default now() not null, 
           modified timestamp with time zone default now() not null, 
+          up integer default 0 not null,
+          down integer default 0 not null,
+          consensus float default 0 not null,
           
           R integer default 0 not null,
           U_sum integer default 0 not null,
           D_sum integer default 0 not null,
-          u integer default 0 not null,
-          d integer default 0 not null,
           T_last   timestamp with time zone default now() not null, 
           T_stable timestamp with time zone default now(), 
           
@@ -266,7 +265,8 @@ class SeaIceConnector:
       "term_string" : "nil", 
       "definition" : "nil", 
       "examples" : "nil", 
-      "score" : "default", 
+      "down" : "default", 
+      "up" : "default", 
       "created" : "now()", 
       "modified" : "now()",
       "T_stable" : "NULL", 
@@ -287,14 +287,15 @@ class SeaIceConnector:
                               term_string, 
                               definition, 
                               examples, 
-                              score,
+                              up,
+                              down,
                               created,
                               modified,
                               owner_id ) 
-            values(%s, '%s', '%s', '%s', %s, %s, %s, %s) 
+            values(%s, '%s', '%s', '%s', %s, %s, %s, %s, %s) 
             returning id
         """ % (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['examples'], 
-               defTerm['score'], defTerm['created'], defTerm['modified'], defTerm['owner_id']))
+               defTerm['up'], defTerm['down'], defTerm['created'], defTerm['modified'], defTerm['owner_id']))
     
       res = cur.fetchone()
       if res: 
@@ -377,7 +378,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
       SELECT id, owner_id, term_string, definition, examples,  
-             score, created, modified, consensus, class,
+             up, down, created, modified, consensus, class,
              ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank
         FROM SI.Terms, to_tsquery('english', '%s') query 
         WHERE query @@ tsv 
@@ -654,7 +655,7 @@ class SeaIceConnector:
   ##
   # Prescore term. Returns a tuple of pair of dictionaries 
   # (User.Id -> User.Reputation) of up voters and down voters
-  # (U, D). 
+  # (U, D).
   # 
   def preScore(self, term_id):
     cur = self.con.cursor()
@@ -694,6 +695,8 @@ class SeaIceConnector:
     else:
       U_sum = D_sum = 0.0
 
+    #TODO set up, down, R, U_sum, D_sum
+
     return (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v)) if v else 0
 
   ##
@@ -710,9 +713,9 @@ class SeaIceConnector:
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
     p_vote = cur.fetchone()
 
-    cur.execute("""SELECT t_last, t_stable, consensus FROM SI.Terms
+    cur.execute("""SELECT up, down, t_last, t_stable, consensus FROM SI.Terms
                    WHERE id={0}""".format(term_id))
-    (T_last, T_stable, p_S) = cur.fetchone() 
+    (up, down, T_last, T_stable, p_S) = cur.fetchone() 
 
     # Cast vote
     if not p_vote:
@@ -745,9 +748,13 @@ class SeaIceConnector:
       pass
     
     # Update term 
+    if p_vote == 1: up -= 1
+    elif p_vote == -1: down -= 1
+    if vote == 1: up += 1
+    elif vote == -1: down += 1
     cur.execute("""UPDATE SI.Terms SET consensus={1}, t_last='{2}', t_stable={3},
-                   score=(score+({4})) WHERE id={0}""".format(
-      term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", vote - p_vote))
+                   up={4}, down={5} WHERE id={0}""".format(
+      term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", up, down))
 
     return S
 
