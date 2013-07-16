@@ -35,8 +35,8 @@ import Pretty
 ##
 # Some constants for stability calculation
 # 
-stabilityError = 0.10 # consensus score per hour    
-stabilityFactor = 360 # convert seconds to hours  
+stabilityError = 0.10  # consensus score per hour    
+stabilityFactor = 3600 # convert seconds to hours  
 stabilityThreshold = 4 # hours
 
 
@@ -766,9 +766,9 @@ class SeaIceConnector:
     cur.execute("SELECT consensus, T_stable, T_last, modified FROM SI.Terms where id=%d" % term_id)
     (S, T_stable, T_last, T_modified) = cur.fetchone()
 
-    if ((T_stable and ((T_now - T_stable).seconds / stabilityFactor) < stabilityThreshold) \
-        or ((T_now - T_last).seconds / stabilityFactor) < stabilityThreshold) \
-        and ((T_now - T_modified).seconds / stabilityFactor) < stabilityThreshold: 
+    if ((T_stable and ((T_now - T_stable).seconds / stabilityFactor) > stabilityThreshold) \
+        or ((T_now - T_last).seconds / stabilityFactor) > stabilityThreshold) \
+        and ((T_now - T_modified).seconds / stabilityFactor) > stabilityThreshold: 
       
       if S > 0.75:
         return "canonical"
