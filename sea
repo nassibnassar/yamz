@@ -73,6 +73,20 @@ parser.add_option("-r", "--remove", dest="remove_id",
                   help="Remove the metadictionary entry corresponding to ID.",
                   metavar="ID")
 
+parser.add_option("--score-terms", action="store_true", dest="score", default=False,
+                  help="Compute and print scores of terms")
+
+parser.add_option("--classify-terms", action="store_true", dest="classify", default=False,
+                  help="Classify stable terms in the dictionary. This will modify the term's class.")
+
+parser.add_option("--set-reputation", dest="reputation",
+                  help="Set user's reputation. Parameter is a positive integer.",
+                  metavar="INT")
+
+parser.add_option("-u", "--user", dest="user_id", 
+                  help="ID of user whose reputation is to be set.",
+                  metavar="ID", default=None)
+
 parser.add_option("--drop-db", action="store_true", dest="drop_tables", default=False,
                   help="Drop all metadictionary tables from the database.")
 
@@ -85,11 +99,6 @@ parser.add_option("-j", "--json", action="store_true", dest="json", default=Fals
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
                   help="Don't prompt for comfirmation when dropping tables.")
 
-parser.add_option("--score-terms", action="store_true", dest="score", default=False,
-                  help="Compute and print scores of terms")
-
-parser.add_option("--classify-terms", action="store_true", dest="classify", default=False,
-                  help="Classify stable terms in the dictionary. This will modify the term's class.")
 
 
 (options, args) = parser.parse_args()
@@ -123,6 +132,12 @@ try:
   if options.remove_id:
     if not sea.removeTerm(int(options.remove_id)):
       print >>sys.stderr, "sea: no such term (Id=%s not found)" % options.remove_id
+
+  if options.reputation:
+    if not options.user_id:
+      print >>sys.stderr, "sea: must specify user Id" 
+    elif not sea.updateUserReputation(int(options.user_id), int(options.reputation)):
+      print >>sys.stderr, "sea: no such user (Id=%s not found)" % options.user_id
 
   if options.import_table:
     sea.Import(options.import_table, options.file_name)

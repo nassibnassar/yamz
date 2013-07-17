@@ -489,7 +489,10 @@ class SeaIceConnector:
   #
   def updateUserReputation(self, user_id, rep): 
     cur = self.con.cursor()
-    cur.execute("update SI.Users set reputation=%d where id=%d" % (rep, user_id))
+    cur.execute("update SI.Users set reputation=%d where id=%d returning id" % (rep, user_id))
+    res = cur.fetchone()
+    if res: return res[0]
+    return None
 
   ##
   # Insert a new comment into the database. 
