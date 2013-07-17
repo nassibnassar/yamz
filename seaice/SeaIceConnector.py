@@ -677,9 +677,10 @@ class SeaIceConnector:
 
   ##
   # Postscore term. Input the reputations of upvoters and downvoters 
-  # and compute the consensus score. 
+  # and compute the consensus score. Update the term row as a side-
+  # affect. 
   #
-  def postScore(self, U, D):
+  def postScore(self, term_id, U, D):
     cur = self.con.cursor()
     cur.execute("SELECT COUNT(*) FROM SI.Users")
     t = cur.fetchone()[0] # total users
@@ -699,9 +700,12 @@ class SeaIceConnector:
     else:
       U_sum = D_sum = 0.0
 
-    #TODO set up, down, R, U_sum, D_sum
+    S = (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v)) if v else 0
+    
+    cur.execute("""UPDATE SI.Terms SET up={1}, down={2}, U_sum={3}, D_sum={4}, consensus={5}
+                   WHERE id={0}""".format(term_id, u, d, U_sum, D_sum, S))
+    return S
 
-    return (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v)) if v else 0
 
   ##
   # Cast or change a user's vote on a term. Return the term's new consensus score.
@@ -709,17 +713,20 @@ class SeaIceConnector:
   def castVote(self, user_id, term_id, vote): 
     cur = self.con.cursor()
   
-    cur.execute("SELECT now()") 
-    T_now = cur.fetchone()[0] 
+    cur.execute("SELECT now(), count(*) FROM SI.Users") 
+    (T_now, t) = cur.fetchone() 
 
     # Get current state
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
     p_vote = cur.fetchone()
 
-    cur.execute("""SELECT up, down, t_last, t_stable, consensus FROM SI.Terms
+    cur.execute("""SELECT up, down, U_sum, D_sum, t_last, t_stable, consensus FROM SI.Terms
                    WHERE id={0}""".format(term_id))
-    (up, down, T_last, T_stable, p_S) = cur.fetchone() 
+    (u, d, U_sum, D_sum, T_last, T_stable, p_S) = cur.fetchone()
+
+    cur.execute("SELECT reputation FROM SI.Users WHERE id={0}".format(user_id))
+    rep = cur.fetchone()[0]
 
     # Cast vote
     if not p_vote:
@@ -732,9 +739,15 @@ class SeaIceConnector:
                      WHERE user_id={0} AND term_id={1}""".format(user_id, term_id, vote))
       p_vote = p_vote[0]
 
-    # Calculate new consensus score  
-    (U, V) = self.preScore(term_id) # TODO implement O(1) 
-    S = self.postScore(U, V)
+    # Calculate new consensus score
+    if p_vote == 1:    u -= 1; U_sum -= rep 
+    elif p_vote == -1: d -= 1; D_sum -= rep
+    if vote == 1:      u += 1; U_sum += rep
+    elif vote == -1:   d += 1; D_sum += rep
+    v = u + d
+    R = U_sum + D_sum
+
+    S = (u + (float(U_sum)/R if R > 0 else 1.0) * (t-v)) / t if v else 0
       
     # Calculate the consensus score rate of change 
     try: 
@@ -750,15 +763,11 @@ class SeaIceConnector:
 
     else: # Score is stable and below threshold, do nothing
       pass
-    
-    # Update term 
-    if p_vote == 1: up -= 1
-    elif p_vote == -1: down -= 1
-    if vote == 1: up += 1
-    elif vote == -1: down += 1
-    cur.execute("""UPDATE SI.Terms SET consensus={1}, t_last='{2}', t_stable={3},
-                   up={4}, down={5} WHERE id={0}""".format(
-      term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", up, down))
+   
+    # Update term
+    cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', t_stable={3},
+                   up={4}, down={5}, U_sum={6}, D_sum={7} WHERE id={0}""".format(
+      term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", u, d, U_sum, D_sum))
 
     return S
 
@@ -792,28 +801,17 @@ class SeaIceConnector:
     cur.execute("UPDATE SI.Terms SET class={0} WHERE id={1}".format(repr(term_class), term_id))
     return term_class 
 
-    
-    
-
-    
-
-
-
-
-
-
 
   ##
-  # Check that Terms.Consensus is consistent. Update if it wasn't 
+  # Check that Terms.Consensus is consistent. Update if it wasn't. 
   #
   def checkTermConsensus(self, term_id):
     cur = self.con.cursor()
     cur.execute("SELECT consensus FROM SI.Terms where id=%d" % term_id)
     p_S = cur.fetchone()[0]
     (U, V) = self.preScore(term_id)
-    S = self.postScore(U, V)
+    S = self.postScore(term_id, U, V)
     if int(p_S) != int(S):
-      cur.execute("UPDATE SI.Terms SET consensus=%d WHERE id=%d" % (S, term_id))
       return False
     return True
       

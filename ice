@@ -114,11 +114,11 @@ commentIdPool = seaice.IdPool(db_con, "Comments")
   # This will be used to check for consistency errors in live scoring
   # and isn't needed until I implement O(1) scoring. 
 
-#print "ice: precomputing term scores"
-#for term in db_con.getAllTerms():
-#  if not db_con.checkTermConsensus(term['id']):
-#    print "warning: corrected inconsistent consensus score for term %d" % term['id']
-#  db_con.commit()
+print "ice: precomputing term scores"
+for term in db_con.getAllTerms():
+  if not db_con.checkTermConsensus(term['id']):
+    print "warning: corrected inconsistent consensus score for term %d" % term['id']
+  db_con.commit()
 
 dbPool.enqueue(db_con)
 

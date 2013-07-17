@@ -166,7 +166,7 @@ try:
   if options.score: 
     for term in sea.getAllTerms():
       (U, V) = sea.preScore(term['id'])
-      s = sea.postScore(U, V)
+      s = sea.postScore(term['id'], U, V)
       if header: 
         print "%-8s%-13s%-8s%-8s" % ('Id', 'Term', 'Vote', 'Score')
         header = False
