@@ -150,9 +150,9 @@ class SeaIceConnector:
           definition text not null,
           examples text not null, 
           tsv tsvector, 
-          class SI.Class default 'vernacular' not null,
           created timestamp with time zone default now() not null, 
           modified timestamp with time zone default now() not null, 
+         
           up integer default 0 not null,
           down integer default 0 not null,
           consensus float default 0 not null,
@@ -162,6 +162,7 @@ class SeaIceConnector:
           D_sum integer default 0 not null,
           T_last   timestamp with time zone default now() not null, 
           T_stable timestamp with time zone default now(), 
+          class SI.Class default 'vernacular' not null,
           
           foreign key (owner_id) references SI.Users(id)
         ); 
@@ -773,17 +774,20 @@ class SeaIceConnector:
     cur.execute("SELECT consensus, T_stable, T_last, modified FROM SI.Terms where id=%d" % term_id)
     (S, T_stable, T_last, T_modified) = cur.fetchone()
 
+    term_class = "vernacular"
+
     if ((T_stable and ((T_now - T_stable).seconds / stabilityFactor) > stabilityThreshold) \
         or ((T_now - T_last).seconds / stabilityFactor) > stabilityThreshold) \
         and ((T_now - T_modified).seconds / stabilityFactor) > stabilityThreshold: 
       
       if S > 0.75:
-        return "canonical"
+        term_class = "canonical"
       
       elif S < 0.25: 
-        return "deprecated"
+        term_class = "deprecated"
 
-    return "vernacular"
+    cur.execute("UPDATE SI.Terms SET class={0} WHERE id={1}".format(repr(term_class), term_id))
+    return term_class 
 
     
     

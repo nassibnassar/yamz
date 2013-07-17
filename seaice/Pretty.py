@@ -80,7 +80,7 @@ js_termAction = """
   } """
 
 colorOf = { 'vernacular' : '#FFFF66', 
-            'stable' : '#339933', 
+            'canonical' : '#66C266', 
             'deprecated' : '#E8E8E8' }
 
 ## Pretty prints ##
@@ -241,7 +241,7 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
 def printTermsAsBriefHTML(db_con, rows, owner_id=0): 
   string =  '<table width=70%>'
   string += '''<tr style="background-color:#E8E8E8"><td>Term</td>
-                  <td>Votes</td><td>Consensus</td><td>Class</td><td>Contributed by</td>
+                  <td>Score</td><td>Consensus</td><td>Class</td><td>Contributed by</td>
                   <td>Last modified</td></tr>'''
   for row in rows:
     string += '''<tr><td><a href=/term={5}>{0}</a></td><td>{1}</td><td>{2}%</td>

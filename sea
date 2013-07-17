@@ -88,6 +88,10 @@ parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=Fa
 parser.add_option("--score-terms", action="store_true", dest="score", default=False,
                   help="Compute and print scores of terms")
 
+parser.add_option("--classify-terms", action="store_true", dest="classify", default=False,
+                  help="Classify stable terms in the dictionary. This will modify the term's class.")
+
+
 (options, args) = parser.parse_args()
 
 
@@ -111,6 +115,10 @@ try:
                                  config.get('default', 'dbname'))
   
   ## Run specified queries. ##
+
+  if options.classify:
+    for (term, id) in map(lambda term: (term['term_string'], term['id']), sea.getAllTerms()):
+      print "%s (#%d) is classified as %s" % (term, id, sea.classifyTerm(id))
 
   if options.remove_id:
     if not sea.removeTerm(int(options.remove_id)):
@@ -149,7 +157,7 @@ try:
         header = False
       print "%-8d%-13s%-8d%-8.2f" % (term['id'], 
                                    term['term_string'], 
-                                   term['score'], 
+                                   term['up'] - term['down'], 
                                    (100 * s))
   
   if options.search_term:
