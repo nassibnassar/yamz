@@ -136,7 +136,7 @@ class SeaIceConnector:
     self.con.close()
 
 
-  ## Alter Schema 
+  ## 
   # Create a schema for the SeaIce database that includes the tables
   # Users, Terms, Relations(TODO), and Comments, and an update trigger 
   # funciton. 
@@ -229,7 +229,7 @@ class SeaIceConnector:
         FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE
       )"""
     )
-    
+  
     # Create update triggers.
     cur.execute("""
       CREATE OR REPLACE FUNCTION SI.upd_timestamp() RETURNS TRIGGER 
@@ -868,7 +868,7 @@ class SeaIceConnector:
   ##
   # Check that Terms.Consensus is consistent. Update if it wasn't. 
   #
-  def checkTermConsensus(self, term_id):
+  def checkTermConsistency(self, term_id):
     cur = self.con.cursor()
     cur.execute("SELECT consensus FROM SI.Terms where id=%d" % term_id)
     p_S = cur.fetchone()[0]

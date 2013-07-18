@@ -64,9 +64,6 @@ parser.add_option("-d", "--debug", action="store_true", dest="debug", default=Fa
 (options, args) = parser.parse_args()
 
 
-
-
-
 ## Setup flask application ##
 
 app = Flask(__name__)
@@ -116,7 +113,7 @@ commentIdPool = seaice.IdPool(db_con, "Comments")
 
 print "ice: checking term score consistnency (dev)"
 for term in db_con.getAllTerms():
-  if not db_con.checkTermConsensus(term['id']):
+  if not db_con.checkTermConsistency(term['id']):
     print "warning: corrected inconsistent consensus score for term %d" % term['id']
   db_con.commit()
 
@@ -149,6 +146,13 @@ def teardown_request(exception):
 
 
 ## HTTP request handlers ##
+
+@app.errorhandler(404)
+def pageNotFound(e):
+    return render_template('basic_page.html', user_name = l.current_user.name, 
+                                              title = "Oops! - 404",
+                                              headline = "404",
+                                              content = "The page you requested doesn't exist."), 404
 
 @app.route("/")
 def index():
@@ -304,6 +308,26 @@ def getUser(user_id = None):
                                             title = "User not found",
                                             headline = "User", 
                                             content = Markup("User <strong>#%s</strong> not found!" % user_id))
+
+@app.route("/user=<int:user_id>/notif=<int:notif_index>/remove", methods=['GET'])
+@l.login_required
+def remNotification(user_id, notif_index):
+  try:
+    assert user_id == l.current_user.id
+    SeaIceUsers[user_id].removeNotification(notif_index)
+    return redirect("/")
+
+  except AssertionError:
+    return render_template("basic_page.html", user_name = l.current_user.name,
+                                              title = "Oops!",
+                                              content = 'You may only delete your own notifications.')
+
+  except AssertionError:
+    return render_template("basic_page.html", user_name = l.current_user.name,
+                                              title = "Oops!",
+                                              content = 'Index out of range.')
+                                            
+
 
   ## Look up terms ##
 
@@ -551,8 +575,8 @@ def addComment(term_id):
     tracking_users = g.db.getTrackingByTerm(term_id)
     tracking_users.append(g.db.getTerm(term_id)['owner_id'])
     for user_id in tracking_users:
-      if user_id != l.current_user.id:
-        SeaIceUsers[user_id].notify(notify_comment)
+      #if user_id != l.current_user.id: FIXME
+      SeaIceUsers[user_id].notify(notify_comment)
 
     return redirect("term=%d" % term_id)
 

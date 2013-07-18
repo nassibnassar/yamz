@@ -114,6 +114,6 @@ class TermRemoved(BaseNotification):
       return None
 
     return '''<font color="#4D6C82">%s</font> has removed 
-              <font color="#4D6C82"><strong>%s</strong></font> from the metadictionary. 
+              <font color="#0088CC"><strong>%s</strong></font> from the metadictionary. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_string, Pretty.printPrettyDate(self.T_notify))

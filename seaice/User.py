@@ -88,9 +88,9 @@ class User(BaseUser):
   ##
   # Remove notification at index i
   # 
-  def remNotification(self, i):
+  def removeNotification(self, i):
     self.L_notify.acquire()
-    self.notifications.remove(i)
+    self.notifications.remove(self.notifications[i])
     self.L_notify.release()
     
   ##
@@ -98,11 +98,13 @@ class User(BaseUser):
   #
   def getNotificationsAsHTML(self, db_con):
     self.L_notify.acquire()
-    result = ""
-    for notification in self.notifications:
-      notify = notification.getAsHTML(db_con)
+    result = ''
+    for i in range(len(self.notifications)):
+      notify = self.notifications[i].getAsHTML(db_con)
       if notify:
-        result += "<p>%s</p>" % notify
+        result += '''<p><a href="/user=%d/notif=%d/remove" 
+                         title="Click to remove this notification">[x]</a>
+                         &nbsp;&nbsp;%s</p>''' % (self.id, i, notify)
     self.L_notify.release()
     return result
 
