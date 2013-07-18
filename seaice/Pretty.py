@@ -87,14 +87,19 @@ colorOf = { 'vernacular' : '#FFFF66',
 
 ##
 # Print date (to string). If a small amount of time 
-# has elapsed, then give this info. TODO
+# has elapsed, then give this info. 
 #
-def printPrettyDate(t):
-  t = t.replace(tzinfo=tz.tzutc())
-  t = t.astimezone(tz.tzlocal())
-      # This doesn't work on heroku since the server's time zone is not the user's 
-      # time zone. (DUh.) Maybe the time zone is part of the GET/POST requests? TODO
-  return "%s/%s/%s %s:%02d" % (t.day, t.month, t.year, t.hour, t.minute)#, t.tzname)
+def printPrettyDate(T):
+    # How to hanlde time difference from GET/POST requests? TODO
+  
+  T = T.astimezone(tz.tzlocal())
+  return "%s/%s/%s %s:%02d" % (T.day, T.month, T.year, T.hour, T.minute)
+  
+  #T_elapsed = (T_now - T) # TODO
+  #print T_elapsed
+  #return "%d seconds ago" % T_elapsed.seconds
+
+
   
 ##
 # Write table rows in JSON format to 'fd'. 

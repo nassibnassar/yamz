@@ -573,7 +573,7 @@ class SeaIceConnector:
       # See if stability has changed  
       T_stable = calculateStability(S, p_S, T_now, T_last, T_stable)
       
-      cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', t_stable={3},
+      cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', T_stable={3},
                      up={4}, down={5}, U_sum={6}, D_sum={7} WHERE id={0}; COMMIT""".format(
         term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", u, d, U_sum, D_sum))
 

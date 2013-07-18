@@ -285,7 +285,7 @@ def settings():
                                           message = """
                     Here you can change how your name will appear.""")
 
-@app.route("/user=<user_id>")
+@app.route("/user=<int:user_id>")
 def getUser(user_id = None): 
  
   g.db = dbPool.getScoped()
@@ -297,7 +297,8 @@ def getUser(user_id = None):
           <tr><td valign=top width="40%">First name:</td><td>{0}</td></tr>
           <tr><td valign=top>Last name:</td><td>{1}</td></tr>
           <tr><td valign=top>Email:</td><td>{2}</td></td>
-        </table> """.format(user['first_name'], user['last_name'], user['email'])
+          <tr><td valign=top>Reputation:</td><td>{3}</td></td>
+        </table> """.format(user['first_name'], user['last_name'], user['email'], user['reputation'])
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "User - %s" % user_id, 
                                                 headline = "User", 
