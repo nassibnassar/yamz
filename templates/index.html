@@ -81,22 +81,33 @@
             <tr>
               <td rowspan=2 width=5%></td>
 
-              <td rowspan=2 width=80% valign=top>
+              <td rowspan=2 width=75% valign=top>
                 <h4>Notifications</h4>
-                {{ notifcations }}
-                TODO
+                {% if notify %} 
+                  {{ notify }}
+                {% else %}
+                  <font color="#B8B8B8"><i>No new notifications.</i></font>
+                {% endif %}
               </td>
             
               <td valign=top>
                 <h4>My terms</h4>
-                {{ my_list }}
+                {% if my %} 
+                  {{ my }}
+                {% else %}
+                  <font color="#B8B8B8"><i>You haven't contributed any terms.</i></font>
+                {% endif %}
                 <br>
               </td>
     
             <tr>
               <td valign=top>
                 <hr><h4>Starred</h4>
-                {{ starred_list }}
+                {% if star %} 
+                  {{ star }}
+                {% else %}
+                  <font color="#B8B8B8"><i>You aren't tracking any terms.</i></font>
+                {% endif %}
                 <br>
               </td>
             </tr>

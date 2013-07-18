@@ -396,11 +396,20 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""SELECT * FROM SI.Terms AS term, 
                                  SI.Tracking AS track
-                   WHERE track.user_id={0} 
-                     AND track.term_id=term.id 
-                     AND term.owner_id!={0}
-                     AND track.star=true""".format(user_id))
+                    WHERE track.user_id={0} 
+                      AND track.term_id=term.id 
+                      AND term.owner_id!={0}
+                      AND track.star=true""".format(user_id))
     return list(cur.fetchall())
+
+  ##
+  # Return a list of users tracking term_id
+  # 
+  def getTrackingByTerm(self, term_id):
+    cur = self.con.cursor()
+    cur.execute("""SELECT user_id FROM SI.Tracking 
+                    WHERE term_id={0} """.format(term_id))
+    return map(lambda row: row[0], cur.fetchall())
 
   ##
   # Search table by term_string, definition and examples.

@@ -39,16 +39,26 @@ class BaseNotification:
 
   def getAsHTML(self, db_con): 
     term = db_con.getTerm(self.term_id)
-    return 'Term <a href="/term=%d">%s</a> %s' % (self.term_id, term, Pretty.printPrettyDate(T_notify))
+    return 'Term <a href="/term=%d">%s</a> <font color="#8B8B8B"><i>%s</i></font>' % (
+                        self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
   
 
 ## class Comment
 #
 #
-class Comment(BaseNotificaiton):
+class Comment(BaseNotification):
  
-  def __init__(self, term_id, user_id, T_notify)
-    BaseNotification.__init(self, term_id, T_notify)
+  def __init__(self, term_id, user_id, T_notify):
+    BaseNotification.__init__(self, term_id, T_notify)
+    self.user_id = user_id
 
   def __str__(self):
     return 'UserId=%d commented on TermId=%d at %s' % (self.user_id, self.term_id, self.T_notify)
+
+  def getAsHTML(self, db_con): 
+    term = db_con.getTerm(self.term_id)
+    user = db_con.getUserNameById(self.user_id, full=True)
+    return '''<font color="#4D6C82">%s</font> commented on <a href="/term=%d">%s</a>. 
+              <font color="#B8B8B8"><i>%s</i></font>''' % (
+            user, self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
+

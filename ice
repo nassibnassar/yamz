@@ -124,9 +124,9 @@ for term in db_con.getAllTerms():
   ## Create user structures ## 
 
 print "ice: setitng up users" 
-users = {}
+SeaIceUsers = {}
 for user in db_con.getAllUsers(): 
-  users[user['id']] = seaice.User(user['id'], user['first_name'].decode('utf-8'))
+  SeaIceUsers[user['id']] = seaice.User(user['id'], user['first_name'].decode('utf-8'))
 
 dbPool.enqueue(db_con)
 
@@ -134,7 +134,7 @@ print "ice: setup complete."
 
 @login_manager.user_loader
 def load_user(id):
-  return users.get(int(id))
+  return SeaIceUsers.get(int(id))
 
 
   ## Request wrappers (may have use for these later) ##
@@ -156,11 +156,13 @@ def index():
     g.db = dbPool.getScoped()
       # TODO Store these values in class User in order to prevent
       # these queries every time the homepage is accessed.  
-    my_list = seaice.printTermsAsLinks(g.db.getTermsByUser(l.current_user.id))
-    starred_list = seaice.printTermsAsLinks(g.db.getTermsByTracking(l.current_user.id))
+    my = seaice.printTermsAsLinks(g.db.getTermsByUser(l.current_user.id))
+    star = seaice.printTermsAsLinks(g.db.getTermsByTracking(l.current_user.id))
+    notify = l.current_user.getNotificationsAsHTML(g.db)
     return render_template("index.html", user_name = l.current_user.name,
-                                         my_list = Markup(my_list.decode('utf-8')),
-                                         starred_list = Markup(starred_list.decode('utf-8')))
+                                         my = Markup(my.decode('utf-8')) if my else None,
+                                         star = Markup(star.decode('utf-8')) if star else None, 
+                                         notify = Markup(notify.decode('utf-8')) if notify else None)
 
   return render_template("index.html", user_name = l.current_user.name)
 
@@ -225,8 +227,8 @@ def authorized(resp):
     g.db.insertUser(g_user)
     g.db.commit()
     user = g.db.getUserByAuth('google', g_user['auth_id'])
-    users[user['id']] = seaice.User(user['id'], user['first_name'])
-    l.login_user(users.get(user['id']))
+    SeaIceUsers[user['id']] = seaice.User(user['id'], user['first_name'])
+    l.login_user(SeaIceUsers.get(user['id']))
     return render_template("settings.html", user_name = l.current_user.name,
                                             email = g_user['email'],
                                             message = """
@@ -234,7 +236,7 @@ def authorized(resp):
         SeaIce with this account. Please provide your first and last name as 
         you would like it to appear with your contributions. Thank you!""")
   
-  l.login_user(users.get(user['id']))
+  l.login_user(SeaIceUsers.get(user['id']))
   flash("Logged in successfully")
   return redirect(url_for('index'))
 
@@ -511,17 +513,28 @@ def addComment(term_id):
 
   try:
     assert l.current_user.id
-
+    
+    term_id = int(term_id)
     g.db = dbPool.getScoped()
     comment = { 'comment_string' : request.form['comment_string'],
-                'term_id' : int(term_id),
+                'term_id' : term_id,
                 'owner_id' : l.current_user.id,
                 'id' : commentIdPool.ConsumeId()}
       
-    g.db.insertComment(comment) 
+    comment_id = g.db.insertComment(comment) 
     g.db.commit()
 
-    return redirect("term=%d" % int(term_id))
+    # Notify owner and tracking users
+    notify_comment = seaice.Comment(term_id, l.current_user.id, 
+                                g.db.getComment(comment_id)['created'])
+
+    users = g.db.getTrackingByTerm(term_id)
+    users.append(g.db.getTerm(term_id)['owner_id'])
+    for user_id in users:
+      if user_id != l.current_user.id:
+        SeaIceUsers[user_id].notify(notify_comment)
+
+    return redirect("term=%d" % term_id)
 
   except AssertionError:
     return redirect(url_for('login'))

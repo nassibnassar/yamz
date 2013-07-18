@@ -80,7 +80,7 @@ class User(BaseUser):
   # Receive notificaiton 
   # TODO squelch redundancies 
   #
-  def notify(self, notificaiton):
+  def notify(self, notification):
     self.L_notify.acquire()
     self.notifications.append(notification)
     self.L_notify.release()
@@ -100,7 +100,7 @@ class User(BaseUser):
     self.L_notify.acquire()
     result = ""
     for notification in self.notifications:
-      result += "<p>%s</p>" % notification
+      result += "<p>%s</p>" % notification.getAsHTML(db_con)
     self.L_notify.release()
     return result
 
