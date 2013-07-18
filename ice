@@ -114,11 +114,19 @@ commentIdPool = seaice.IdPool(db_con, "Comments")
   # This will be used to check for consistency errors in live scoring
   # and isn't needed until I implement O(1) scoring. 
 
-print "ice: precomputing term scores"
+print "ice: checking term score consistnency (dev)"
 for term in db_con.getAllTerms():
   if not db_con.checkTermConsensus(term['id']):
     print "warning: corrected inconsistent consensus score for term %d" % term['id']
   db_con.commit()
+
+
+  ## Create user structures ## 
+
+print "ice: setitng up users" 
+users = {}
+for user in db_con.getAllUsers(): 
+  users[user['id']] = seaice.User(user['id'], user['first_name'].decode('utf-8'))
 
 dbPool.enqueue(db_con)
 
@@ -126,11 +134,8 @@ print "ice: setup complete."
 
 @login_manager.user_loader
 def load_user(id):
-  db = dbPool.getScoped()
-  name = db.getUserNameById(int(id), full=False)
-  if name:
-    return seaice.User(int(id), name.decode('utf-8'))
-  return None
+  return users.get(int(id))
+
 
   ## Request wrappers (may have use for these later) ##
 
@@ -220,7 +225,8 @@ def authorized(resp):
     g.db.insertUser(g_user)
     g.db.commit()
     user = g.db.getUserByAuth('google', g_user['auth_id'])
-    l.login_user(seaice.User(user['id'], user['first_name']))
+    users[user['id']] = seaice.User(user['id'], user['first_name'])
+    l.login_user(users.get(user['id']))
     return render_template("settings.html", user_name = l.current_user.name,
                                             email = g_user['email'],
                                             message = """
@@ -228,7 +234,7 @@ def authorized(resp):
         SeaIce with this account. Please provide your first and last name as 
         you would like it to appear with your contributions. Thank you!""")
   
-  l.login_user(seaice.User(user['id'], user['first_name']))
+  l.login_user(users.get(user['id']))
   flash("Logged in successfully")
   return redirect(url_for('index'))
 

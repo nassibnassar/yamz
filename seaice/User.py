@@ -25,14 +25,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from threading import Lock
+
 ##
-# class User 
+# class BaseUser 
 #
-# Store information about active user sessions. So far, this is just the 
-# id and name of the user. Eventually this datastructure will store 
-# notifications and other stuff for users.  
+# Store information about active user sessions. This implements
+# the basic routines needed for the Flask login manager. 
 # 
-class User:
+class BaseUser:
 
   def __init__(self, id, name): 
     self.id = id
@@ -56,8 +57,50 @@ class User:
 # 
 # Non logged in session. 
 #
-class AnonymousUser(User): 
+class AnonymousUser(BaseUser): 
   def __init__(self): 
     self.id = None
     self.name = None
     self.logged_in = False
+    
+##
+# class User
+#
+# 
+#
+    
+class User(BaseUser):
+
+  def __init__(self, id, name): 
+    BaseUser.__init__(self, id, name)
+    self.notifications = [] 
+    self.L_notify = Lock()
+
+  ##
+  # Receive notificaiton 
+  # TODO squelch redundancies 
+  #
+  def notify(self, notificaiton):
+    self.L_notify.acquire()
+    self.notifications.append(notification)
+    self.L_notify.release()
+
+  ##
+  # Remove notification at index i
+  # 
+  def remNotification(self, i):
+    self.L_notify.acquire()
+    self.notifications.remove(i)
+    self.L_notify.release()
+    
+  ##
+  # Get notifications as HTML-formatted table
+  #
+  def getNotificationsAsHTML(self, db_con):
+    self.L_notify.acquire()
+    result = ""
+    for notification in self.notifications:
+      result += "<p>%s</p>" % notification
+    self.L_notify.release()
+    return result
+

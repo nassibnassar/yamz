@@ -486,6 +486,14 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Users WHERE id=%d" % id)
     return cur.fetchone()
+  
+  ## 
+  # Return a list of all terms (rows) in table. 
+  # 
+  def getAllUsers(self): 
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("SELECT * FROM SI.Users")
+    return cur.fetchall()
       
   ##
   # Return Users.Id where Users.auth_id = auth_id and 

@@ -1,5 +1,5 @@
-# __init__.py - encapsulates 'seaice' in a Python module. 
-# 
+# Notification.py - implementations of various live notificaitons. 
+#
 # Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -23,15 +23,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import Pretty
 
-## @package seaice
-# 
-# This is the documentation for the SeaIce Python API. 
+## class BaseNotificaiton
 #
-from SeaIceConnector import *
-from SeaIceConnectorPool import *
-from IdPool import *
-from User import *
-from Auth import *
-from Pretty import *
-from Notification import *
+#
+class BaseNotification: 
+
+  def __init__(self, term_id, T_notify): 
+    self.term_id = term_id
+    self.T_notify = T_notify
+
+  def __str__(self):
+    return 'Id=%d at %s' % (self.term_id, self.T_notify)
+
+  def getAsHTML(self, db_con): 
+    term = db_con.getTerm(self.term_id)
+    return 'Term <a href="/term=%d">%s</a> %s' % (self.term_id, term, Pretty.printPrettyDate(T_notify))
+  
+
+## class Comment
+#
+#
+class Comment(BaseNotificaiton):
+ 
+  def __init__(self, term_id, user_id, T_notify)
+    BaseNotification.__init(self, term_id, T_notify)
+
+  def __str__(self):
+    return 'UserId=%d commented on TermId=%d at %s' % (self.user_id, self.term_id, self.T_notify)
