@@ -83,27 +83,40 @@ colorOf = { 'vernacular' : '#FFFF66',
             'canonical' : '#66C266', 
             'deprecated' : '#E8E8E8' }
 
+monthOf = [ 'January', 'February', 'March', 
+            'April', 'May', 'June', 
+            'July', 'August', 'September', 
+            'October', 'November', 'December' ]
+
 ## Pretty prints ##
 
 ##
 # Print date (to string). If a small amount of time 
 # has elapsed, then give this info. 
+# How to hanlde time difference from GET/POST requests? TODO
 #
 def printPrettyDate(T):
-    # How to hanlde time difference from GET/POST requests? TODO
   
   T = T.astimezone(tz.tzlocal())
-  return "%s/%s/%s %s:%02d" % (T.day, T.month, T.year, T.hour, T.minute)
-  
-  #T_elapsed = (T_now - T) # TODO
-  #print T_elapsed
-  #return "%d seconds ago" % T_elapsed.seconds
+  T_elapsed = (datetime.datetime.now(tz=tz.tzlocal()) - T)
+
+  if T_elapsed < datetime.timedelta(seconds=30):
+    return "just now"
+  elif T_elapsed < datetime.timedelta(minutes=1):
+    return "%s seconds ago" % (T_elapsed.seconds)
+  elif T_elapsed < datetime.timedelta(hours=1):
+    return "%s minute%s ago" % (T_elapsed.seconds / 60, '' if T_elapsed.seconds / 60 == 1 else 's')
+  elif T_elapsed < datetime.timedelta(hours=24):
+    return "%s hour%s ago" % (T_elapsed.seconds / 3600, '' if T_elapsed.seconds / 3600 == 1 else 's')
+  elif T_elapsed < datetime.timedelta(days=7): 
+    return "%s day%s ago" % (T_elapsed.days, '' if T_elapsed.days == 1 else 's')
+  else: 
+    return "%s %s %s" % (T.day, monthOf[T.month], T.year)
 
 
   
 ##
-# Write table rows in JSON format to 'fd'. 
-#
+# Write table rows in JSON format to 'fd'. #
 def printAsJSObject(rows, fd = sys.stdout):
   for row in rows:
     for (col, value) in row.iteritems(): 
@@ -185,8 +198,8 @@ def printTermAsHTML(db_con, row, owner_id=0):
 
   # Created/modified/Owner 
   string += "    <td valign=top width=20% rowspan=3>"
-  string += "      <nobr><i>Created</i> %s</nobr><br>" % printPrettyDate(row['created'])
-  string += "      <nobr><i>Last modified</i> %s</nobr><br>" % printPrettyDate(row['modified'])
+  string += "      <nobr><i>Created %s</i></nobr><br>" % printPrettyDate(row['created'])
+  string += "      <nobr><i>Last modified %s</i></nobr><br>" % printPrettyDate(row['modified'])
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
   if owner_id == row['owner_id']:
     string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
@@ -226,8 +239,8 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
                  row['class'], int(100 * row['consensus']), colorOf[row['class']])
     string += "    </td>" 
     string += "    <td valign=top rowspan=2>"
-    string += "      <nobr><i>Created</i> %s</nobr><br>" % printPrettyDate(row['created'])
-    string += "      <nobr><i>Last modified</i> %s</nobr><br>" % printPrettyDate(row['modified'])
+    string += "      <nobr><i>Created %s</i></nobr><br>" % printPrettyDate(row['created'])
+    string += "      <nobr><i>Last modified %s</i></nobr><br>" % printPrettyDate(row['modified'])
     string += "      <nobr><i>Contributed by</i> %s</nobr><br>" % db_con.getUserNameById(row['owner_id'], full=True)
     string += "    </td>"
     string += "  </tr>"
