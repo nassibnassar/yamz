@@ -34,4 +34,4 @@ from IdPool import *
 from User import *
 from Auth import *
 from Pretty import *
-from Notification import *
+import Notification as notify

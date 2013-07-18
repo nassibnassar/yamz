@@ -440,19 +440,29 @@ def editTerm(term_id = None):
 
   try: 
     g.db = dbPool.dequeue()
-    term = g.db.getTerm(int(term_id))
+    term_id = int(term_id)
+    term = g.db.getTerm(term_id)
     assert l.current_user.id and term['owner_id'] == l.current_user.id
     
     if request.method == "POST":
+
       assert request.form.get('examples') != None
       updatedTerm = { 'term_string' : request.form['term_string'],
                       'definition' : request.form['definition'],
                       'examples' : request.form['examples'],
                       'owner_id' : l.current_user.id } 
 
-      g.db.updateTerm(int(term_id), updatedTerm)
+      g.db.updateTerm(term_id, updatedTerm)
       g.db.commit()
       dbPool.enqueue(g.db)
+
+      # Notify tracking users
+      notify_update = seaice.notify.TermUpdate(term_id, l.current_user.id, 
+                                           g.db.getTerm(term_id)['modified'])
+                                               
+      for user_id in g.db.getTrackingByTerm(term_id):
+        SeaIceUsers[user_id].notify(notify_update)        
+
       return getTerm(term_id, message = "Your term has been updated in the metadictionary.")
   
     else: # GET 
@@ -525,7 +535,7 @@ def addComment(term_id):
     g.db.commit()
 
     # Notify owner and tracking users
-    notify_comment = seaice.Comment(term_id, l.current_user.id, 
+    notify_comment = seaice.notify.Comment(term_id, l.current_user.id, 
                                 g.db.getComment(comment_id)['created'])
 
     users = g.db.getTrackingByTerm(term_id)

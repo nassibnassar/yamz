@@ -62,3 +62,21 @@ class Comment(BaseNotification):
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
 
+## class TermUpdate
+#
+#
+class TermUpdate(BaseNotification):
+ 
+  def __init__(self, term_id, user_id, T_notify):
+    BaseNotification.__init__(self, term_id, T_notify)
+    self.user_id = user_id
+
+  def __str__(self):
+    return 'UserId=%d modified TermId=%d at %s' % (self.user_id, self.term_id, self.T_notify)
+
+  def getAsHTML(self, db_con): 
+    term = db_con.getTerm(self.term_id)
+    user = db_con.getUserNameById(self.user_id, full=True)
+    return '''<font color="#4D6C82">%s</font> modified <a href="/term=%d">%s</a>. 
+              <font color="#B8B8B8"><i>%s</i></font>''' % (
+            user, self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
