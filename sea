@@ -132,6 +132,7 @@ try:
         print "%-8s%-15s%-8s" % ('Id', 'Term', 'Class')
         header = False
       print "%-8s%-15s%-8s" % (id, term, sea.classifyTerm(id))
+      sea.commit()
 
   if options.remove_id:
     if not sea.removeTerm(int(options.remove_id)):

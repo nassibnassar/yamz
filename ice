@@ -356,10 +356,12 @@ def browse(listing = None):
       sorted(terms, key=lambda term: term['up'] - term['down'], reverse=True), l.current_user.id)
 
   elif listing == "volatile": # Least stable (Frequent updates, commenting, and voting)
-    result += "TODO"
+    terms = sorted(terms, key=lambda term: term['t_stable'] or term['t_last'], reverse=True)
+    result += seaice.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
 
   elif listing == "stable": # Most stable, highest consensus
-    result += "TODO"
+    terms = sorted(terms, key=lambda term: term['t_stable'] or term['t_last'])
+    result += seaice.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
     
   elif listing == "alphabetical": # Alphabetical listing 
     result += "<table>"
