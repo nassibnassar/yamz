@@ -280,8 +280,16 @@ class SeaIceConnector:
   # environment. 
   #
   def commit(self): 
-    self.con.commit()
+    return self.con.commit()
 
+  ##
+  # Get T_now timestamp according to database. This is important when
+  # the SeaIce database is deployed to some anonymous server farm. 
+  #
+  def getTime(self):
+    cur = self.con.cursor()
+    cur.execute("SELECT now()")
+    return cur.fetchone()[0]
     
     ## Term queries ##
 

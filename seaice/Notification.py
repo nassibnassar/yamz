@@ -37,8 +37,16 @@ class BaseNotification:
   def __str__(self):
     return 'Id=%d at %s' % (self.term_id, self.T_notify)
 
+  ##
+  # Return an HTML-formatted notification string. To avoid dereferencing
+  # something that has been deleted (term, comment, user, etc.), return 
+  # None if the database has no results. 
+  #
   def getAsHTML(self, db_con): 
     term = db_con.getTerm(self.term_id)
+    if not term: 
+      return None
+
     return 'Term <a href="/term=%d">%s</a> <font color="#8B8B8B"><i>%s</i></font>' % (
                         self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
   
@@ -58,6 +66,9 @@ class Comment(BaseNotification):
   def getAsHTML(self, db_con): 
     term = db_con.getTerm(self.term_id)
     user = db_con.getUserNameById(self.user_id, full=True)
+    if not term or not user:
+      return None
+
     return '''<font color="#4D6C82">%s</font> commented on <a href="/term=%d">%s</a>. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
@@ -77,6 +88,32 @@ class TermUpdate(BaseNotification):
   def getAsHTML(self, db_con): 
     term = db_con.getTerm(self.term_id)
     user = db_con.getUserNameById(self.user_id, full=True)
+    if not term or not user:
+      return None
+
     return '''<font color="#4D6C82">%s</font> modified <a href="/term=%d">%s</a>. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
+
+## class TermRemoved
+#
+#
+class TermRemoved(BaseNotification):
+ 
+  def __init__(self, user_id, term_string, T_notify):
+    BaseNotification.__init__(self, None,  T_notify)
+    self.user_id = user_id
+    self.term_string = term_string
+
+  def __str__(self):
+    return 'UserId=%d has removed TermString=%d at %s' % (self.user_id, self.term_string, self.T_notify)
+
+  def getAsHTML(self, db_con): 
+    user = db_con.getUserNameById(self.user_id, full=True)
+    if not user: 
+      return None
+
+    return '''<font color="#4D6C82">%s</font> has removed 
+              <font color="#4D6C82"><strong>%s</strong></font> from the metadictionary. 
+              <font color="#B8B8B8"><i>%s</i></font>''' % (
+            user, self.term_string, Pretty.printPrettyDate(self.T_notify))

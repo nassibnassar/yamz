@@ -100,7 +100,9 @@ class User(BaseUser):
     self.L_notify.acquire()
     result = ""
     for notification in self.notifications:
-      result += "<p>%s</p>" % notification.getAsHTML(db_con)
+      notify = notification.getAsHTML(db_con)
+      if notify:
+        result += "<p>%s</p>" % notify
     self.L_notify.release()
     return result
 

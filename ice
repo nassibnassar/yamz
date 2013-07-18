@@ -458,7 +458,7 @@ def editTerm(term_id = None):
 
       # Notify tracking users
       notify_update = seaice.notify.TermUpdate(term_id, l.current_user.id, 
-                                           g.db.getTerm(term_id)['modified'])
+                                               term['modified'])
                                                
       for user_id in g.db.getTrackingByTerm(term_id):
         SeaIceUsers[user_id].notify(notify_update)        
@@ -497,10 +497,20 @@ def remTerm(term_id):
     g.db = dbPool.getScoped()
     term = g.db.getTerm(int(request.form['id']))
     assert term and term['owner_id'] == l.current_user.id
+    
+    tracking_users = g.db.getTrackingByTerm(term_id)
 
     id = g.db.removeTerm(int(request.form['id']))
     termIdPool.ReleaseId(id)
     g.db.commit()
+      
+    # Notify tracking users
+    notify_removed = seaice.notify.TermRemoved(l.current_user.id, 
+                                               term['term_string'], 
+                                               g.db.getTime())
+                                               
+    for user_id in tracking_users:
+      SeaIceUsers[user_id].notify(notify_removed)        
   
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Remove term",
@@ -538,9 +548,9 @@ def addComment(term_id):
     notify_comment = seaice.notify.Comment(term_id, l.current_user.id, 
                                 g.db.getComment(comment_id)['created'])
 
-    users = g.db.getTrackingByTerm(term_id)
-    users.append(g.db.getTerm(term_id)['owner_id'])
-    for user_id in users:
+    tracking_users = g.db.getTrackingByTerm(term_id)
+    tracking_users.append(g.db.getTerm(term_id)['owner_id'])
+    for user_id in tracking_users:
       if user_id != l.current_user.id:
         SeaIceUsers[user_id].notify(notify_comment)
 
