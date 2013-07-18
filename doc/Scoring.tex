@@ -107,7 +107,8 @@ An advantage of this equation is that it's easy to compute. To collect the reput
 on a particular term would normally require a join on the \textit{Users} and \textit{Tracking} tables. 
 However, we need only keep track of $u$, $v$, $t$, $R$ and $\sum{U_i}$ for each term. Then when a user
 casts or changes a vote, we update these values and calculate the new score in constant time. The other
-instance when it's necessary to update a term score is when a user's reputation changes.
+instance when it's necessary to update a term score is when a user's reputation changes; this can be 
+done in linear time in terms of the number of votes cast. 
 
 We can refine this relationship a bit more if a lineear function with respect to $v$ isn't adequate
 in practice. For instance, it may be useful to scale down reputation exponentially: 
@@ -115,23 +116,44 @@ $$ w_i = 1 + \frac{r_i \cdot t}{v} $$
 Howver, we'll have a better idea of how to do this once we get users and a sense of the distribution 
 of reputation values. 
 
-\section{Stabilization and classification}
+\section{Classification}
 Once a vernacular term stabilizes, we decide whether to include it in the canon. I suggest two 
 conditions for this property: (1) the owner hasn't modifed the term or its defnition for some 
 predefined time interval and (2) the rate at which the term's score changes has dropped below some
-threshold close to zero. The time interval could be two days to start. 
+threshold close to zero for the same time interval. 
 
-Now, to decide whether to promote or demote a term, we need only to decide on reasonable threshold
-values. To start, I suggest a stabile term should require 75\% consensus to be promoted to the canon. If 
-consnesus drops below 25\% after it stabilizes, it should be deprecated. Otherwise, the term should 
-remain in the vernacular. 
+\subsection{Stability}
+Term stability is recalculated each time the consensus score is recalculated. 
+To calculate the rate of change, we store the time at which the consensus score $S$ was computed. 
+Given previous score $(S_0, t_0)$ and current score $(S, t)$, the rate of change for this 
+interval is: 
+$$ \frac{dS}{dt} = \frac{S - S_0}{t - t_0} $$
 
-We expect that terms will be
-deprecated by the community when there is a viable alternative. In this case, the standard practice should 
-be to include a reference to the new term in the old's definition. 
+Let $t_S$ be the time point when the term became stable, or \texttt{nil} if the term is unstable. 
+Let $\epsilon $ be stability error, or the amount that $S$ can fluctuate and still be considered 
+stable. If $| \frac{dS}{dt} | < \epsilon $ and $t_S = \texttt{nil}$, then set $t_S \leftarrow t$; 
+if $| \frac{dS}{dt} | > \epsilon$, then set $t_S \leftarrow \texttt{nil}$; otherwise, term is 
+stable and $t_S$ remains unchanged.
 
-Another set of rules we need to define are when a canonical or deprecated term reenters the vernacular. 
-This should be based on the rate of change of the score. 
+Now, let $T$ be the interval of time required for stability and $t$ be the time at which we 
+wish to classify a term. The following conditions are perscribed: 
+\begin{enumerate}
+\item $t - t_M > T$, where $t_M$ is the time at which the term was modified, and 
+\item $t_S \ne \texttt{nil}$ and $t - T-S > T$ \textbf{or} $t - t_0 > T$.
+\end{enumerate}
+
+\subsection{Promotion and demotion}
+If a term has stabilized, we use its consensus score $S$ to classify it. 
+We need only to decide on reasonable threshold values. To start, I suggest a stabile term should 
+require 75\% consensus to be promoted to the canon. If consnesus drops below 25\% after it stabilizes, 
+it should be deprecated. Otherwise, the term should remain in the vernacular. 
+
+If a term is canonical or deprecated and becomes unstable, it does not immediately reenter the vernacular. 
+Instead, we wait until it restabilizes and classify it based on the resulting score. 
+
+We expect that terms will be deprecated by the community when there is a viable alternative. In this case, 
+the standard practice should be to include a reference to the new term in the old's definition. 
+
 
 \section{Software components}
 In Chicago, we were brainstorming about a consistency issue related to voting and the term being 
