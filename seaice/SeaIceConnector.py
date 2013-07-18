@@ -600,7 +600,7 @@ class SeaIceConnector:
     # Format entries for db query
     for (key, value) in comment.iteritems():
       if key in ["created", "modified"]:
-        defTerm[key] = "'" + str(value) + "'"
+        defComment[key] = "'" + str(value) + "'"
       else: defComment[key] = unicode(value).replace("'", "''")
 
     try:
@@ -780,7 +780,7 @@ class SeaIceConnector:
     D_sum = reduce(lambda ri,rj: ri+rj, 
                     [0] + map(lambda Ri: Ri, D.values()))
 
-    S = calculateConsensus(u, d, t, U_sum, D_sum) 
+    S = calculateConsensus(u, d, t, float(U_sum), float(D_sum)) 
 
     cur.execute("""UPDATE SI.Terms SET up={1}, down={2}, U_sum={3}, D_sum={4}, consensus={5}
                    WHERE id={0}""".format(term_id, u, d, U_sum, D_sum, S))
@@ -823,7 +823,7 @@ class SeaIceConnector:
     elif p_vote == -1: d -= 1; D_sum -= rep
     if vote == 1:      u += 1; U_sum += rep
     elif vote == -1:   d += 1; D_sum += rep
-    S = calculateConsensus(u, d, t, U_sum, D_sum)
+    S = calculateConsensus(u, d, t, float(U_sum), float(D_sum))
 
     # Calculate stability
     T_stable = calculateStability(S, p_S, T_now, T_last, T_stable)

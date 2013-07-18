@@ -173,9 +173,9 @@ try:
       (U, V) = sea.preScore(term['id'])
       s = sea.postScore(term['id'], U, V)
       if header: 
-        print "%-8s%-13s%-8s%-8s%-8s" % ('Id', 'Term', 'Up', 'Down', 'Score')
+        print "%-8s%-20s%-8s%-8s%-8s" % ('Id', 'Term', 'Up', 'Down', 'Score')
         header = False
-      print "%-8d%-13s%-8d%-8d%-8.2f" % (term['id'], 
+      print "%-8d%-20s%-8d%-8d%-8.2f" % (term['id'], 
                                    term['term_string'], 
                                    term['up'],
                                    term['down'], 
