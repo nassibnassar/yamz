@@ -283,7 +283,8 @@ def settings():
                                           first_name_edit = user['first_name'].decode('utf-8'),
                                           reputation = user['reputation'],
                                           message = """
-                    Here you can change how your name will appear.""")
+                    Here you can change how your name will appear to other users. 
+                    Navigating away from this page will safely discard any changes.""")
 
 @app.route("/user=<int:user_id>")
 def getUser(user_id = None): 
@@ -576,8 +577,8 @@ def addComment(term_id):
     tracking_users = g.db.getTrackingByTerm(term_id)
     tracking_users.append(g.db.getTerm(term_id)['owner_id'])
     for user_id in tracking_users:
-      #if user_id != l.current_user.id: FIXME
-      SeaIceUsers[user_id].notify(notify_comment)
+      if user_id != l.current_user.id: 
+        SeaIceUsers[user_id].notify(notify_comment)
 
     return redirect("term=%d" % term_id)
 
