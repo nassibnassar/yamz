@@ -554,13 +554,17 @@ class SeaIceConnector:
     cur.execute("SELECT now(), count(*) FROM SI.Users")
     (T_now, t) = cur.fetchone() 
     cur.execute("SELECT reputation FROM SI.Users WHERE id=%d" % id) 
-    p_rep = cur.fetchone()[0]
+    p_rep = cur.fetchone()
+    if not p_rep:
+      return None
+    p_rep = p_rep[0]
 
     cur.execute("""SELECT v.vote, t.id, t.up, t.down, t.U_sum, t.D_sum, 
                           t.T_last, t.T_stable, t.consensus
                    FROM SI.Tracking as v, 
                         SI.Terms as t
-                   WHERE v.user_id = %d
+                   WHERE v.user_id = %d 
+                     AND v.term_id = t.id
                      AND v.vote != 0""" % id)
     
     for (vote, term_id, u, d, U_sum, D_sum, T_last, T_stable, p_S) in cur.fetchall():
@@ -568,20 +572,17 @@ class SeaIceConnector:
       # Compute new consensus score
       if vote == 1:      U_sum += rep - p_rep
       elif vote == -1:   D_sum += rep - p_rep 
-      S = calculateConsensus(u, d, t, U_sum, D_sum)
+      S = calculateConsensus(u, d, t, float(U_sum), float(D_sum))
 
       # See if stability has changed  
       T_stable = calculateStability(S, p_S, T_now, T_last, T_stable)
       
       cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', T_stable={3},
-                     up={4}, down={5}, U_sum={6}, D_sum={7} WHERE id={0}; COMMIT""".format(
-        term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", u, d, U_sum, D_sum))
+                     U_sum={4}, D_sum={5} WHERE id={0}; COMMIT""".format(
+        term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", U_sum, D_sum))
 
-      
     cur.execute("UPDATE SI.Users SET reputation=%d WHERE id=%d RETURNING id; COMMIT" % (rep, id))
-    res = cur.fetchone()
-    if res: return res[0]
-    else:   return None
+    return id
 
 
     ## Comment queries ##
