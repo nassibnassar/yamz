@@ -3,8 +3,7 @@
 # PostgreSQL database, or a foreign one specified by the environment variable 
 # DATABASE_URI. 
 #
-# Copyright (c) 2013, Christopher Patton, Nassib Nassar
-# All rights reserved.
+# Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -27,39 +26,70 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, sys, stat, configparser, urlparse
+import sys, configparser, urlparse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
-import Pretty
+import Pretty, Auth
 
 ##
 # Some constants for stability calculation
 # 
 stabilityError = 0.10  # consensus score per hour    
 stabilityFactor = 3600 # convert seconds to hours  
-stabilityThreshold = 4 # hours
+stabilityInterval = 4  # hours
+stabilityConsensusIntervalHigh = 0.75 # promote to canon
+stabilityConsensusIntervalLow =  0.25 # demote (deprecate)
 
 
 ##
-# Verify permissions of configuration file. 
+# Calcluate consensus score. This is a heuristic for the percentage 
+# of the community who finds a term useful. Based on the observation
+# that not every user will vote on a given term, user reptuation is 
+# used to estimate consensus. As the number of voters approaches 
+# the number of users, the votes become more equitable. (See 
+# doc/Scoring.pdf for details.) 
 #
-def accessible_by_group_or_world(file):
-  st = os.stat(file)
-  return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
+# u - number of up voters
+# d - number of donw voters
+# t - number of total users
+# U_sum - sum of up-voters' reputations
+# D_sum - sum of down-voters' reputations
+#
+def calculateConsensus(u, d, t, U_sum, D_sum):
+  v = u + d
+  R = U_sum + D_sum
+  return (u + (float(U_sum)/R if R > 0 else 1.0) * (t-v)) / t if v else 0
 
-## 
-# Get Local db configuration from $HOME/.seaice 
-# or file specified. 
+
+##
+# Calculate term stability, returning the time point when the term 
+# become stable (as a datetime.datetime) or None if it's not stable. 
+# This is based on the rate of change of the consensus score: 
+# 
+#  dS/dt = (S - P_s) / (T_now - T_last) 
 #
-def get_config(config_file = os.environ['HOME'] + '/.seaice'):
-  if accessible_by_group_or_world(config_file):
-    print ('error: config file ' + config_file +
-      ' has group or world ' +
-      'access; permissions should be set to u=rw')
-    sys.exit(1)
-  config = configparser.RawConfigParser()
-  config.read(config_file)
-  return config
+# T_now, T_last - datetime.datetime
+# T_stable - datetime.datetime or None 
+# S - consensus score at T_now
+# p_S - consensus score at T_last
+# 
+def calculateStability(S, p_S, T_now, T_last, T_stable):
+  
+  try: 
+    delta_S = abs((S - p_S) * stabilityFactor / (T_now - T_last).seconds) 
+  except ZeroDivisionError: 
+    delta_S = float('+inf')
+
+  if delta_S < stabilityError and T_stable == None: # Score becomes stable
+    T_stable = T_now
+
+  elif delta_S > stabilityError: # Score has become unstable, reset T_stable
+    T_stable = None
+
+  else: # Score is stable and below threshold, do nothing
+    pass
+
+  return T_stable
 
 
 
@@ -101,8 +131,6 @@ class SeaIceConnector:
 
     cur = self.con.cursor()
     cur.execute("SELECT VERSION(); begin")
-    #ver = cur.fetchone()
-    #print "Database version : %s " % ver
   
   def __del__(self): 
     self.con.close()
@@ -124,7 +152,6 @@ class SeaIceConnector:
     )
     
     # Create Users table if it doesn't exist. 
-    # TODO unique constraint on enail
     cur.execute("""
       create table if not exists SI.Users
         (
@@ -134,7 +161,8 @@ class SeaIceConnector:
           email varchar(64) not null, 
           last_name varchar(64) not null,
           first_name varchar(64) not null,
-          reputation integer default 0 not null
+          reputation integer default 0 not null,
+          UNIQUE (email)
         );
       alter sequence SI.Users_id_seq restart with 1001;"""
     )
@@ -483,13 +511,38 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("update SI.Users set first_name='%s', last_name='%s' where id=%d" % (
       first, last, id))
+
   ##
-  # Set reputation of user
-  # TODO update consensus for terms user has voted on.
+  # Set reputation of user. This trigger an update of the consensus score
+  # and term stability. Commit updates immediately. 
   #
   def updateUserReputation(self, user_id, rep): 
     cur = self.con.cursor()
-    cur.execute("update SI.Users set reputation=%d where id=%d returning id" % (rep, user_id))
+    cur.execute("SELECT now(), count(*) FROM SI.Users")
+    (T_now, t) = cur.fetchone() 
+    cur.execute("SELECT reputation FROM SI.Users WHERE id=%d" % user_id) 
+    p_rep = cur.fetchone()[0]
+
+    cur.execute("""SELECT v.vote, t.id, t.up, t.down, t.U_sum, t.D_sum, 
+                          t.T_last, t.T_stable, t.consensus
+                   FROM SI.Tracking as v, 
+                        SI.Terms as t
+                   WHERE v.user_id = %d
+                     AND v.vote != 0""" % user_id)
+    
+    for (vote, term_id, u, d, U_sum, D_sum, T_last, T_stable, p_S) in cur.fetchall():
+      if vote == 1:      U_sum += rep - p_rep
+      elif vote == -1:   D_sum += rep - p_rep 
+
+      S = calculateConsensus(u, d, t, U_sum, D_sum)
+      T_stable = calculateStability(S, p_S, T_now, T_last, T_stable)
+      
+      cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', t_stable={3},
+                     up={4}, down={5}, U_sum={6}, D_sum={7} WHERE id={0}; COMMIT""".format(
+        term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", u, d, U_sum, D_sum))
+
+      
+    cur.execute("UPDATE SI.Users SET reputation=%d WHERE id=%d RETURNING id; COMMIT" % (rep, user_id))
     res = cur.fetchone()
     if res: return res[0]
     return None
@@ -650,11 +703,6 @@ class SeaIceConnector:
     if star:
       return star[0]
     else: return False
-  
-  
-  
-
-
 
   ##
   # Prescore term. Returns a tuple of pair of dictionaries 
@@ -686,22 +734,14 @@ class SeaIceConnector:
     t = cur.fetchone()[0] # total users
     u = len(U) 
     d = len(D)
-    v = u + d             # total voters
 
-    R = reduce(lambda Ri,Rj: Ri+Rj, [0] + U.values() + D.values()) # total reputation
-                                                                   # of voters
-    
-    if R: 
-      R = float(R) 
-      U_sum = reduce(lambda ri,rj: ri+rj, 
-                      [0] + map(lambda Ri: Ri/R, U.values()))
-      D_sum = reduce(lambda ri,rj: ri+rj, 
-                      [0] + map(lambda Ri: Ri/R, D.values()))
-    else:
-      U_sum = D_sum = 0.0
+    U_sum = reduce(lambda ri,rj: ri+rj, 
+                    [0] + map(lambda Ri: Ri, U.values()))
+    D_sum = reduce(lambda ri,rj: ri+rj, 
+                    [0] + map(lambda Ri: Ri, D.values()))
 
-    S = (u + U_sum * (t - v)) / (u + d + (U_sum + D_sum) * (t - v)) if v else 0
-    
+    S = calculateConsensus(u, d, t, U_sum, D_sum) 
+
     cur.execute("""UPDATE SI.Terms SET up={1}, down={2}, U_sum={3}, D_sum={4}, consensus={5}
                    WHERE id={0}""".format(term_id, u, d, U_sum, D_sum, S))
     return S
@@ -712,10 +752,12 @@ class SeaIceConnector:
   #
   def castVote(self, user_id, term_id, vote): 
     cur = self.con.cursor()
-  
-    cur.execute("SELECT now(), count(*) FROM SI.Users") 
+    
+    cur.execute("SELECT now(), count(*) FROM SI.Users")
     (T_now, t) = cur.fetchone() 
-
+    cur.execute("SELECT reputation FROM SI.Users WHERE id=%d" % user_id) 
+    rep = cur.fetchone()[0]
+  
     # Get current state
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
@@ -724,9 +766,6 @@ class SeaIceConnector:
     cur.execute("""SELECT up, down, U_sum, D_sum, t_last, t_stable, consensus FROM SI.Terms
                    WHERE id={0}""".format(term_id))
     (u, d, U_sum, D_sum, T_last, T_stable, p_S) = cur.fetchone()
-
-    cur.execute("SELECT reputation FROM SI.Users WHERE id={0}".format(user_id))
-    rep = cur.fetchone()[0]
 
     # Cast vote
     if not p_vote:
@@ -744,26 +783,11 @@ class SeaIceConnector:
     elif p_vote == -1: d -= 1; D_sum -= rep
     if vote == 1:      u += 1; U_sum += rep
     elif vote == -1:   d += 1; D_sum += rep
-    v = u + d
-    R = U_sum + D_sum
+    S = calculateConsensus(u, d, t, U_sum, D_sum)
 
-    S = (u + (float(U_sum)/R if R > 0 else 1.0) * (t-v)) / t if v else 0
-      
-    # Calculate the consensus score rate of change 
-    try: 
-      delta_S = abs((S - p_S) * stabilityFactor / (T_now - T_last).seconds) 
-    except ZeroDivisionError: 
-      delta_S = float('+inf')
+    # Calculate stability
+    T_stable = calculateStability(S, p_S, T_now, T_last, T_stable)
 
-    if delta_S < stabilityError and T_stable == None: # Score becomes stable
-      T_stable = T_now
-
-    elif delta_S > stabilityError: # Score has become unstable, reset T_stable
-      T_stable = None
-
-    else: # Score is stable and below threshold, do nothing
-      pass
-   
     # Update term
     cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', t_stable={3},
                    up={4}, down={5}, U_sum={6}, D_sum={7} WHERE id={0}""".format(
@@ -788,19 +812,18 @@ class SeaIceConnector:
 
     term_class = "vernacular"
 
-    if ((T_stable and ((T_now - T_stable).seconds / stabilityFactor) > stabilityThreshold) \
-        or ((T_now - T_last).seconds / stabilityFactor) > stabilityThreshold) \
-        and ((T_now - T_modified).seconds / stabilityFactor) > stabilityThreshold: 
+    if ((T_stable and ((T_now - T_stable).seconds / stabilityFactor) > stabilityInterval) \
+        or ((T_now - T_last).seconds / stabilityFactor) > stabilityInterval) \
+        and ((T_now - T_modified).seconds / stabilityFactor) > stabilityInterval: 
       
-      if S > 0.75:
+      if S > stabilityConsensusIntervalHigh:
         term_class = "canonical"
       
-      elif S < 0.25: 
+      elif S < stabilityConsensusIntervalLow: 
         term_class = "deprecated"
 
     cur.execute("UPDATE SI.Terms SET class={0} WHERE id={1}".format(repr(term_class), term_id))
     return term_class 
-
 
   ##
   # Check that Terms.Consensus is consistent. Update if it wasn't. 
@@ -814,8 +837,6 @@ class SeaIceConnector:
     if int(p_S) != int(S):
       return False
     return True
-      
-
 
   ## 
   # Export database in JSON format to "outf". If no file name 

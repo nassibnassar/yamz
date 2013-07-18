@@ -1,7 +1,8 @@
 # Auth.py - credentials and datastructures for authenticating users through
 # third party accounts. So far we have Google via the Oauth2 protocol. 
 #
-# Copyright (c) 2013, Christopher Patton, all rights reserved.
+# Copyright (c) 2013, Christopher Patton, Nassib Nassar 
+# All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -25,6 +26,30 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from flask_oauth import OAuth
+import os, stat, configparser
+
+## Local PostgreSQL server configuration ## 
+
+##
+# Verify permissions of configuration file. 
+#
+def accessible_by_group_or_world(file):
+  st = os.stat(file)
+  return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
+
+## 
+# Get Local db configuration from $HOME/.seaice 
+# or file specified. 
+#
+def get_config(config_file = os.environ['HOME'] + '/.seaice'):
+  if accessible_by_group_or_world(config_file):
+    print ('error: config file ' + config_file +
+      ' has group or world ' +
+      'access; permissions should be set to u=rw')
+    sys.exit(1)
+  config = configparser.RawConfigParser()
+  config.read(config_file)
+  return config
 
 ## Google authentication (Oauth) ##
 

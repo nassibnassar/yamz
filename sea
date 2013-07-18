@@ -125,9 +125,13 @@ try:
   
   ## Run specified queries. ##
 
+  header = True
   if options.classify:
     for (term, id) in map(lambda term: (term['term_string'], term['id']), sea.getAllTerms()):
-      print "%s (#%d) is classified as %s" % (term, id, sea.classifyTerm(id))
+      if header: 
+        print "%-8s%-15s%-8s" % ('Id', 'Term', 'Class')
+        header = False
+      print "%-8s%-15s%-8s" % (id, term, sea.classifyTerm(id))
 
   if options.remove_id:
     if not sea.removeTerm(int(options.remove_id)):
@@ -168,11 +172,12 @@ try:
       (U, V) = sea.preScore(term['id'])
       s = sea.postScore(term['id'], U, V)
       if header: 
-        print "%-8s%-13s%-8s%-8s" % ('Id', 'Term', 'Vote', 'Score')
+        print "%-8s%-13s%-8s%-8s%-8s" % ('Id', 'Term', 'Up', 'Down', 'Score')
         header = False
-      print "%-8d%-13s%-8d%-8.2f" % (term['id'], 
+      print "%-8d%-13s%-8d%-8d%-8.2f" % (term['id'], 
                                    term['term_string'], 
-                                   term['up'] - term['down'], 
+                                   term['up'],
+                                   term['down'], 
                                    (100 * s))
   
   if options.search_term:
