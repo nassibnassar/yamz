@@ -26,7 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys, configparser, urlparse
+import os, sys, configparser, urlparse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
 import Pretty, Auth
