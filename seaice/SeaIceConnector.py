@@ -130,7 +130,7 @@ class SeaIceConnector:
       self.con = pgdb.connect(database=db, user=user, password=password)
 
     cur = self.con.cursor()
-    cur.execute("SELECT VERSION(); begin")
+    cur.execute("SELECT version(); BEGIN")
   
   def __del__(self): 
     self.con.close()
@@ -147,70 +147,69 @@ class SeaIceConnector:
 
     # Create SI schema. 
     cur.execute("""
-      create schema SI; 
+      CREATE SCHEMA SI; 
       """
     )
     
     # Create Users table if it doesn't exist. 
     cur.execute("""
-      create table if not exists SI.Users
+      CREATE TABLE IF NOT EXISTS SI.Users
         (
-          id serial primary key not null,
-          authority varchar(64) not null, 
-          auth_id varchar(64) not null, 
-          email varchar(64) not null, 
-          last_name varchar(64) not null,
-          first_name varchar(64) not null,
-          reputation integer default 0 not null,
+          id SERIAL PRIMARY KEY NOT NULL,
+          authority VARCHAR(64) NOT NULL, 
+          auth_id VARCHAR(64) NOT NULL, 
+          email VARCHAR(64) NOT NULL, 
+          last_name VARCHAR(64) NOT NULL,
+          first_name VARCHAR(64) NOT NULL,
+          reputation INTEGER default 0 NOT NULL,
           UNIQUE (email)
         );
-      alter sequence SI.Users_id_seq restart with 1001;"""
+      ALTER SEQUENCE SI.Users_id_seq RESTART WITH 1001;"""
     )
 
     # Create Terms table if it doesn't exist.
     cur.execute("""
-      create type SI.Class as enum ('vernacular', 'canonical', 'deprecated');
-      create table if not exists SI.Terms
+      CREATE TYPE SI.Class AS ENUM ('vernacular', 'canonical', 'deprecated');
+      CREATE TABLE IF NOT EXISTS SI.Terms
         (
-          id serial primary key not null, 
-          owner_id integer default 0 not null,
-          term_string text not null, 
-          definition text not null,
-          examples text not null, 
+          id SERIAL PRIMARY KEY NOT NULL, 
+          owner_id INTEGER DEFAULT 0 NOT NULL,
+          term_string TEXT NOT NULL, 
+          definition TEXT NOT NULL,
+          examples TEXT NOT NULL, 
           tsv tsvector, 
-          created timestamp with time zone default now() not null, 
-          modified timestamp with time zone default now() not null, 
+          created  TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+          modified TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
          
-          up integer default 0 not null,
-          down integer default 0 not null,
-          consensus float default 0 not null,
+          up INTEGER DEFAULT 0 NOT NULL,
+          down INTEGER DEFAULT 0 NOT NULL,
+          consensus FLOAT DEFAULT 0 NOT NULL,
           
-          R integer default 0 not null,
-          U_sum integer default 0 not null,
-          D_sum integer default 0 not null,
-          T_last   timestamp with time zone default now() not null, 
-          T_stable timestamp with time zone default now(), 
-          class SI.Class default 'vernacular' not null,
+          U_sum INTEGER DEFAULT 0 NOT NULL,
+          D_sum INTEGER DEFAULT 0 NOT NULL,
+          T_last   TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+          T_stable TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+          class SI.Class DEFAULT 'vernacular' NOT NULL,
           
-          foreign key (owner_id) references SI.Users(id)
+          FOREIGN KEY (owner_id) REFERENCES SI.Users(id)
         ); 
-      alter sequence SI.Terms_id_seq restart with 1001;"""
+      ALTER SEQUENCE SI.Terms_id_seq RESTART WITH 1001;"""
     )
 
     # Create Comments table if it doesn't exist.
     cur.execute("""
-      create table if not exists SI.Comments
+      CREATE TABLE IF NOT EXISTS SI.Comments
         (
-          id serial primary key not null, 
-          owner_id integer default 0 not null, 
-          term_id integer default 0 not null, 
-          comment_string text not null, 
-          created timestamp with time zone default now() not null,
-          modified timestamp with time zone default now() not null, 
-          foreign key (owner_id) references SI.Users(id),
-          foreign key (term_id) references SI.Terms(id) on delete cascade
+          id SERIAL PRIMARY KEY NOT NULL, 
+          owner_id INTEGER DEFAULT 0 NOT NULL, 
+          term_id INTEGER DEFAULT 0 NOT NULL, 
+          comment_string TEXT NOT NULL,
+          created  TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+          modified TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+          FOREIGN kEY (owner_id) REFERENCES SI.Users(id),
+          FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE
         );
-      alter sequence SI.Comments_id_seq restart with 1001;"""
+      ALTER SEQUENCE SI.Comments_id_seq RESTART WITH 1001;"""
     )
 
     # Create Tracking table if it doesn't exist. This table keeps 
@@ -219,21 +218,21 @@ class SeaIceConnector:
     # implies a rule: if a user untracks a term, then his or her 
     # vote is removed. 
     cur.execute("""
-      create table if not exists SI.Tracking
+      CREATE TABLE IF NOT EXISTS SI.Tracking
       (
-        user_id integer not null, 
-        term_id integer not null,
-        vote integer default 0 not null, 
-        star boolean default true not null,
+        user_id INTEGER NOT NULL, 
+        term_id INTEGER NOT NULL,
+        vote INTEGER DEFAULT 0 NOT NULL, 
+        star BOOLEAN DEFAULT true NOT NULL,
         UNIQUE (user_id, term_id),
-        foreign key (user_id) references SI.Users(id) on delete cascade, 
-        foreign key (term_id) references SI.Terms(id) on delete cascade
+        FOREIGN KEY (user_id) REFERENCES SI.Users(id) ON DELETE CASCADE, 
+        FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE
       )"""
     )
     
     # Create update triggers.
     cur.execute("""
-      create or replace function SI.upd_timestamp() returns trigger 
+      CREATE OR REPLACE FUNCTION SI.upd_timestamp() RETURNS TRIGGER 
         language plpgsql
         as
          $$
@@ -243,17 +242,17 @@ class SeaIceConnector:
           end;
          $$;
               
-      create trigger term_update
+      CREATE TRIGGER term_update
         before update of term_string, definition, examples on SI.Terms
         for each row
          execute procedure SI.upd_timestamp();
       
-      create trigger comment_update
+      CREATE TRIGGER comment_update
         before update on SI.Comments
         for each row
          execute procedure SI.upd_timestamp();
 
-      create trigger tsv_update 
+      CREATE TRIGGER tsv_update 
         before insert or update on SI.Terms
         for each row execute procedure
           tsvector_update_trigger(tsv, 'pg_catalog.english', term_string, definition, examples);"""
@@ -262,9 +261,9 @@ class SeaIceConnector:
     # Set user permissions. (Not relevant for Heroku-Postgres.)
     if not self.heroku_db:
       cur.execute("""
-       grant usage on schema SI to admin, viewer, contributor;
-       grant select on all tables in schema SI to viewer, contributor; 
-       grant insert, delete, update on SI.Terms, SI.Terms_id_seq to contributor"""
+       GRANT USAGE ON SCHEMA SI TO admin, viewer, contributor;
+       GRANT SELECT ON ALL TABLES IN SCHEMA SI TO viewer, contributor; 
+       GRANT INSERT, DELETE, UPDATE ON SI.Terms, SI.Terms_id_seq TO contributor"""
       )
   
   ##
@@ -272,18 +271,22 @@ class SeaIceConnector:
   #
   def dropSchema(self): 
     cur = self.con.cursor()
-    cur.execute("drop schema SI cascade")
+    cur.execute("DROP SCHEMA SI CASCADE")
 
   ##
   # Commit changes to database made while the connection was open. This 
   # should be called before the class destructor is called in order to 
-  # save changes. 
+  # save changes. It should be called freuqently in a mult-threaded 
+  # environment. 
   #
   def commit(self): 
     self.con.commit()
 
+    
+    ## Term queries ##
+
   ##
-  # Add a term to the database and return Terms.Id (None if failed) 
+  # Add a term to the database and return the term's Id (None if failed) 
   #
   def insertTerm(self, term): 
     cur = self.con.cursor()
@@ -305,14 +308,14 @@ class SeaIceConnector:
 
     # Format entries for db query
     for (key, value) in term.iteritems():
-      if key in ["created", "modified", "t_stable", "t_last"]:
+      if key.lower() in ["created", "modified", "t_stable", "t_last"]:
         defTerm[key] = "'" + str(value) + "'"
       else: 
         defTerm[key] = unicode(value).replace("'", "''")
 
     try:
       cur.execute(
-        """insert into SI.Terms( id, 
+        """INSERT INTO SI.Terms( id, 
                               term_string, 
                               definition, 
                               examples, 
@@ -321,8 +324,8 @@ class SeaIceConnector:
                               created,
                               modified,
                               owner_id ) 
-            values(%s, '%s', '%s', '%s', %s, %s, %s, %s, %s) 
-            returning id
+            VALUES(%s, '%s', '%s', '%s', %s, %s, %s, %s, %s) 
+            RETURNING id
         """ % (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['examples'], 
                defTerm['up'], defTerm['down'], defTerm['created'], defTerm['modified'], defTerm['owner_id']))
     
@@ -335,7 +338,7 @@ class SeaIceConnector:
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': # Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defTerm['id']
-         cur.execute("rollback;")
+         cur.execute("ROLLBACK;")
          return None 
       raise e
 
@@ -344,18 +347,18 @@ class SeaIceConnector:
   #
   def removeTerm(self, id):
     cur = self.con.cursor()
-    cur.execute("delete from SI.Terms where id=%d returning id" % id)
+    cur.execute("DELETE FROM SI.Terms WHERE id=%d RETURNING id" % id)
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
 
 
   ## 
-  # Retrieve term by id. Return dictionary structure or None. 
+  # Get term by Id. Return dictionary structure or None. 
   # 
   def getTerm(self, id): 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Terms where id=%d" % id)
+    cur.execute("SELECT * FROM SI.Terms WHERE id=%d" % id)
     return cur.fetchone()
   
   ## 
@@ -364,9 +367,9 @@ class SeaIceConnector:
   def getAllTerms(self, sortBy=None): 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     if sortBy:
-      cur.execute("select * from SI.Terms order by %s" % sortBy)
+      cur.execute("SELECT * FROM SI.Terms ORDER BY %s" % sortBy)
     else:
-      cur.execute("select * from SI.Terms")
+      cur.execute("SELECT * FROM SI.Terms")
     return cur.fetchall()
 
   ##
@@ -375,7 +378,7 @@ class SeaIceConnector:
   def getByTerm(self, term_string): 
     term_string = term_string.replace("'", "''")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Terms where term_string='%s'" % term_string)
+    cur.execute("SELECT * FROM SI.Terms WHERE term_string='%s'" % term_string)
     return list(cur.fetchall())
 
   ##
@@ -383,7 +386,7 @@ class SeaIceConnector:
   #
   def getTermsByUser(self, user_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Terms where owner_id=%d" % user_id) 
+    cur.execute("SELECT * FROM SI.Terms WHERE owner_id=%d" % user_id) 
     return list(cur.fetchall())
 
   ##
@@ -391,15 +394,18 @@ class SeaIceConnector:
   #
   def getTermsByTracking(self, user_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("""select *from SI.Terms as term, SI.Tracking as track
-                   where track.user_id={0} 
-                     and track.term_id=term.id 
-                     and term.owner_id!={0}
-                     and track.star=true""".format(user_id))
+    cur.execute("""SELECT * FROM SI.Terms AS term, 
+                                 SI.Tracking AS track
+                   WHERE track.user_id={0} 
+                     AND track.term_id=term.id 
+                     AND term.owner_id!={0}
+                     AND track.star=true""".format(user_id))
     return list(cur.fetchall())
 
   ##
-  # Search table by definition.
+  # Search table by term_string, definition and examples.
+  # Rank results by relevance to query, consensus, and
+  # classificaiton. TODO
   #
   def search(self, string): 
     string = string.replace("'", "''")
@@ -417,16 +423,18 @@ class SeaIceConnector:
     return list(cur.fetchall())
 
   ##
-  # Modify a term's definition and/or term_string. 
+  # Modify a term's term_string, deifnition and examples. 
   # Note: term ownership authenticated upstream! 
   # 
   def updateTerm(self, id, term): 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = unicode(value).replace("'", "''")
-    cur.execute("update SI.Terms set term_string='%s', definition='%s', examples='%s' where id=%d" % (
+    cur.execute("UPDATE SI.Terms SET term_string='%s', definition='%s', examples='%s' WHERE id=%d" % (
       term['term_string'], term['definition'], term['examples'], id))
  
+
+    ## User queries ##
 
   ##
   # Insert a new user into the table and return Users.Id (None if failed) 
@@ -449,9 +457,9 @@ class SeaIceConnector:
 
     try:
       cur = self.con.cursor()
-      cur.execute("""insert into SI.Users(id, email, last_name, first_name, reputation, authority, auth_id) 
-                      values (%s, '%s', '%s', '%s', %s, '%s', '%s')
-                      returning id""" % (defUser['id'],
+      cur.execute("""INSERT INTO SI.Users(id, email, last_name, first_name, reputation, authority, auth_id) 
+                     VALUES (%s, '%s', '%s', '%s', %s, '%s', '%s')
+                     RETURNING id""" % (defUser['id'],
                                          defUser['email'], 
                                          defUser['last_name'], 
                                          defUser['first_name'], 
@@ -467,7 +475,7 @@ class SeaIceConnector:
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': # Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defUser['id']
-         cur.execute("rollback;")
+         cur.execute("ROLLBACK;")
          return None 
       raise e
 
@@ -476,7 +484,7 @@ class SeaIceConnector:
   #
   def getUser(self, id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Users where id=%d" % id)
+    cur.execute("SELECT * FROM SI.Users WHERE id=%d" % id)
     return cur.fetchone()
       
   ##
@@ -485,7 +493,7 @@ class SeaIceConnector:
   #
   def getUserByAuth(self, authority, auth_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Users where auth_id = '%s' and authority = '%s'" % 
+    cur.execute("SELECT * FROM SI.Users WHERE auth_id = '%s' AND authority = '%s'" % 
                  (auth_id, authority))
     res = cur.fetchone()
     return res
@@ -493,9 +501,9 @@ class SeaIceConnector:
   ##
   # Return Users.Name where Users.id = Userid
   #
-  def getUserNameById(self, Userid, full=False): 
+  def getUserNameById(self, id, full=False): 
     cur = self.con.cursor()
-    cur.execute("select first_name, last_name from SI.Users where id=%d" % Userid)
+    cur.execute("SELECT first_name, last_name FROM SI.Users WHERE id=%d" % id)
     res = cur.fetchone()
     if res and full: 
       return res[0] + " " + res[1]
@@ -509,18 +517,18 @@ class SeaIceConnector:
   # 
   def updateUser(self, id, first, last): 
     cur = self.con.cursor()
-    cur.execute("update SI.Users set first_name='%s', last_name='%s' where id=%d" % (
+    cur.execute("UPDATE SI.Users SET first_name='%s', last_name='%s' WHERE id=%d" % (
       first, last, id))
 
   ##
-  # Set reputation of user. This trigger an update of the consensus score
+  # Set reputation of user. This triggers an update of the consensus score
   # and term stability. Commit updates immediately. 
   #
-  def updateUserReputation(self, user_id, rep): 
+  def updateUserReputation(self, id, rep): 
     cur = self.con.cursor()
     cur.execute("SELECT now(), count(*) FROM SI.Users")
     (T_now, t) = cur.fetchone() 
-    cur.execute("SELECT reputation FROM SI.Users WHERE id=%d" % user_id) 
+    cur.execute("SELECT reputation FROM SI.Users WHERE id=%d" % id) 
     p_rep = cur.fetchone()[0]
 
     cur.execute("""SELECT v.vote, t.id, t.up, t.down, t.U_sum, t.D_sum, 
@@ -528,13 +536,16 @@ class SeaIceConnector:
                    FROM SI.Tracking as v, 
                         SI.Terms as t
                    WHERE v.user_id = %d
-                     AND v.vote != 0""" % user_id)
+                     AND v.vote != 0""" % id)
     
     for (vote, term_id, u, d, U_sum, D_sum, T_last, T_stable, p_S) in cur.fetchall():
+      
+      # Compute new consensus score
       if vote == 1:      U_sum += rep - p_rep
       elif vote == -1:   D_sum += rep - p_rep 
-
       S = calculateConsensus(u, d, t, U_sum, D_sum)
+
+      # See if stability has changed  
       T_stable = calculateStability(S, p_S, T_now, T_last, T_stable)
       
       cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', t_stable={3},
@@ -542,11 +553,14 @@ class SeaIceConnector:
         term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", u, d, U_sum, D_sum))
 
       
-    cur.execute("UPDATE SI.Users SET reputation=%d WHERE id=%d RETURNING id; COMMIT" % (rep, user_id))
+    cur.execute("UPDATE SI.Users SET reputation=%d WHERE id=%d RETURNING id; COMMIT" % (rep, id))
     res = cur.fetchone()
     if res: return res[0]
-    return None
+    else:   return None
 
+
+    ## Comment queries ##
+    
   ##
   # Insert a new comment into the database. 
   #
@@ -566,31 +580,29 @@ class SeaIceConnector:
 
     try:
       cur = self.con.cursor()
-      cur.execute("""insert into SI.Comments (id, owner_id, term_id, comment_string) 
-                      values (%s, %s, %s, '%s')
-                      returning id""" % (defComment['id'],
-                                         defComment['owner_id'], 
-                                         defComment['term_id'], 
-                                         defComment['comment_string']))
+      cur.execute("""INSERT INTO SI.Comments (id, owner_id, term_id, comment_string) 
+                     VALUES (%s, %s, %s, '%s')
+                     RETURNING id""" % (defComment['id'],
+                                        defComment['owner_id'], 
+                                        defComment['term_id'], 
+                                        defComment['comment_string']))
       res = cur.fetchone()
-      if res: 
-        return res[0]
-      else:
-        return None
+      if res: return res[0]
+      else:   return None
     
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': # Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defComment['id']
-         cur.execute("rollback;")
+         cur.execute("ROLLBACK;")
          return None 
       raise e
 
   ##
-  # Remove comment and return id of removed
+  # Remove comment and return Id.
   # 
   def removeComment(self, id):
     cur = self.con.cursor()
-    cur.execute("delete from SI.Comments where id=%d returning id" % id)
+    cur.execute("DELETE FROM SI.Comments WHERE id=%d RETURNING id" % id)
     res = cur.fetchone()
     if res: return res[0]
     else: return None
@@ -602,7 +614,7 @@ class SeaIceConnector:
     cur = self.con.cursor()
     for (key, value) in comment.iteritems():
       comment[key] = unicode(value).replace("'", "''")
-    cur.execute("update SI.Comments set comment_string='%s' where id=%d" % (
+    cur.execute("UPDATE SI.Comments SET comment_string='%s' WHERE id=%d" % (
       comment['comment_string'], id))
 
   ##
@@ -610,7 +622,7 @@ class SeaIceConnector:
   #
   def getComment(self, id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Comments where id=%d" % id)
+    cur.execute("SELECT * FROM SI.Comments WHERE id=%d" % id)
     return cur.fetchone()
 
   ##
@@ -618,9 +630,12 @@ class SeaIceConnector:
   #
   def getCommentHistory(self, term_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.Comments where term_id=%d order by created" % term_id)
+    cur.execute("SELECT * FROM SI.Comments WHERE term_id=%d ORDER BY created" % term_id)
     return list(cur.fetchall())
   
+
+    ## Tracking (Voting) queries ##
+
   ##
   # Insert a tracking row, skipping if (term_id, user_id) pair exists
   #
@@ -634,18 +649,18 @@ class SeaIceConnector:
   
     try:
       cur = self.con.cursor()
-      cur.execute("""insert into SI.Tracking (user_id, term_id, vote) 
-                      values (%s, %s, %s)
-                      returning user_id, term_id""" % (defTracking['user_id'], 
-                                                       defTracking['term_id'], 
-                                                       defTracking['vote']))
+      cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote) 
+                     VALUES (%s, %s, %s)
+                     RETURNING user_id, term_id""" % (defTracking['user_id'], 
+                                                      defTracking['term_id'], 
+                                                      defTracking['vote']))
       return cur.fetchone()
     
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': # Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate (TermId=%s, UserId=%s)" % (
           defTracking['term_id'], defTracking['user_id'])
-         cur.execute("rollback;")
+         cur.execute("ROLLBACK;")
          return None 
       raise e
 
@@ -705,9 +720,9 @@ class SeaIceConnector:
     else: return False
 
   ##
-  # Prescore term. Returns a tuple of pair of dictionaries 
-  # (User.Id -> User.Reputation) of up voters and down voters
-  # (U, D).
+  # Prescore term. Returns a tuple of dictionaries 
+  # (User.Id -> User.Reputation) of up voters and 
+  # down voters (U, D).
   # 
   def preScore(self, term_id):
     cur = self.con.cursor()
@@ -724,9 +739,9 @@ class SeaIceConnector:
     return (U, D) 
 
   ##
-  # Postscore term. Input the reputations of upvoters and downvoters 
-  # and compute the consensus score. Update the term row as a side-
-  # affect. 
+  # Postscore term. Input the reputations of up voters and down 
+  # voters and compute the consensus score. Update the term row 
+  # as a side-affect. 
   #
   def postScore(self, term_id, U, D):
     cur = self.con.cursor()
@@ -853,7 +868,7 @@ class SeaIceConnector:
       fd = sys.stdout
 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("select * from SI.%s" % table)
+    cur.execute("SELECT * FROM SI.%s" % table)
     rows = cur.fetchall()
     Pretty.printAsJSObject(rows, fd)
 
