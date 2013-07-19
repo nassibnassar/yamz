@@ -175,10 +175,13 @@ def printTermAsHTML(db_con, row, owner_id=0):
 
   # Voting
   string += '<table>' 
-  string += "  <tr><td width=15% rowspan=4 align=center valign=top>"
+  string += "  <tr><td width=150px rowspan=4 align=center valign=top>"
   string += '    <a id="voteUp" title="+1" href="#up" onclick="return TermAction(%s, \'up\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('up_set' if vote == 1 else 'up')
-  string += '    <h4>%s</h4>' % (row['up'] - row['down'])
+
+  string += '    <h4>%s &nbsp; %s</h4>' % ('<font color="#004d73">+%s</font>' % row['up'] if row['up'] > 0 else '0',
+                                           '<font color="#797979">-%s</font>' % row['down'] if row['down'] > 0 else '0')
+
   string += '    <a id="voteDown" title="-1" href="#down" onclick="return TermAction(%s, \'down\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('down_set' if vote == -1 else 'down')
   

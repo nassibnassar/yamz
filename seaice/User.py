@@ -99,7 +99,7 @@ class User(BaseUser):
   def getNotificationsAsHTML(self, db_con):
     self.L_notify.acquire()
     result = ''
-    for i in range(len(self.notifications)):
+    for i in reversed(range(len(self.notifications))):
       notify = self.notifications[i].getAsHTML(db_con)
       if notify:
         result += '''<p><a href="/user=%d/notif=%d/remove" 

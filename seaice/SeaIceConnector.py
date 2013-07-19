@@ -58,7 +58,7 @@ stabilityConsensusIntervalLow =  0.25 # demote (deprecate)
 def calculateConsensus(u, d, t, U_sum, D_sum):
   v = u + d
   R = U_sum + D_sum
-  return (u + (float(U_sum)/R if R > 0 else 1.0) * (t-v)) / t if v else 0
+  return (u + (float(U_sum)/R if R > 0 else 0.0) * (t-v)) / t if v else 0
 
 
 ##

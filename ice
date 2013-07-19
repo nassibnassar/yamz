@@ -111,11 +111,11 @@ commentIdPool = seaice.IdPool(db_con, "Comments")
   # This will be used to check for consistency errors in live scoring
   # and isn't needed until I implement O(1) scoring. 
 
-#print "ice: checking term score consistnency (dev)"
-#for term in db_con.getAllTerms():
-#  if not db_con.checkTermConsistency(term['id']):
-#    print "warning: corrected inconsistent consensus score for term %d" % term['id']
-#  db_con.commit()
+print "ice: checking term score consistnency (dev)"
+for term in db_con.getAllTerms():
+  if not db_con.checkTermConsistency(term['id']):
+    print "warning: corrected inconsistent consensus score for term %d" % term['id']
+  db_con.commit()
 
 
   ## Create user structures ## 
@@ -347,8 +347,10 @@ def getTerm(term_id = None, message = ""):
       if l.current_user.id:
         result += """ 
         <form action="/term={0}/comment" method="post">
-          <table cellpadding=16>
-            <tr><td><textarea cols=50 rows=4 type="text" name="comment_string"></textarea></td></tr>
+          <table cellpadding=16 width=60%>
+            <tr><td><textarea type="text" name="comment_string" rows=3
+              style="width:100%; height:100%"
+              placeholder="Add comment"></textarea></td></tr>
             <tr><td align=right><input type="submit" value="Comment"><td>
             </td>
           </table>
