@@ -79,6 +79,14 @@ js_termAction = """
     form.submit(); 
   } """
 
+js_copyToClipboard = """
+  function CopyToClipboard(text) {
+    window.prompt("You can tag this term in your own definition or comment by " + 
+                  "embedding this link in the text. Hit Ctrl-C (Cmd-C), then Enter " + 
+                  "to copy to your clipboard.", text);
+  }
+"""
+
 colorOf = { 'vernacular' : '#FFFF66', 
             'canonical' : '#3CEB10', 
             'deprecated' : '#E8E8E8' }
@@ -171,7 +179,7 @@ def printTermsAsLinks(rows):
 # 
 def printTermAsHTML(db_con, row, owner_id=0): 
   vote = db_con.getVote(0 if not owner_id else owner_id, row['id'])
-  string = '<script>' + js_confirmRemoveTerm + js_termAction + '</script>'
+  string = '<script>' + js_confirmRemoveTerm + js_termAction + js_copyToClipboard + '</script>'
 
   # Voting
   string += '<table>' 
@@ -179,8 +187,14 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += '    <a id="voteUp" title="+1" href="#up" onclick="return TermAction(%s, \'up\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('up_set' if vote == 1 else 'up')
 
-  string += '    <h4>%s &nbsp; %s</h4>' % ('<font color="#004d73">+%s</font>' % row['up'] if row['up'] > 0 else '0',
-                                           '<font color="#797979">-%s</font>' % row['down'] if row['down'] > 0 else '0')
+  string += '    <h4>'
+  if row['up'] > 0:
+    string += '    <font color="#004d73">+%s</font> &nbsp' % row['up']
+  if row['down'] > 0: 
+    string += '    <font color="#797979">-%s</font>' % row['down']
+  if row['up'] == 0 and row['down'] == 0:
+    string += '0'
+  string += '    </h4>'
 
   string += '    <a id="voteDown" title="-1" href="#down" onclick="return TermAction(%s, \'down\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('down_set' if vote == -1 else 'down')
@@ -207,7 +221,11 @@ def printTermAsHTML(db_con, row, owner_id=0):
   if owner_id == row['owner_id']:
     string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
-                   onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
+                   onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>""" % row['id']
+  
+  string += '''    <hr><a id="copyLink" title="Click here to copy to your clipboard." href="#"
+                        onclick="CopyToClipboard('#{%d : is related to}');">Reference this term</a>''' % row['id']
+
   string += "    </td>"
   string += "  </tr>"
 
