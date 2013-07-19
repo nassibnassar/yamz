@@ -1,3 +1,16 @@
+Earning reputation: 
+vernacular <-> canonical  100
+vernacular <-> deprecated 0 
+ +10 per vote to start, diminishing returns. 
+ Shifted gaussian curve. 
+ R = C * e^-((x/D)^2) - http://en.wikipedia.org/wiki/Gaussian_function
+
+Tomorrow: 
+
+  definite integral of R = 1 + e^-x ? R = x - e^-x - 1. (How to adapt this
+  for score??)
+
+
 
 Currently, the dbPool is made of write level access. Eventually I want to
 implement three levels. Since Heroku-Postgres doesn't allow you to do to

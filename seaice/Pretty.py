@@ -80,7 +80,7 @@ js_termAction = """
   } """
 
 colorOf = { 'vernacular' : '#FFFF66', 
-            'canonical' : '#66C266', 
+            'canonical' : '#3CEB10', 
             'deprecated' : '#E8E8E8' }
 
 monthOf = [ 'January', 'February', 'March', 

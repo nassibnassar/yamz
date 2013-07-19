@@ -92,6 +92,7 @@ def calculateStability(S, p_S, T_now, T_last, T_stable):
   return T_stable
 
 
+orderOfClass = { 'deprecated' : 2, 'vernacular' : 1, 'canonical' : 0 }
 
 ## 
 # class SeaIceConnector 
@@ -437,7 +438,10 @@ class SeaIceConnector:
         ORDER BY rank DESC
      """ % string)
 
-    return list(cur.fetchall())
+    rows = sorted(cur.fetchall(), key=lambda row: orderOfClass[row['class']])
+    rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
+
+    return list(rows)
 
   ##
   # Modify a term's term_string, deifnition and examples. 
