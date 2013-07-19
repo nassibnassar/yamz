@@ -132,7 +132,7 @@ $$ \frac{dS}{dt} = \frac{S - S_0}{t - t_0} $$
 Let $t_S$ be the time point when the term became stable, or \texttt{nil} if the term is unstable. 
 Let $\epsilon $ be stability error, or the amount that $S$ can fluctuate and still be considered 
 stable. If $| \frac{dS}{dt} | < \epsilon $ and $t_S = \texttt{nil}$, then set $t_S \leftarrow t$; 
-if $| \frac{dS}{dt} | > \epsilon$, then set $t_S \leftarrow \texttt{nil}$; otherwise, term is 
+if $| \frac{dS}{dt} | > \epsilon$, then set $t_S \leftarrow \texttt{nil}$; otherwise, $S$ is 
 stable and $t_S$ remains unchanged.
 
 Now, let $T$ be the interval of time required for stability and $t$ be the time at which we 
