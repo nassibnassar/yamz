@@ -81,9 +81,9 @@ js_termAction = """
 
 js_copyToClipboard = """
   function CopyToClipboard(text) {
-    window.prompt("You can tag this term in your own definition or comment by " + 
-                  "embedding this link in the text. Hit Ctrl-C (Cmd-C), then Enter " + 
-                  "to copy to your clipboard.", text);
+    window.prompt("Hit Ctrl-C (Cmd-C), then Enter to copy this tag to your clipboard. " +
+                  "Embedding this tag in your term definition or comment " +
+                  "will create a hyperlink to this term.", text);
   }
 """
 
@@ -95,6 +95,38 @@ monthOf = [ 'January', 'February', 'March',
             'April', 'May', 'June', 
             'July', 'August', 'September', 
             'October', 'November', 'December' ]
+
+
+tag_regex = re.compile("#\{([^\{\}]*):([^\{\}]*)\}")
+
+##
+# Input an regular expression match and output as HTML. If there 
+# are syntax errors, simply return the raw tag.
+#
+def printTagAsHTML(db_con, m): 
+  (term_id, desc) = m.groups()
+  try:
+    term_id = int(term_id.strip())
+    desc = desc.strip().replace('"', '&#34;')
+    term_string = db_con.getTermString(term_id)
+    print term_string
+    if term_string:
+      return '<a href=/term={0} title="{1}">{2}</a>'.format(  
+        term_id, desc, term_string)
+  except: pass
+  return m.group(0)
+
+
+##
+# Process tags in DB text entries into HTML. 
+#
+def processTags(db_con, string): 
+  
+  return tag_regex.sub(lambda m: printTagAsHTML(db_con, m), string)
+    
+
+
+  
 
 ## Pretty prints ##
 
@@ -222,9 +254,10 @@ def printTermAsHTML(db_con, row, owner_id=0):
     string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>""" % row['id']
-  
-  string += '''    <hr><a id="copyLink" title="Click here to copy to your clipboard." href="#"
-                        onclick="CopyToClipboard('#{%d : is related to}');">Reference this term</a>''' % row['id']
+ 
+  # Copy reference tag
+  string += '''    <hr><a id="copyLink" title="Click here to get a reference tag." href="#"
+                        onclick="CopyToClipboard('#{%d : related to}');">Get tag</a>''' % row['id']
 
   string += "    </td>"
   string += "  </tr>"
@@ -232,11 +265,11 @@ def printTermAsHTML(db_con, row, owner_id=0):
   # Definition/Examples
   string += "  <tr>"
   string += "    <td valign=top><i>Definition:</i></td>"
-  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % row['definition']
+  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % processTags(db_con, row['definition'])
   string += "  </tr>"
   string += "  <tr>"
   string += "    <td valign=top><i>Examples:</i></td>"
-  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % row['examples']
+  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % processTags(db_con, row['examples'])
   string += "  </tr>"
   string += "</table>"
   return string
@@ -267,8 +300,8 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
     string += "  </tr>"
     string += "  <tr>"
     string += "    <td valign=top>"
-    string += "     <i>Definition:</i>&nbsp;<font size=\"3\"> %s</font>&nbsp;" % row['definition']
-    string += "     <i>Examples:</i>&nbsp;<font size=\"3\"> %s</font></td>" % row['examples']
+    string += "     <i>Definition:</i>&nbsp;<font size=\"3\"> %s</font>&nbsp;" % processTags(db_con, row['definition'])
+    string += "     <i>Examples:</i>&nbsp;<font size=\"3\"> %s</font></td>" % processTags(db_con, row['examples'])
     string += "  </tr>"
     string += "  <tr height=16><td></td></tr>"
   string += "</table>"
@@ -300,7 +333,7 @@ def printCommentsAsHTML(db_con, rows, owner_id=0):
   string = '<script>' + js_confirmRemoveComment + '</script><table>'
   for row in rows:
     string += "<tr>"
-    string += "  <td align=left valign=top width=70%>{0}".format(row['comment_string'])
+    string += "  <td align=left valign=top width=70%>{0}".format(processTags(db_con, row['comment_string']))
     if owner_id == row['owner_id']:
       string += " <nobr><a href=\"/comment=%d/edit\">[edit]</a>" % row['id']
       string += """ <a id="removeComment" title="Click to remove this comment" href="#"

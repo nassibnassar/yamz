@@ -371,6 +371,16 @@ class SeaIceConnector:
     return cur.fetchone()
   
   ## 
+  # Get term string by Id. Return dictionary structure or None. 
+  # 
+  def getTermString(self, id): 
+    cur = self.con.cursor()
+    cur.execute("SELECT term_string FROM SI.Terms WHERE id=%d" % id)
+    res = cur.fetchone()
+    if res: return res[0]
+    else:   return None
+  
+  ## 
   # Return a list of all terms (rows) in table. 
   # 
   def getAllTerms(self, sortBy=None): 

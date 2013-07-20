@@ -22,22 +22,28 @@ try:
                                config.get('default', 'dbname'))
 
   #term_id_pool = seaice.IdPool(sea, "Terms")
-  cur = sea.con.cursor()
-  cur.execute("""insert into SI.Users (id, first_name, last_name, email, authority, auth_id) 
-                    values (1003, 'Jesus', 'Christus', 'fella', 'your mother', '42')""")
-  sea.updateUserReputation(1003, 10)
-  cur.execute("""insert into SI.Users (id, first_name, last_name, email, authority, auth_id) 
-                    values (1004, 'Jim', 'Brewer', 'guy', 'your mother', '42')""")
-  sea.updateUserReputation(1004, 25)
-  cur.execute("""insert into SI.Users (id, first_name, last_name, email, authority, auth_id) 
-                    values (1005, 'Tony', 'Wong', 'es ok', 'your mother', '42')""")
-  sea.updateUserReputation(1005, 10)
-  sea.updateUserReputation(1001, 10)
-  sea.updateUserReputation(1002, 90)
-  sea.commit()
+#  cur = sea.con.cursor()
+#  cur.execute("""insert into SI.Users (id, first_name, last_name, email, authority, auth_id) 
+#                    values (1003, 'Jesus', 'Christus', 'fella', 'your mother', '42')""")
+#  sea.updateUserReputation(1003, 10)
+#  cur.execute("""insert into SI.Users (id, first_name, last_name, email, authority, auth_id) 
+#                    values (1004, 'Jim', 'Brewer', 'guy', 'your mother', '42')""")
+#  sea.updateUserReputation(1004, 25)
+#  cur.execute("""insert into SI.Users (id, first_name, last_name, email, authority, auth_id) 
+#                    values (1005, 'Tony', 'Wong', 'es ok', 'your mother', '42')""")
+#  sea.updateUserReputation(1005, 10)
+#  sea.updateUserReputation(1001, 10)
+#  sea.updateUserReputation(1002, 90)
+#  sea.commit()
   
   #(U, D) = sea.preScore(1004)
   #print sea.postScore(U, D)
+
+
+  print seaice.processTags(sea, "guy #{143 : forty} and stuff #{1010:things and guy} and things")
+
+
+
 
 except pqdb.DatabaseError, e:
   print 'error: %s' % e    
