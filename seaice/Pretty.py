@@ -83,7 +83,7 @@ js_copyToClipboard = """
   function CopyToClipboard(text) {
     window.prompt("Hit Ctrl-C (Cmd-C), then Enter to copy this tag to your clipboard. " +
                   "Embedding this tag in your term definition or comment " +
-                  "will create a hyperlink to this term.", text);
+                  "will create a hyperlink to this term with the term name.", text);
   }
 """
 
@@ -109,7 +109,6 @@ def printTagAsHTML(db_con, m):
     term_id = int(term_id.strip())
     desc = desc.strip().replace('"', '&#34;')
     term_string = db_con.getTermString(term_id)
-    print term_string
     if term_string:
       return '<a href=/term={0} title="{1}">{2}</a>'.format(  
         term_id, desc, term_string)
@@ -121,11 +120,8 @@ def printTagAsHTML(db_con, m):
 # Process tags in DB text entries into HTML. 
 #
 def processTags(db_con, string): 
-  
   return tag_regex.sub(lambda m: printTagAsHTML(db_con, m), string)
     
-
-
   
 
 ## Pretty prints ##
