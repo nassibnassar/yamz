@@ -1,4 +1,4 @@
-# SeaIceConnectorPool.py - implementation of a thread-safe DB connector 
+# ConnectorPool.py - implementation of a thread-safe DB connector 
 # pool for SeaIce. Also defined here is the class ScopedSeaIceConnector 
 # which inherits class SeaIceConnector. This is a DB connector that is 
 # acquired from SeaIceConnectorPool and is automatically released to the 
@@ -28,6 +28,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from SeaIceConnector import *
+from NotifyConnector import *
 from threading import Condition
 
 ##
@@ -49,21 +50,33 @@ class ScopedSeaIceConnector (SeaIceConnector):
     self.pool.enqueue(self.db_con)
 
 ##
-# class SeaIceConnectorPool
-# 
-# A thread-safe connection pool implementation for SeaIce. 
+# class ScopedNotifyConnector
 #
-class SeaIceConnectorPool:
-  
-  def __init__(self, count=20, user=None, password=None, db=None):
-    self.pool = [ SeaIceConnector(user, password, db) for _ in range(count) ]
-    self.C_pool = Condition()
+# Sub-class of NotifyConnector which is released to the pool it comes
+# from once it goes out of scope. This allows for a fancy short-hand. 
+# See NotifyconnectorPool.getScoped(). 
+#
+class ScopedNotifyConnector (NotifyConnector): 
 
-  def getScoped(self):
-  #
-  # Get scoped connector (releases itself when it goes out of scope)
-  #
-    return ScopedSeaIceConnector(self, self.dequeue())
+  def __init__(self, pool, db_con):
+    self.con = db_con.con
+    self.heroku_db = db_con.heroku_db
+    self.db_con = db_con
+    self.pool = pool
+
+  def __del__(self):
+    self.pool.enqueue(self.db_con)
+
+##
+# class ConnectorPool
+# 
+# A thread-safe connection pool. 
+#
+class ConnectorPool:
+  
+  def __init__(self, Connector, count=20, user=None, password=None, db=None):
+    self.pool = [ Connector(user, password, db) for _ in range(count) ]
+    self.C_pool = Condition()
       
   def dequeue(self):
   #
@@ -84,5 +97,28 @@ class SeaIceConnectorPool:
     self.pool.append(db_con)
     self.C_pool.notify()
     self.C_pool.release()
+
+
+##
+# class SeaIceConnectorPool
+#
+class SeaIceConnectorPool (ConnectorPool):
+  
+  def __init__(self, count=20, user=None, password=None, db=None):
+    ConnectorPool.__init__(self, SeaIceConnector, count, user, password, db)
+
+  def getScoped(self):
+    return ScopedSeaIceConnector(self, self.dequeue())
+
+##
+# class NotifyConnectorPool
+#
+class NotifyConnectorPool (ConnectorPool):
+  
+  def __init__(self, count=20, user=None, password=None, db=None):
+    ConnectorPool.__init__(self, NotifyConnector, count, user, password, db)
+
+  def getScoped(self):
+    return ScopedNotifyConnector(self, self.dequeue())
 
 

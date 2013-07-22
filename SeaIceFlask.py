@@ -43,11 +43,12 @@ class SeaIceFlask (Flask):
                          static_folder, template_folder,
                          instance_path, instance_relative_config)
 
-    # DB connector pool
+    # DB connector pools
     self.dbPool = seaice.SeaIceConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
-    db_con = self.dbPool.getScoped()
+    self.notifyPool = seaice.NotifyConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
 
     # Id pools    
+    db_con = self.dbPool.getScoped()
     self.userIdPool = seaice.IdPool(db_con, "Users")
     self.termIdPool = seaice.IdPool(db_con, "Terms")
     self.commentIdPool = seaice.IdPool(db_con, "Comments")
@@ -56,7 +57,7 @@ class SeaIceFlask (Flask):
     self.SeaIceUsers = {}
     for user in db_con.getAllUsers():
       self.SeaIceUsers[user['id']] = seaice.User(user['id'], 
-                                    user['first_name'].decode('utf-8'))
+                                     user['first_name'].decode('utf-8'))
 
     # Load notifcations 
     self.notify_con = seaice.NotifyConnector(db_user, db_password, db_name)
@@ -71,8 +72,7 @@ class SeaIceFlask (Flask):
 
       self.SeaIceUsers[user_id].notify(notif)
       
-    # Clear notifications table. Users repopulate it before being destroyed. 
-    self.notify_con.reset()
+    
 
     
 

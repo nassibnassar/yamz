@@ -292,7 +292,7 @@ def getUser(user_id = None):
 def remNotification(user_id, notif_index):
   try:
     assert user_id == l.current_user.id
-    app.SeaIceUsers[user_id].removeNotification(notif_index)
+    app.SeaIceUsers[user_id].remove(notif_index)
     return redirect("/")
 
   except AssertionError:

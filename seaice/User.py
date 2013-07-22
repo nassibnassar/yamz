@@ -80,15 +80,19 @@ class User(BaseUser):
   # Receive notificaiton 
   # TODO squelch redundancies 
   #
-  def notify(self, notification):
+  def notify(self, notif, db_con=None):
+    if db_con: 
+      db_con.insert(notif)
     self.L_notify.acquire()
-    self.notifications.append(notification)
+    self.notifications.append(notif)
     self.L_notify.release()
 
   ##
   # Remove notification at index i
   # 
-  def removeNotification(self, i):
+  def remove(self, i, db_con=None):
+    if db_con: 
+      db_con.remove(notifications[i])
     self.L_notify.acquire()
     self.notifications.remove(self.notifications[i])
     self.L_notify.release()
