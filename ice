@@ -25,6 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import seaice
+from SeaIceFlask import SeaIceFlask
 from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash
@@ -34,7 +36,6 @@ from flask.ext import login as l
 from urllib2 import Request, urlopen, URLError
 import os, sys, optparse
 import json, psycopg2 as pgdb
-import seaice
 
 ## Parse command line options. ##
 
@@ -64,8 +65,25 @@ parser.add_option("-d", "--debug", action="store_true", dest="debug", default=Fa
 
 
 ## Setup flask application ##
+print "ice: starting ..."
 
-app = seaice.SeaIceFlask(__name__)
+db_config = None
+
+try:
+
+  if options.config_file == "heroku": 
+    app = SeaIceFlask(__name__)
+
+  else: 
+    db_config = seaice.get_config(options.config_file)
+    app = SeaIceFlask(__name__, db_user = db_config.get('default', 'user'),
+                                db_password = db_config.get('default', 'password'),
+                                db_name = db_config.get('default', 'dbname'))
+
+except pgdb.DatabaseError, e:
+  print >>sys.stderr, 'error: %s' % e    
+  sys.exit(1)
+
 app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 
   ## Session logins ##
@@ -74,64 +92,23 @@ login_manager = l.LoginManager()
 login_manager.init_app(app)
 login_manager.anonymous_user = seaice.AnonymousUser
 
-  ## Db Connection pool ##
-
-print "ice: creating Db connector pool"
-
-db_config = None
-
-try:
-
-  if options.config_file == "heroku": 
-    dbPool = seaice.SeaIceConnectorPool(1)
-
-  else: 
-    db_config = seaice.get_config(options.config_file)
-    dbPool = seaice.SeaIceConnectorPool(1, db_config.get('default', 'user'),
-                                           db_config.get('default', 'password'),
-                                           db_config.get('default', 'dbname'))
-
-except pgdb.DatabaseError, e:
-  print >>sys.stderr, 'error: %s' % e    
-  sys.exit(1)
-
-
-  ## Id pools ##
-
-print "ice: setting up database Id pools" 
-db_con = dbPool.dequeue()
-
-userIdPool = seaice.IdPool(db_con, "Users")
-termIdPool = seaice.IdPool(db_con, "Terms")
-commentIdPool = seaice.IdPool(db_con, "Comments")
-
-
   ## Prescore terms ##
   # This will be used to check for consistency errors in live scoring
   # and isn't needed until I implement O(1) scoring. 
 
-print "ice: checking term score consistnency (dev)"
-for term in db_con.getAllTerms():
-  if not db_con.checkTermConsistency(term['id']):
-    print "warning: corrected inconsistent consensus score for term %d" % term['id']
-  db_con.commit()
-
-
-  ## Create user structures ## 
-
-print "ice: setitng up users" 
-SeaIceUsers = {}
-for user in db_con.getAllUsers(): 
-  SeaIceUsers[user['id']] = seaice.User(user['id'], user['first_name'].decode('utf-8'))
-
-dbPool.enqueue(db_con)
+#print "ice: checking term score consistnency (dev)" TODO
+#for term in db_con.getAllTerms():
+#  if not db_con.checkTermConsistency(term['id']):
+#    print "warning: corrected inconsistent consensus score for term %d" % term['id']
+#  db_con.commit()
 
 print "ice: setup complete."
 
+
+
 @login_manager.user_loader
 def load_user(id):
-  return SeaIceUsers.get(int(id))
-
+  return app.SeaIceUsers.get(int(id))
 
   ## Request wrappers (may have use for these later) ##
 
@@ -156,7 +133,7 @@ def pageNotFound(e):
 @app.route("/")
 def index():
   if l.current_user.id:
-    g.db = dbPool.getScoped()
+    g.db = app.dbPool.getScoped()
       # TODO Store these values in class User in order to prevent
       # these queries every time the homepage is accessed.  
     my = seaice.printTermsAsLinks(g.db.getTermsByUser(l.current_user.id))
@@ -219,19 +196,19 @@ def authorized(resp):
       return 'l'
   g_user = json.load(res)
   
-  g.db = dbPool.getScoped()
+  g.db = app.dbPool.getScoped()
   user = g.db.getUserByAuth('google', g_user['id'])
   if not user: 
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
-    g_user['id'] = userIdPool.ConsumeId()
+    g_user['id'] = app.userIdPool.ConsumeId()
     g_user['last_name'] = "nil"
     g_user['first_name'] = "nil"
     g.db.insertUser(g_user)
     g.db.commit()
     user = g.db.getUserByAuth('google', g_user['auth_id'])
-    SeaIceUsers[user['id']] = seaice.User(user['id'], user['first_name'])
-    l.login_user(SeaIceUsers.get(user['id']))
+    app.SeaIceUsers[user['id']] = seaice.User(user['id'], user['first_name'])
+    l.login_user(app.SeaIceUsers.get(user['id']))
     return render_template("settings.html", user_name = l.current_user.name,
                                             email = g_user['email'],
                                             message = """
@@ -239,7 +216,7 @@ def authorized(resp):
         SeaIce with this account. Please provide your first and last name as 
         you would like it to appear with your contributions. Thank you!""")
   
-  l.login_user(SeaIceUsers.get(user['id']))
+  l.login_user(app.SeaIceUsers.get(user['id']))
   flash("Logged in successfully")
   return redirect(url_for('index'))
 
@@ -264,18 +241,18 @@ def unauthorized():
 @app.route("/settings", methods = ['POST', 'GET'])
 @l.login_required
 def settings():
-  g.db = dbPool.dequeue()
+  g.db = app.dbPool.dequeue()
   if request.method == "POST": 
     g.db.updateUser(l.current_user.id, 
                    request.form['first_name'],
                    request.form['last_name'])
     g.db.commit()
-    dbPool.enqueue(g.db)
+    app.dbPool.enqueue(g.db)
     l.current_user.name = request.form['first_name']
     return getUser(str(l.current_user.id))
   
   user = g.db.getUser(l.current_user.id)
-  dbPool.enqueue(g.db)
+  app.dbPool.enqueue(g.db)
   return render_template("settings.html", user_name = l.current_user.name,
                                           email = user['email'].decode('utf-8'),
                                           last_name_edit = user['last_name'].decode('utf-8'),
@@ -288,7 +265,7 @@ def settings():
 @app.route("/user=<int:user_id>")
 def getUser(user_id = None): 
  
-  g.db = dbPool.getScoped()
+  g.db = app.dbPool.getScoped()
   try:
     user = g.db.getUser(int(user_id))
     if user:
@@ -315,7 +292,7 @@ def getUser(user_id = None):
 def remNotification(user_id, notif_index):
   try:
     assert user_id == l.current_user.id
-    SeaIceUsers[user_id].removeNotification(notif_index)
+    app.SeaIceUsers[user_id].removeNotification(notif_index)
     return redirect("/")
 
   except AssertionError:
@@ -335,7 +312,7 @@ def remNotification(user_id, notif_index):
 @app.route("/term=<term_id>")
 def getTerm(term_id = None, message = ""):
   
-  g.db = dbPool.getScoped()
+  g.db = app.dbPool.getScoped()
   try: 
     term = g.db.getTerm(int(term_id))
     if term:
@@ -368,7 +345,7 @@ def getTerm(term_id = None, message = ""):
 @app.route("/browse")
 @app.route("/browse/<listing>")
 def browse(listing = None):
-  g.db = dbPool.getScoped()
+  g.db = app.dbPool.getScoped()
   terms = g.db.getAllTerms(sortBy="term_string")
   letter = '~'
   result = "<h5>{0} | {1} | {2} | {3} | {4}</h5><hr>".format(
@@ -421,7 +398,7 @@ def browse(listing = None):
 
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
-  g.db = dbPool.getScoped()
+  g.db = app.dbPool.getScoped()
   if request.method == "POST": 
     terms = g.db.search(request.form['term_string'])
     if len(terms) == 0: 
@@ -444,16 +421,16 @@ def returnQuery():
 def addTerm(): 
 
   if request.method == "POST": 
-    g.db = dbPool.dequeue()
+    g.db = app.dbPool.dequeue()
     term = { 'term_string' : request.form['term_string'],
              'definition' : request.form['definition'],
              'examples' : request.form['examples'],
              'owner_id' : l.current_user.id,
-             'id' : termIdPool.ConsumeId() }
+             'id' : app.termIdPool.ConsumeId() }
 
     id = g.db.insertTerm(term)
     g.db.commit()
-    dbPool.enqueue(g.db)
+    app.dbPool.enqueue(g.db)
     return getTerm(str(id), message = "Your term has been added to the metadictionary!")
   
   else: return render_template("contribute.html", user_name = l.current_user.name, 
@@ -466,7 +443,7 @@ def addTerm():
 def editTerm(term_id = None): 
 
   try: 
-    g.db = dbPool.dequeue()
+    g.db = app.dbPool.dequeue()
     term_id = int(term_id)
     term = g.db.getTerm(term_id)
     assert l.current_user.id and term['owner_id'] == l.current_user.id
@@ -481,19 +458,19 @@ def editTerm(term_id = None):
 
       g.db.updateTerm(term_id, updatedTerm)
       g.db.commit()
-      dbPool.enqueue(g.db)
+      app.dbPool.enqueue(g.db)
 
       # Notify tracking users
       notify_update = seaice.notify.TermUpdate(term_id, l.current_user.id, 
                                                term['modified'])
                                                
       for user_id in g.db.getTrackingByTerm(term_id):
-        SeaIceUsers[user_id].notify(notify_update)        
+        app.SeaIceUsers[user_id].notify(notify_update)        
 
       return getTerm(term_id, message = "Your term has been updated in the metadictionary.")
   
     else: # GET 
-      dbPool.enqueue(g.db)
+      app.dbPool.enqueue(g.db)
       if term: 
         return render_template("contribute.html", user_name = l.current_user.name, 
                                                   title = "Edit - %s" % term_id,
@@ -521,14 +498,14 @@ def editTerm(term_id = None):
 def remTerm(term_id):
 
   try:
-    g.db = dbPool.getScoped()
+    g.db = app.dbPool.getScoped()
     term = g.db.getTerm(int(request.form['id']))
     assert term and term['owner_id'] == l.current_user.id
     
     tracking_users = g.db.getTrackingByTerm(term_id)
 
     id = g.db.removeTerm(int(request.form['id']))
-    termIdPool.ReleaseId(id)
+    app.termIdPool.ReleaseId(id)
     g.db.commit()
       
     # Notify tracking users
@@ -537,7 +514,7 @@ def remTerm(term_id):
                                                g.db.getTime())
                                                
     for user_id in tracking_users:
-      SeaIceUsers[user_id].notify(notify_removed)        
+      app.SeaIceUsers[user_id].notify(notify_removed)        
   
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Remove term",
@@ -562,11 +539,11 @@ def addComment(term_id):
     assert l.current_user.id
     
     term_id = int(term_id)
-    g.db = dbPool.getScoped()
+    g.db = app.dbPool.getScoped()
     comment = { 'comment_string' : request.form['comment_string'],
                 'term_id' : term_id,
                 'owner_id' : l.current_user.id,
-                'id' : commentIdPool.ConsumeId()}
+                'id' : app.commentIdPool.ConsumeId()}
       
     comment_id = g.db.insertComment(comment) 
     g.db.commit()
@@ -579,7 +556,7 @@ def addComment(term_id):
     tracking_users.append(g.db.getTerm(term_id)['owner_id'])
     for user_id in tracking_users:
       if user_id != l.current_user.id: 
-        SeaIceUsers[user_id].notify(notify_comment)
+        app.SeaIceUsers[user_id].notify(notify_comment)
 
     return redirect("term=%d" % term_id)
 
@@ -591,7 +568,7 @@ def addComment(term_id):
 def editComment(comment_id = None): 
 
   try: 
-    g.db = dbPool.dequeue()
+    g.db = app.dbPool.dequeue()
     comment = g.db.getComment(int(comment_id))
     assert l.current_user.id and comment['owner_id'] == l.current_user.id
     
@@ -601,11 +578,11 @@ def editComment(comment_id = None):
 
       g.db.updateComment(int(comment_id), updatedComment)
       g.db.commit()
-      dbPool.enqueue(g.db)
+      app.dbPool.enqueue(g.db)
       return getTerm(comment['term_id'], message = "Your comment has been updated.")
   
     else: # GET 
-      dbPool.enqueue(g.db)
+      app.dbPool.enqueue(g.db)
       if comment: 
         form = """ 
          <form action="/comment={0}/edit" method="post">
@@ -639,7 +616,7 @@ def editComment(comment_id = None):
 def remComment(comment_id):
   
   try:
-    g.db = dbPool.getScoped()
+    g.db = app.dbPool.getScoped()
     comment = g.db.getComment(int(request.form['id']))
     assert comment and comment['owner_id'] == l.current_user.id
 
@@ -661,7 +638,7 @@ def remComment(comment_id):
 @app.route("/term=<int:term_id>/vote", methods=['POST'])
 @l.login_required
 def voteOnTerm(term_id):
-  g.db = dbPool.getScoped()
+  g.db = app.dbPool.getScoped()
   p_vote = g.db.getVote(l.current_user.id, term_id) 
   if request.form['action'] == 'up':
     if p_vote == 1:
@@ -682,7 +659,7 @@ def voteOnTerm(term_id):
 @app.route("/term=<int:term_id>/track", methods=['POST'])
 @l.login_required
 def trackTerm(term_id): 
-  g.db = dbPool.getScoped()
+  g.db = app.dbPool.getScoped()
   if request.form['action'] == "star":
     g.db.trackTerm(l.current_user.id, term_id)
   else:

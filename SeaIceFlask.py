@@ -1,5 +1,7 @@
-# __init__.py - encapsulates 'seaice' in a Python module. 
-# 
+# SeaIceFlask.py - subclass of Flask. This will store some live
+# datastructures in the applicaiton context, including Users, 
+# notificaitons, Id pools, Db connector pools, etc.
+#
 # Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -23,16 +25,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from flask import Flask
+import seaice
 
-## @package seaice
-# 
-# This is the documentation for the SeaIce Python API. 
+MAX_CONNECTIONS = 1
+
+## class SeaIceFlask
 #
-from SeaIceConnector import *
-from SeaIceConnectorPool import *
-from NotifyConnector import *
-from IdPool import *
-from User import *
-from Auth import *
-from Pretty import *
-import Notification as notify
+class SeaIceFlask (Flask): 
+  
+  def __init__(self, import_name, static_path=None, static_url_path=None,
+                     static_folder='static', template_folder='templates',
+                     instance_path=None, instance_relative_config=False,
+                     db_user=None, db_password=None, db_name=None):
+
+    Flask.__init__(self, import_name, static_path, static_url_path, 
+                         static_folder, template_folder,
+                         instance_path, instance_relative_config)
+
+    # DB connector pool
+    self.dbPool = seaice.SeaIceConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
+    db_con = self.dbPool.getScoped()
+
+    # Id pools    
+    self.userIdPool = seaice.IdPool(db_con, "Users")
+    self.termIdPool = seaice.IdPool(db_con, "Terms")
+    self.commentIdPool = seaice.IdPool(db_con, "Comments")
+     
+    # User structures
+    self.SeaIceUsers = {}
+    for user in db_con.getAllUsers():
+      self.SeaIceUsers[user['id']] = seaice.User(user['id'], 
+                                    user['first_name'].decode('utf-8'))
+
+    # Load notifcations TODO
+    self.notify_con = seaice.NotifyConnector(db_user, db_password, db_name) 
