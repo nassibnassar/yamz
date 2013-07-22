@@ -58,5 +58,22 @@ class SeaIceFlask (Flask):
       self.SeaIceUsers[user['id']] = seaice.User(user['id'], 
                                     user['first_name'].decode('utf-8'))
 
-    # Load notifcations TODO
-    self.notify_con = seaice.NotifyConnector(db_user, db_password, db_name) 
+    # Load notifcations 
+    self.notify_con = seaice.NotifyConnector(db_user, db_password, db_name)
+    for (user_id, notif_class, T_notify, 
+         term_id, from_user_id, term_string) in self.notify_con.getNotifications():
+
+      notif = { "Base" : seaice.notify.BaseNotification(term_id, T_notify),
+                "Comment" : seaice.notify.Comment(term_id, from_user_id, T_notify),
+                "TermUpdate" : seaice.notify.UpdateTerm(term_id, from_user_id, T_notify),
+                "TermRemoved" : seaice.notify.UpdateTerm(from_user_id, term_string, T_notify) 
+              }[notif_class]
+
+      self.SeaIceUsers[user_id].notify(notif)
+      
+    # Clear notifications table. Users repopulate it before being destroyed. 
+    self.notify_con.reset()
+
+    
+
+
