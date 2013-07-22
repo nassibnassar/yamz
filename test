@@ -17,9 +17,16 @@ try:
     print >>sys.stderr, "error: config file '%s' not found" % options.config_file
     sys.exit(1)
 
-  sea = seaice.SeaIceConnector(config.get('default', 'user'),       
-                               config.get('default', 'password'),
-                               config.get('default', 'dbname'))
+  #sea = seaice.SeaIceConnector(config.get('default', 'user'),       
+  #                             config.get('default', 'password'),
+  #                             config.get('default', 'dbname'))
+
+  notify_con = seaice.NotifyConnector(config.get('default', 'user'),       
+                                         config.get('default', 'password'),
+                                         config.get('default', 'dbname'))
+
+  notify_con.reset()
+  
 
   #term_id_pool = seaice.IdPool(sea, "Terms")
 #  cur = sea.con.cursor()
@@ -40,7 +47,6 @@ try:
   #print sea.postScore(U, D)
 
 
-  print seaice.processTags(sea, "guy #{143 : forty} and stuff #{1010:things and guy} and things")
 
 
 

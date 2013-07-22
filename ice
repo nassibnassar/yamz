@@ -25,7 +25,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from flask import Flask
 from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash
@@ -66,7 +65,7 @@ parser.add_option("-d", "--debug", action="store_true", dest="debug", default=Fa
 
 ## Setup flask application ##
 
-app = Flask(__name__)
+app = seaice.SeaIceFlask(__name__)
 app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 
   ## Session logins ##

@@ -1,4 +1,4 @@
-# Notification.py - implementations of various live notificaitons. 
+# Notification.py - implementations of various live notificaitons 
 #
 # Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 

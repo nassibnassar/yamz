@@ -105,7 +105,7 @@ class SeaIceConnector:
   ##
   # Establish connection to database. For a local database, this is
   # specified by the paramters. If the parameters are unspecified, 
-  # then attempt to connect to a foreign database sepcified by the 
+  # then attempt to connect to a foreign database specified by the 
   # environment variable DATABASE_URL. This is to support Heroku's
   # functionality. 
   # 
@@ -133,7 +133,7 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("SELECT version(); BEGIN")
   
-  def __del__(self): 
+  def __del__(self):
     self.con.close()
 
 

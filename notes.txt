@@ -10,6 +10,7 @@ Tomorrow:
   definite integral of R = 1 + e^-x ? R = x - e^-x - 1. (How to adapt this
   for score??)
 
+I didn't get notified for John editing "data" or commenting on it. 
 
 
 Currently, the dbPool is made of write level access. Eventually I want to
