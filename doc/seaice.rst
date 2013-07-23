@@ -3,20 +3,30 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to SeaIce API's documentation!
-======================================
+the seaice module
+=================
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
+ 
+   User.rst
+   Pretty.rst
+   SeaIceConnector.rst
+   ConnectorPool.rst
+   IdPool.rst
+   notify.rst
 
-   seaice.rst
+
+.. automodule:: seaice
+
+.. autoclass:: SeaIceFlask
+   :members:
+   :show-inheritance:
 
 
 
-Indices and tables
-==================
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

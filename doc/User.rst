@@ -3,20 +3,34 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to SeaIce API's documentation!
-======================================
+Users
+=====
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   seaice.rst
+.. automodule:: seaice
+
+.. inheritance-diagram::
+      seaice.BaseUser
+      seaice.AnonymousUser
+      seaice.User
+
+.. autoclass:: BaseUser
+   :members:
+   :show-inheritance:
+
+.. autoclass:: User
+   :members:
+   :show-inheritance:
+
+.. autoclass:: AnonymousUser 
+   :members:
+   :show-inheritance:
 
 
-
-Indices and tables
-==================
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

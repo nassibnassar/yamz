@@ -6,3 +6,4 @@ venv
 *.log
 *.aux
 *.out
+_build
