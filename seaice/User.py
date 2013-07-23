@@ -82,7 +82,7 @@ class User(BaseUser):
   #
   def notify(self, notif, db_con=None):
     if db_con: 
-      db_con.insert(notif)
+      db_con.insert(int(self.id), notif)
     self.L_notify.acquire()
     self.notifications.append(notif)
     self.L_notify.release()
@@ -92,7 +92,7 @@ class User(BaseUser):
   # 
   def remove(self, i, db_con=None):
     if db_con: 
-      db_con.remove(notifications[i])
+      db_con.remove(int(self.id), self.notifications[i])
     self.L_notify.acquire()
     self.notifications.remove(self.notifications[i])
     self.L_notify.release()

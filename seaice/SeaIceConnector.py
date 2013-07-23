@@ -139,8 +139,7 @@ class SeaIceConnector:
 
   ## 
   # Create a schema for the SeaIce database that includes the tables
-  # Users, Terms, Relations(TODO), and Comments, and an update trigger 
-  # funciton. 
+  # Users, Terms, and Comments, and update triggers. 
   #
   def createSchema(self):
     

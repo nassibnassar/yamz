@@ -27,6 +27,7 @@
 import os, sys, configparser, urlparse
 import psycopg2 as pgdb
 import Pretty
+import Notification as notify
 
 class NotifyConnector:
 
@@ -93,37 +94,59 @@ class NotifyConnector:
       yield row
 
   ##
-  # Insert a BaseNotificaiton
-  # 
-  def insertBaseNotification(self, user_id, term_id, T):
+  # Insert a notification. 
+  #
+  def insert(self, user_id, notif):
     cur = self.con.cursor()
-    cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, T ) 
-                          VALUES( 'Base', %d, %d, %s ); COMMIT""" % (
-                     user_id, term_id, repr(str(T))))
+    if isinstance(notif, notify.Comment):
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
+                     VALUES( 'Comment', %d, %d, %d, %s ); COMMIT""" % (
+                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+
+    elif isinstance(notif, notify.TermUpdate):
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
+                     VALUES( 'TermUpdate', %d, %d, %d, %s ); COMMIT""" % (
+                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+
+    elif isinstance(notif, notify.TermRemoved):
+      notif.term_string = notif.term_string.replace("'", "''")
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_string, from_user_id, T ) 
+                     VALUES( 'TermRemoved', %d, '%s', %d, %s ); COMMIT""" % (
+                user_id, notif.term_string, notif.user_id, repr(str(notif.T_notify)))) 
+
+    else:
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, T )   
+                     VALUES( 'Base', %d, %d, %s ); COMMIT""" % (
+                user_id, notif.term_id, repr(str(notif.T_notify))))
   
   ##
-  # Insert a Comment
-  # 
-  def insertComment(self, user_id, term_id, from_user_id, T):
+  # Remove a notification.
+  #
+  def remove(self, user_id, notif):
     cur = self.con.cursor()
-    cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
-                          VALUES( 'Comment', %d, %d, %d %s ); COMMIT""" % (
-                     user_id, term_id, from_user_id, repr(str(T))))
-  
-  ##
-  # Insert a TermUpdate
-  # 
-  def insertTermUpdate(self, user_id, term_id, from_user_id, T):
-    cur = self.con.cursor()
-    cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
-                          VALUES( 'TermUpdate', %d, %d, %d %s ); COMMIT""" % (
-                     user_id, term_id, from_user_id, repr(str(T))))
-  
-  ##
-  # Insert a TermRemoved
-  # 
-  def insertTermUpdate(self, user_id, term_string, from_user_id, T):
-    cur = self.con.cursor()
-    cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_string, from_user_id, T ) 
-                          VALUES( 'TermRemoved', %d, %s, %d %s ); COMMIT""" % (
-                     user_id, term_string, from_user_id, repr(str(T)))) 
+    print "Lonestar!"
+    if isinstance(notif, notify.Comment):
+      cur.execute("""DELETE FROM SI_Notify.Notify
+                      WHERE class='Comment' AND user_id=%d AND term_id=%d 
+                        AND from_user_id=%d AND T=%s ; COMMIT""" % (
+                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+
+    elif isinstance(notif, notify.TermUpdate):
+      cur.execute("""DELETE FROM SI_Notify.Notify
+                      WHERE class='TermUpdate' AND user_id=%d AND term_id=%d
+                        AND from_user_id=%d AND T=%s ; COMMIT""" % (
+                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+
+    elif isinstance(notif, notify.TermRemoved):
+      notif.term_string = notif.term_string.replace("'", "''")
+      cur.execute("""DELETE FROM SI_Notify.Notify
+                      WHERE class='TermRemoved' AND user_id=%d
+                        AND term_string='%s' AND from_user_id=%d
+                        AND T=%s ; COMMIT""" % (
+                user_id, notif.term_string, notif.user_id, repr(str(notif.T_notify)))) 
+
+    else:
+      cur.execute("""DELETE FROM SI_Notify.Notify( class, user_id, term_id, T )   
+                      WHERE class='Base' AND user_id=%d 
+                        AND term_id=%d and T=%s ; COMMIT""" % (
+                user_id, notif.term_id, repr(str(notif.T_notify))))

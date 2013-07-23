@@ -25,7 +25,10 @@ try:
                                          config.get('default', 'password'),
                                          config.get('default', 'dbname'))
 
-  notify_con.reset()
+  for row in notify_con.getNotifications():
+    print row
+
+  #notify_con.reset()
   
 
   #term_id_pool = seaice.IdPool(sea, "Terms")

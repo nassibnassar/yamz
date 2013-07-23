@@ -66,8 +66,8 @@ class SeaIceFlask (Flask):
 
       notif = { "Base" : seaice.notify.BaseNotification(term_id, T_notify),
                 "Comment" : seaice.notify.Comment(term_id, from_user_id, T_notify),
-                "TermUpdate" : seaice.notify.UpdateTerm(term_id, from_user_id, T_notify),
-                "TermRemoved" : seaice.notify.UpdateTerm(from_user_id, term_string, T_notify) 
+                "TermUpdate" : seaice.notify.TermUpdate(term_id, from_user_id, T_notify),
+                "TermRemoved" : seaice.notify.TermRemoved(from_user_id, term_string, T_notify) 
               }[notif_class]
 
       self.SeaIceUsers[user_id].notify(notif)
