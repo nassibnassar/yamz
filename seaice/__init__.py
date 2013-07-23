@@ -29,7 +29,6 @@
 # This is the documentation for the SeaIce Python API. 
 #
 from SeaIceConnector import *
-from NotifyConnector import *
 from ConnectorPool import *
 from IdPool import *
 from User import *

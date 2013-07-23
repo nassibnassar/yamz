@@ -916,11 +916,17 @@ class SeaIceConnector:
     return True
 
   ## Notification queries ##
+
+  def getAllNotifications(self):
+    cur = self.con.cursor()
+    cur.execute("SELECT * FROM SI_Notify.Notify")
+    for row in cur.fetchall():
+      yield row
   
   ##
   # Insert a notification. 
   #
-  def insert(self, user_id, notif):
+  def insertNotification(self, user_id, notif):
     cur = self.con.cursor()
     if isinstance(notif, notify.Comment):
       cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
@@ -946,7 +952,7 @@ class SeaIceConnector:
   ##
   # Remove a notification.
   #
-  def remove(self, user_id, notif):
+  def removeNotification(self, user_id, notif):
     cur = self.con.cursor()
     print "Lonestar!"
     if isinstance(notif, notify.Comment):

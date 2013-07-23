@@ -59,9 +59,8 @@ class SeaIceFlask (Flask):
                                      user['first_name'].decode('utf-8'))
 
     # Load notifcations 
-    self.notify_con = seaice.NotifyConnector(db_user, db_password, db_name)
     for (user_id, notif_class, T_notify, 
-         term_id, from_user_id, term_string) in self.notify_con.getNotifications():
+         term_id, from_user_id, term_string) in db_con.getAllNotifications():
 
       notif = { "Base" : seaice.notify.BaseNotification(term_id, T_notify),
                 "Comment" : seaice.notify.Comment(term_id, from_user_id, T_notify),
