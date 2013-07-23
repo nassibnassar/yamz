@@ -402,12 +402,14 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     if sortBy:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
-                            modified, created, up, down, consensus, class 
+                            modified, created, up, down, consensus, class,
+                            T_stable, T_last
                        FROM SI.Terms 
                       ORDER BY %s""" % sortBy)
     else:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
-                            modified, created, up, down, consensus, class
+                            modified, created, up, down, consensus, class,
+                            T_stable, T_last
                        FROM SI.Terms""")
     for row in cur.fetchall():
       yield row
