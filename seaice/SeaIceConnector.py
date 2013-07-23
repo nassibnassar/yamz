@@ -895,10 +895,8 @@ class SeaIceConnector:
     cur.execute("SELECT now()")
     T_now = cur.fetchone()[0]
 
-    cur.execute("SELECT consensus, T_stable, T_last, modified FROM SI.Terms where id=%d" % term_id)
-    (S, T_stable, T_last, T_modified) = cur.fetchone()
-
-    term_class = "vernacular"
+    cur.execute("SELECT consensus, T_stable, T_last, modified, class FROM SI.Terms where id=%d" % term_id)
+    (S, T_stable, T_last, T_modified, term_class) = cur.fetchone()
 
     if ((T_stable and ((T_now - T_stable).seconds / stabilityFactor) > stabilityInterval) \
         or ((T_now - T_last).seconds / stabilityFactor) > stabilityInterval) \
@@ -909,6 +907,8 @@ class SeaIceConnector:
       
       elif S < stabilityConsensusIntervalLow: 
         term_class = "deprecated"
+
+      else: term_class = "vernacular"
 
     cur.execute("UPDATE SI.Terms SET class={0} WHERE id={1}".format(repr(term_class), term_id))
     return term_class 
