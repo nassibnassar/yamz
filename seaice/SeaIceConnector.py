@@ -396,7 +396,7 @@ class SeaIceConnector:
     else:   return None
   
   ## 
-  # Return a list of all terms (rows) in table. 
+  # Return an iterator over all terms (rows) in table. 
   # 
   def getAllTerms(self, sortBy=None): 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -425,24 +425,26 @@ class SeaIceConnector:
       yield row
 
   ##
-  # Search table by term string and return a list of dictionary structures
+  # Search table by term string and return an iterator over dictionary structures
   #
   def getByTerm(self, term_string): 
     term_string = term_string.replace("'", "''")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Terms WHERE term_string='%s'" % term_string)
-    return list(cur.fetchall())
+    for row in cur.fetchall():
+      yield row
 
   ##
-  # Return a list of terms owned by User
+  # Return an iterator over terms owned by User
   #
   def getTermsByUser(self, user_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Terms WHERE owner_id=%d" % user_id) 
-    return list(cur.fetchall())
+    for row in cur.fetchall():
+      yield row
 
   ##
-  # Return a list of terms starred by user
+  # Return an iterator over of terms starred by user
   #
   def getTermsByTracking(self, user_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -452,21 +454,23 @@ class SeaIceConnector:
                       AND track.term_id=term.id 
                       AND term.owner_id!={0}
                       AND track.star=true""".format(user_id))
-    return list(cur.fetchall())
+    for row in cur.fetchall():
+      yield row
 
   ##
-  # Return a list of users tracking term_id
+  # Return an iterator over users tracking term_id
   # 
   def getTrackingByTerm(self, term_id):
     cur = self.con.cursor()
     cur.execute("""SELECT user_id FROM SI.Tracking 
                     WHERE term_id={0} """.format(term_id))
-    return map(lambda row: row[0], cur.fetchall())
+    for row in cur.fetchall():
+      yield row[0]
 
   ##
   # Search table by term_string, definition and examples.
   # Rank results by relevance to query, consensus, and
-  # classificaiton. TODO
+  # classificaiton. Return a list of results.
   #
   def search(self, string): 
     string = string.replace("'", "''")
@@ -483,7 +487,6 @@ class SeaIceConnector:
 
     rows = sorted(cur.fetchall(), key=lambda row: orderOfClass[row['class']])
     rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
-
     return list(rows)
 
   ##
@@ -552,12 +555,13 @@ class SeaIceConnector:
     return cur.fetchone()
   
   ## 
-  # Return a list of all terms (rows) in table. 
+  # Return an iterator over all terms (rows) in table. 
   # 
   def getAllUsers(self): 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Users")
-    return cur.fetchall()
+    for row in cur.fetchall():
+      yield row
       
   ##
   # Return Users.Id where Users.auth_id = auth_id and 
@@ -678,7 +682,7 @@ class SeaIceConnector:
     cur.execute("DELETE FROM SI.Comments WHERE id=%d RETURNING id" % id)
     res = cur.fetchone()
     if res: return res[0]
-    else: return None
+    else:   return None
 
   ##
   #  Update term comment. 
@@ -700,11 +704,13 @@ class SeaIceConnector:
 
   ##
   # Return a term's comment history, ordered by creation date.
+  # Result is an iterator. 
   #
   def getCommentHistory(self, term_id):
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Comments WHERE term_id=%d ORDER BY created" % term_id)
-    return list(cur.fetchall())
+    for row in cur.fetchall():
+      yield row
   
 
     ## Tracking (Voting) queries ##
@@ -746,9 +752,8 @@ class SeaIceConnector:
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
     res = cur.fetchone()
-    if res: 
-      return res[0]
-    return None 
+    if res: return res[0]
+    else:   return None 
 
   ##
   # User is tracking term. Return 1 if a row was inserted into the Tracking 
@@ -926,7 +931,7 @@ class SeaIceConnector:
       return False
     return True
 
-  ## Notification queries ##
+    ## Notification queries ##
 
   ##
   # Get all notifications as iterator
