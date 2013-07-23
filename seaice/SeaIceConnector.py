@@ -29,7 +29,7 @@
 import os, sys, configparser, urlparse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
-import Pretty, Auth
+import Pretty, Auth, Notification as notify
 
 ##
 # Some constants for stability calculation
@@ -229,6 +229,28 @@ class SeaIceConnector:
         FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE
       )"""
     )
+    
+    # Create schema and table for notifications.  
+    cur.execute("""
+      CREATE SCHEMA SI_Notify; 
+      CREATE TYPE SI_Notify.Class AS ENUM ('Base', 
+                                           'Comment',
+                                           'TermUpdate',
+                                           'TermRemoved');
+                                                                                    
+      CREATE TABLE SI_Notify.Notify
+        (
+          user_id      INTEGER not null, 
+          class        SI_notify.class not null, 
+          T            TIMESTAMP WITH TIME ZONE not null, 
+          term_id      INTEGER, 
+          from_user_id INTEGER, 
+          term_string  TEXT, 
+          FOREIGN KEY (user_id) REFERENCES SI.Users(id) on DELETE CASCADE, 
+          FOREIGN KEY (from_user_id) REFERENCES SI.Users(id) on DELETE CASCADE, 
+          FOREIGN KEY (term_id) REFERENCES SI.Terms(id) on DELETE CASCADE
+        );
+    """)
   
     # Create update triggers.
     cur.execute("""
@@ -272,6 +294,7 @@ class SeaIceConnector:
   def dropSchema(self): 
     cur = self.con.cursor()
     cur.execute("DROP SCHEMA SI CASCADE")
+    cur.execute("DROP SCHEMA IF EXISTS SI_Notify CASCADE")
 
   ##
   # Commit changes to database made while the connection was open. This 
@@ -887,10 +910,72 @@ class SeaIceConnector:
     cur.execute("SELECT consensus FROM SI.Terms where id=%d" % term_id)
     p_S = cur.fetchone()[0]
     (U, V) = self.preScore(term_id)
-    S = self.postScore(term_id, U, V)
+    S = self.postScore(term_id, U, V) 
     if int(p_S) != int(S):
       return False
     return True
+
+  ## Notification queries ##
+  
+  ##
+  # Insert a notification. 
+  #
+  def insert(self, user_id, notif):
+    cur = self.con.cursor()
+    if isinstance(notif, notify.Comment):
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
+                     VALUES( 'Comment', %d, %d, %d, %s ); """ % (
+                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+
+    elif isinstance(notif, notify.TermUpdate):
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
+                     VALUES( 'TermUpdate', %d, %d, %d, %s ); """ % (
+                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+
+    elif isinstance(notif, notify.TermRemoved):
+      notif.term_string = notif.term_string.replace("'", "''")
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_string, from_user_id, T ) 
+                     VALUES( 'TermRemoved', %d, '%s', %d, %s ); """ % (
+                user_id, notif.term_string, notif.user_id, repr(str(notif.T_notify)))) 
+
+    else:
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, T )   
+                     VALUES( 'Base', %d, %d, %s ); """ % (
+                user_id, notif.term_id, repr(str(notif.T_notify))))
+  
+  ##
+  # Remove a notification.
+  #
+  def remove(self, user_id, notif):
+    cur = self.con.cursor()
+    print "Lonestar!"
+    if isinstance(notif, notify.Comment):
+      cur.execute("""DELETE FROM SI_Notify.Notify
+                      WHERE class='Comment' AND user_id=%d AND term_id=%d 
+                        AND from_user_id=%d AND T=%s ; """ % (
+                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+
+    elif isinstance(notif, notify.TermUpdate):
+      cur.execute("""DELETE FROM SI_Notify.Notify
+                      WHERE class='TermUpdate' AND user_id=%d AND term_id=%d
+                        AND from_user_id=%d AND T=%s ; """ % (
+                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+
+    elif isinstance(notif, notify.TermRemoved):
+      notif.term_string = notif.term_string.replace("'", "''")
+      cur.execute("""DELETE FROM SI_Notify.Notify
+                      WHERE class='TermRemoved' AND user_id=%d
+                        AND term_string='%s' AND from_user_id=%d
+                        AND T=%s ; """ % (
+                user_id, notif.term_string, notif.user_id, repr(str(notif.T_notify)))) 
+
+    else:
+      cur.execute("""DELETE FROM SI_Notify.Notify( class, user_id, term_id, T )   
+                      WHERE class='Base' AND user_id=%d 
+                        AND term_id=%d and T=%s ; """ % (
+                user_id, notif.term_id, repr(str(notif.T_notify))))
+  
+
 
   ## 
   # Export database in JSON format to "outf". If no file name 

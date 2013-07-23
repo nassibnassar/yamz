@@ -43,9 +43,8 @@ class SeaIceFlask (Flask):
                          static_folder, template_folder,
                          instance_path, instance_relative_config)
 
-    # DB connector pools
+    # DB connector pool
     self.dbPool = seaice.SeaIceConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
-    self.notifyPool = seaice.NotifyConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
 
     # Id pools    
     db_con = self.dbPool.getScoped()

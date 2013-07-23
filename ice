@@ -292,7 +292,7 @@ def getUser(user_id = None):
 def remNotification(user_id, notif_index):
   try:
     assert user_id == l.current_user.id
-    app.SeaIceUsers[user_id].remove(notif_index, app.notifyPool.getScoped())
+    app.SeaIceUsers[user_id].remove(notif_index, app.dbPool.getScoped())
     return redirect("/")
 
   except AssertionError:
@@ -457,15 +457,16 @@ def editTerm(term_id = None):
                       'owner_id' : l.current_user.id } 
 
       g.db.updateTerm(term_id, updatedTerm)
-      g.db.commit()
-      app.dbPool.enqueue(g.db)
 
       # Notify tracking users
       notify_update = seaice.notify.TermUpdate(term_id, l.current_user.id, 
                                                term['modified'])
                                                
       for user_id in g.db.getTrackingByTerm(term_id):
-        app.SeaIceUsers[user_id].notify(notify_update, app.notifyPool.getScoped())        
+        app.SeaIceUsers[user_id].notify(notify_update, g.db)        
+      
+      g.db.commit()
+      app.dbPool.enqueue(g.db)
 
       return getTerm(term_id, message = "Your term has been updated in the metadictionary.")
   
@@ -506,7 +507,6 @@ def remTerm(term_id):
 
     id = g.db.removeTerm(int(request.form['id']))
     app.termIdPool.ReleaseId(id)
-    g.db.commit()
       
     # Notify tracking users
     notify_removed = seaice.notify.TermRemoved(l.current_user.id, 
@@ -514,7 +514,9 @@ def remTerm(term_id):
                                                g.db.getTime())
       
     for user_id in tracking_users:
-      app.SeaIceUsers[user_id].notify(notify_removed, app.notifyPool.getScoped())
+      app.SeaIceUsers[user_id].notify(notify_removed, g.db)
+    
+    g.db.commit()
   
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Remove term",
@@ -546,7 +548,6 @@ def addComment(term_id):
                 'id' : app.commentIdPool.ConsumeId()}
       
     comment_id = g.db.insertComment(comment) 
-    g.db.commit()
 
     # Notify owner and tracking users
     notify_comment = seaice.notify.Comment(term_id, l.current_user.id, 
@@ -555,8 +556,10 @@ def addComment(term_id):
     tracking_users = g.db.getTrackingByTerm(term_id)
     tracking_users.append(g.db.getTerm(term_id)['owner_id'])
     for user_id in tracking_users:
-      #if user_id != l.current_user.id: FIXME 
-      app.SeaIceUsers[user_id].notify(notify_comment, app.notifyPool.getScoped())
+      if user_id != l.current_user.id: 
+        app.SeaIceUsers[user_id].notify(notify_comment, g.db)
+    
+    g.db.commit()
 
     return redirect("term=%d" % term_id)
 
