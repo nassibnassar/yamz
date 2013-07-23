@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import seaice
-from SeaIceFlask import SeaIceFlask
+from seaice import SeaIceFlask
 from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash

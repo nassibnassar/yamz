@@ -35,3 +35,4 @@ from User import *
 from Auth import *
 from Pretty import *
 import Notification as notify
+from SeaIceFlask import *

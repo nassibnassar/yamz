@@ -26,7 +26,10 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from flask import Flask
-import seaice
+from ConnectorPool import * 
+from IdPool import *
+from User import *
+import Notification as notify
 
 MAX_CONNECTIONS = 1
 
@@ -44,28 +47,28 @@ class SeaIceFlask (Flask):
                          instance_path, instance_relative_config)
 
     # DB connector pool
-    self.dbPool = seaice.SeaIceConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
+    self.dbPool = SeaIceConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
 
     # Id pools    
     db_con = self.dbPool.getScoped()
-    self.userIdPool = seaice.IdPool(db_con, "Users")
-    self.termIdPool = seaice.IdPool(db_con, "Terms")
-    self.commentIdPool = seaice.IdPool(db_con, "Comments")
+    self.userIdPool = IdPool(db_con, "Users")
+    self.termIdPool = IdPool(db_con, "Terms")
+    self.commentIdPool = IdPool(db_con, "Comments")
      
     # User structures
     self.SeaIceUsers = {}
     for user in db_con.getAllUsers():
-      self.SeaIceUsers[user['id']] = seaice.User(user['id'], 
+      self.SeaIceUsers[user['id']] = User(user['id'], 
                                      user['first_name'].decode('utf-8'))
 
     # Load notifcations 
     for (user_id, notif_class, T_notify, 
          term_id, from_user_id, term_string) in db_con.getAllNotifications():
 
-      notif = { "Base" : seaice.notify.BaseNotification(term_id, T_notify),
-                "Comment" : seaice.notify.Comment(term_id, from_user_id, T_notify),
-                "TermUpdate" : seaice.notify.TermUpdate(term_id, from_user_id, T_notify),
-                "TermRemoved" : seaice.notify.TermRemoved(from_user_id, term_string, T_notify) 
+      notif = { "Base" : notify.BaseNotification(term_id, T_notify),
+                "Comment" : notify.Comment(term_id, from_user_id, T_notify),
+                "TermUpdate" : notify.TermUpdate(term_id, from_user_id, T_notify),
+                "TermRemoved" : notify.TermRemoved(from_user_id, term_string, T_notify) 
               }[notif_class]
 
       self.SeaIceUsers[user_id].notify(notif)
