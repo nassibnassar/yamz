@@ -1,3 +1,14 @@
+This is the README for the SeaIce metadictionary and includes instructions
+for deploying on a local machine. These assume a Ubuntu GNU/Linux 
+environment, but should be easily adaptable to any system; SeaIce is 
+written in Python and uses only cross-platform packages. 
+  
+  Authored by Christopher Patton.
+
+
+0. Prerequisites 
+================
+
 Thus far, the SeaIce metadictionary consists of a database API, a 
 command line tool called "sea", and an HTTP server frontend called "ice". 
 Before you get started, you need to set up a database and some software 
@@ -15,66 +26,196 @@ packages. On Ubuntu, grab the follwoing:
 We need to download a package from pip that handles configuration files
 nicely. Do: 
 
-  $ sudo pip install configparser flask-login flask-Oauth
+  $ sudo pip install configparser flask-login flask-Oauth 
+    python-dateutil urlparse
+
+
+
+1. Configuring a local PostgreSQL server
+========================================
 
 Now set up a database in postgres. First, we need to do some configuration. 
-Postgres requires an administrative user called 'postgres'. In addition,
-we'll create three users ("roles" in postgres jargin) for our databse. First,
-set postgres' password: 
+Postgres requires an administrative user called 'postgres'. It may be a good
+idea to create a SeaIce user (called "role" in postgres jargin) with read/
+write access granted on the tables. First, set postgres' password: 
 
   $ sudo -u postgres psql template1
   template1=# alter uesr postgres with encrypted password 'PASS';  
   template1=# \q [quit] 
 
-now configure the authentication method for postgres and all other users 
+
+1.1 Authentication
+==================
+
+Now configure the authentication method for postgres and all other users 
 connecting locally. In /etc/postgresql/9.1/main/pg_hba.conf, change "peer" 
 in line
 
  local   all         postgres                          peer
 
 to "md5" for the administrative account and local unix domain socket 
-connections. . Next, we wnat to only be able to connect to the database from 
+connections. . Next, we want to only be able to connect to the database from 
 the local machine. In /etc/postgresql/9.1/main/postgresql.conf, uncomment the 
 line
 
  listen_addresses = 'localhost'
 
-Finally, log back into postgres to add users:
+After you've done this, you need to restart the postgres server:
+
+  $ sudo service postgresql restart
+
+
+1.2 Create the database
+=======================
+
+Finally, log back into postgres to create the database:
 
   $ sudo -u postgres psql
-  postgres=# create user admin with encrypted password 'PASS';
-  postgres=# create user viewer with encrypted password 'PASS';
-  postgres=# create user contributor with encrypted password 'PASS';
-  postgres=# create database seaice with owner admin;
-
-(Using unique, completely random passwords is a good idea here.) Lastly, 
+  postgres=# create database seaice with owner postgres;
+  
+(Using unique, completely random passwords is a good idea here.) Next, 
 create a configuration file for the database and user account you set up. 
 Create a file called ~/.seaice like: 
 
   [default]
   dbname = seaice
-  user = admin
-  password = PASS
-  [viewer]
-  dbname = seaice
-  user = viewer
-  password = PASS
-  [contributor]
-  dbname = seaice
-  user = contributor
+  user = postgres
   password = PASS
 
 Set the correct file permissions with: 
 
   $ chmod 600 ~/.seaice
 
-Then you should be good to go! For sanity's sake and to create the database 
-schema and tables, do: 
-
+This file is used by the SeaIce DB connector to grant access to the database.
+To initialize the DB schema and tables, type:
+  
   $ ./sea --init-db
 
-To run the WebUI, do 
- 
-  $ ./ice
+
+1.3 Create a role for standard queries
+======================================
+
+At this point, it's suggested that you set up a user standard read/write 
+permssions on the table (no DROP, CREATE, GRANT, etc.) for most of the 
+database queries. Note that this isn't applicable in Heroku-Postgres. 
   
-Open your browser and go to "localhost:5000". Have fun! -Chris
+  
+  postgres=# create user contributor with encrypted password 'PASS';
+  postgres=# grant select, insert, update, delete on all tables in 
+             schema SI, SI_Notify to contributor;
+
+Add the configuuration to ~/.seaice: 
+
+  [contributor]
+  dbname = seaice
+  user = contributor
+  password = PASS
+
+The web user interface creates a database connection pool with the 
+same role. You can specify this on the command line: 
+
+  $ ./ice --role=contributor
+
+'--role' defaults to 'default'. 
+
+
+
+2. Deploying to Heroku
+======================
+
+The SeaIce prototype is currently hosted at http://seaice.herokuapp.com. 
+Heroku is a cloud-computing service which allows users to host web-based
+software projects. Heroku is scalable for a price; however, we can 
+still achieve quite a bit without spending money. We have access to a 
+small Postgres database, can shedule jobs, use a variety of packages 
+(all we need are available), and deploy easily with Git. It is however
+impossible to set up DB roles. Also, we can't assume persistent 
+access to the filesystem. 
+
+Heroku requires a couple additional configuration files and some small
+code changes. For ease of deployment, these changes are available in 
+the "deploy" branch of this repository. The additional files are:
+
+  Procfile . . . . . . . specifies the commands that start web server, as 
+                         well as periodic jobs. 
+
+  requirements.txt . . . a list of packages required by our software that 
+                         Heroku needs to make available. These are 
+                         available via pip.
+
+I used the following tutorial to set up this branch: 
+https://devcenter.heroku.com/articles/python
+
+To begin, you need to setup an account with Heroku and download their 
+software. (It's nothing major, just some tools for running commands, 
+interacting with the database, etc.) Visit http://www.heroku.com.  
+
+
+2.1 Heroku-Postgres
+===================
+
+A useful tutorial can be found here:
+https://devcenter.heroku.com/articles/heroku-postgresql#connection-in-python
+
+Both the deploy code and the development code ("master" branch) are capable 
+of using Heroku-Postgres. The location of the DB in the "cloud" is specified 
+by the environment variable "DATABASE_URL". Using 'sea' or 'ice' with 
+'--config=heroku' will force SeaIce to connect to the foreign database. 
+Heroku-Postgres doesn't allow you to create roles, so '--role' will be 
+ignored and the default will be used. As an example, here's how to reset 
+the datbase: 
+
+  $ heroku login
+  $ heroku run python sea.py --init-db --drop-db -q --config=heroku
+
+
+2.2 Making changes
+==================
+
+Deploying changes to heroku is made very easy with Git. Say you want to
+push some commits on the master branch online. To update "deploy", do 
+
+  $ git checkout deploy
+  $ git rebase mater
+  $ git pull origin deploy
+  $ git push deploy
+
+Because "deploy" is published on Github, it doesn't contain any keys 
+that are used on the online dictionary; in particular, app.secret_key
+in 'ice' and some secret values in 'seaice/Auth.py'. These variables 
+are simply set to 'MISSING'. To make deployment easy, I maintain a 
+branch on my local machine called 'deploy_keys' with the actual keys. 
+
+ $ git checkout deploy_keys
+ $ git rebase deploy
+
+Now to actually deploy the changes:
+
+ $ git push -f heroku deploy_keys:master
+
+This creates a "slug" with the packages we need and starts the 
+web service. 
+
+
+2.3 Importing/exporting the remote DB
+=====================================
+
+The SeaIce API includes queries for importing and exporting the contents
+of the database in JSON formatted objects. This is useful when altering 
+the DB schema requires re-initializing the database. 
+
+  $ ./sea --config=heroku --export=Userss >users.json
+  $ ./sea --config=heroku --export=Terms >terms.json
+  $ ./sea --config=heroku --export=Comments >comments.json
+  $ ./sea --config=heroku --export=Tracking >tracking.json
+  $ ./sea --config=heroku --drop-db --init-db 
+
+When importing, it's important to do so in the correct order since the 
+tables use surrogate keys to reference each other. 
+
+  $ ./sea --config=heroku --import=Userss <users.json
+  $ ./sea --config=heroku --import=Terms <terms.json
+  $ ./sea --config=heroku --import=Comments <comments.json
+  $ ./sea --config=heroku --import=Tracking <tracking.json
+
+

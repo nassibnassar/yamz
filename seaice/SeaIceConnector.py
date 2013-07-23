@@ -113,7 +113,6 @@ class SeaIceConnector:
   
     if not user: 
 
-      self.heroku_db = True
       urlparse.uses_netloc.append("postgres")
       url = urlparse.urlparse(os.environ["DATABASE_URL"])
 
@@ -127,7 +126,6 @@ class SeaIceConnector:
       
     else: 
 
-      self.heroku_db = False
       self.con = pgdb.connect(database=db, user=user, password=password)
 
     cur = self.con.cursor()
@@ -155,13 +153,13 @@ class SeaIceConnector:
     cur.execute("""
       CREATE TABLE IF NOT EXISTS SI.Users
         (
-          id SERIAL PRIMARY KEY NOT NULL,
-          authority VARCHAR(64) NOT NULL, 
-          auth_id VARCHAR(64) NOT NULL, 
-          email VARCHAR(64) NOT NULL, 
-          last_name VARCHAR(64) NOT NULL,
-          first_name VARCHAR(64) NOT NULL,
-          reputation INTEGER default 0 NOT NULL,
+          id           SERIAL PRIMARY KEY NOT NULL,
+          authority    VARCHAR(64) NOT NULL, 
+          auth_id      VARCHAR(64) NOT NULL, 
+          email        VARCHAR(64) NOT NULL, 
+          last_name    VARCHAR(64) NOT NULL,
+          first_name   VARCHAR(64) NOT NULL,
+          reputation   INTEGER default 1 NOT NULL,
           UNIQUE (email)
         );
       ALTER SEQUENCE SI.Users_id_seq RESTART WITH 1001;"""
@@ -172,24 +170,25 @@ class SeaIceConnector:
       CREATE TYPE SI.Class AS ENUM ('vernacular', 'canonical', 'deprecated');
       CREATE TABLE IF NOT EXISTS SI.Terms
         (
-          id SERIAL PRIMARY KEY NOT NULL, 
-          owner_id INTEGER DEFAULT 0 NOT NULL,
+          id          SERIAL PRIMARY KEY NOT NULL, 
+          owner_id    INTEGER DEFAULT 0 NOT NULL,
+          created     TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+          modified    TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
           term_string TEXT NOT NULL, 
-          definition TEXT NOT NULL,
-          examples TEXT NOT NULL, 
-          tsv tsvector, 
-          created  TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
-          modified TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+          definition  TEXT NOT NULL,
+          examples    TEXT NOT NULL, 
          
-          up INTEGER DEFAULT 0 NOT NULL,
-          down INTEGER DEFAULT 0 NOT NULL,
-          consensus FLOAT DEFAULT 0 NOT NULL,
-          
-          U_sum INTEGER DEFAULT 0 NOT NULL,
-          D_sum INTEGER DEFAULT 0 NOT NULL,
-          T_last   TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
-          T_stable TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+          up         INTEGER DEFAULT 0 NOT NULL,
+          down       INTEGER DEFAULT 0 NOT NULL,
+          consensus  FLOAT DEFAULT 0 NOT NULL,
           class SI.Class DEFAULT 'vernacular' NOT NULL,
+          
+          U_sum     INTEGER DEFAULT 0 NOT NULL,
+          D_sum     INTEGER DEFAULT 0 NOT NULL,
+          T_last    TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+          T_stable  TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+          
+          tsv tsvector, 
           
           FOREIGN KEY (owner_id) REFERENCES SI.Users(id)
         ); 
@@ -200,12 +199,13 @@ class SeaIceConnector:
     cur.execute("""
       CREATE TABLE IF NOT EXISTS SI.Comments
         (
-          id SERIAL PRIMARY KEY NOT NULL, 
-          owner_id INTEGER DEFAULT 0 NOT NULL, 
-          term_id INTEGER DEFAULT 0 NOT NULL, 
+          id        SERIAL PRIMARY KEY NOT NULL, 
+          owner_id  INTEGER DEFAULT 0 NOT NULL, 
+          term_id   INTEGER DEFAULT 0 NOT NULL, 
+          created   TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+          modified  TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
           comment_string TEXT NOT NULL,
-          created  TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-          modified TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+
           FOREIGN kEY (owner_id) REFERENCES SI.Users(id),
           FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE
         );
@@ -220,10 +220,11 @@ class SeaIceConnector:
     cur.execute("""
       CREATE TABLE IF NOT EXISTS SI.Tracking
       (
-        user_id INTEGER NOT NULL, 
-        term_id INTEGER NOT NULL,
-        vote INTEGER DEFAULT 0 NOT NULL, 
-        star BOOLEAN DEFAULT true NOT NULL,
+        user_id        INTEGER NOT NULL, 
+        term_id        INTEGER NOT NULL,
+        vote INTEGER   DEFAULT 0 NOT NULL, 
+        star BOOLEAN   DEFAULT true NOT NULL,
+
         UNIQUE (user_id, term_id),
         FOREIGN KEY (user_id) REFERENCES SI.Users(id) ON DELETE CASCADE, 
         FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE
@@ -280,14 +281,6 @@ class SeaIceConnector:
           tsvector_update_trigger(tsv, 'pg_catalog.english', term_string, definition, examples);"""
     )
 
-    # Set user permissions. (Not relevant for Heroku-Postgres.)
-    if not self.heroku_db:
-      cur.execute("""
-       GRANT USAGE ON SCHEMA SI TO admin, viewer, contributor;
-       GRANT SELECT ON ALL TABLES IN SCHEMA SI TO viewer, contributor; 
-       GRANT INSERT, DELETE, UPDATE ON SI.Terms, SI.Terms_id_seq TO contributor"""
-      )
-  
   ##
   # Drop SeaIce schema. 
   #
@@ -408,10 +401,28 @@ class SeaIceConnector:
   def getAllTerms(self, sortBy=None): 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     if sortBy:
-      cur.execute("SELECT * FROM SI.Terms ORDER BY %s" % sortBy)
+      cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
+                            modified, created, up, down, consensus, class 
+                       FROM SI.Terms 
+                      ORDER BY %s""" % sortBy)
     else:
-      cur.execute("SELECT * FROM SI.Terms")
-    return cur.fetchall()
+      cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
+                            modified, created, up, down, consensus, class
+                       FROM SI.Terms""")
+    for row in cur.fetchall():
+      yield row
+
+  ##
+  # Return the various parameters used to calculate consensus 
+  # and stability for each term.  
+  #
+  def getTermStats(self):
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("""SELECT id, owner_id, term_string, modified, created, 
+                          up, down, U_sum, D_sum, T_last, T_stable
+                     FROM SI.Terms""")
+    for row in cur.fetchall():
+      yield row
 
   ##
   # Search table by term string and return a list of dictionary structures
@@ -917,6 +928,9 @@ class SeaIceConnector:
 
   ## Notification queries ##
 
+  ##
+  # Get all notifications as iterator
+  #
   def getAllNotifications(self):
     cur = self.con.cursor()
     cur.execute("SELECT * FROM SI_Notify.Notify")

@@ -97,10 +97,12 @@
             <td valign=top>Email:</td>
             <td>{{ email }}</td>
           </tr>
+          {% if reputation %}
           <tr>
             <td valign=top>Reputation:</td>
             <td>{{ reputation }}</td>
           </td>
+          {% endif %}
           <tr><td></td>
             <td align=right>
               <input type="submit" value="Apply changes" action="/">

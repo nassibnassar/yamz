@@ -61,6 +61,11 @@ parser.add_option("--config", dest="config_file", metavar="FILE",
 parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
                   help="Start flask in debug mode.")
 
+parser.add_option("--role", dest="db_role", metavar="USER", 
+                  help="Specify the database role to use for the DB connector pool. These roles " +
+                       "are specified in the configuration file (see --config).",
+                  default="default")
+
 (options, args) = parser.parse_args()
 
 
@@ -76,9 +81,9 @@ try:
 
   else: 
     db_config = seaice.get_config(options.config_file)
-    app = SeaIceFlask(__name__, db_user = db_config.get('default', 'user'),
-                                db_password = db_config.get('default', 'password'),
-                                db_name = db_config.get('default', 'dbname'))
+    app = SeaIceFlask(__name__, db_user = db_config.get(options.db_role, 'user'),
+                                db_password = db_config.get(options.db_role, 'password'),
+                                db_name = db_config.get(options.db_role, 'dbname'))
 
 except pgdb.DatabaseError, e:
   print >>sys.stderr, 'error: %s' % e    
@@ -588,10 +593,12 @@ def editComment(comment_id = None):
       app.dbPool.enqueue(g.db)
       if comment: 
         form = """ 
-         <form action="/comment={0}/edit" method="post">
-          <table cellpadding=16>
-            <tr><td><textarea cols=50 rows=4 type="text" name="comment_string">{1}</textarea></td></tr>
-            <tr><td align=right><input type="submit" value="Update comment"><td>
+        <form action="/comment={0}/edit" method="post">
+          <table cellpadding=16 width=60%>
+            <tr><td><textarea type="text" name="comment_string" rows=3
+              style="width:100%; height:100%"
+              placeholder="Add comment">{1}</textarea></td></tr>
+            <tr><td align=right><input type="submit" value="Comment"><td>
             </td>
           </table>
          </form>""".format(comment_id, comment['comment_string'])

@@ -74,7 +74,7 @@ parser.add_option("-r", "--remove", dest="remove_id",
                   metavar="ID")
 
 parser.add_option("--score-terms", action="store_true", dest="score", default=False,
-                  help="Compute and print scores of terms")
+                  help="Compute and print scores of terms. This will modify the term.")
 
 parser.add_option("--classify-terms", action="store_true", dest="classify", default=False,
                   help="Classify stable terms in the dictionary. This will modify the term's class.")
@@ -99,7 +99,10 @@ parser.add_option("-j", "--json", action="store_true", dest="json", default=Fals
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
                   help="Don't prompt for comfirmation when dropping tables.")
 
-
+parser.add_option("--role", dest="db_role", metavar="USER", 
+                  help="Specify the database role to use for the DB connector pool. These roles " +
+                       "are specified in the configuration file (see --config).",
+                  default="default")
 
 (options, args) = parser.parse_args()
 
@@ -119,20 +122,11 @@ try:
       print >>sys.stderr, "error: config file '%s' not found" % options.config_file
       sys.exit(1)
 
-    sea = seaice.SeaIceConnector(config.get('default', 'user'),       
-                                 config.get('default', 'password'),
-                                 config.get('default', 'dbname'))
+    sea = seaice.SeaIceConnector(config.get(options.db_role, 'user'),       
+                                 config.get(options.db_role, 'password'),
+                                 config.get(options.db_role, 'dbname'))
   
   ## Run specified queries. ##
-
-  header = True
-  if options.classify:
-    for (term, id) in map(lambda term: (term['term_string'], term['id']), sea.getAllTerms()):
-      if header: 
-        print "%-8s%-15s%-8s" % ('Id', 'Term', 'Class')
-        header = False
-      print "%-8s%-15s%-8s" % (id, term, sea.classifyTerm(id))
-      sea.commit()
 
   if options.remove_id:
     if not sea.removeTerm(int(options.remove_id)):
@@ -180,6 +174,15 @@ try:
                                    term['up'],
                                    term['down'], 
                                    (100 * s))
+  
+  header = True
+  if options.classify:
+    for (term, id) in map(lambda term: (term['term_string'], term['id']), sea.getAllTerms()):
+      if header: 
+        print "%-8s%-20s%-8s" % ('Id', 'Term', 'Class')
+        header = False
+      print "%-8s%-20s%-8s" % (id, term, sea.classifyTerm(id))
+      sea.commit()
   
   if options.search_term:
     terms = sea.search(options.search_term)

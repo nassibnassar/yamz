@@ -41,7 +41,6 @@ class ScopedSeaIceConnector (SeaIceConnector):
 
   def __init__(self, pool, db_con):
     self.con = db_con.con
-    self.heroku_db = db_con.heroku_db
     self.db_con = db_con
     self.pool = pool
 
