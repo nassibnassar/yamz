@@ -147,7 +147,7 @@ def printPrettyDate(T):
   elif T_elapsed < datetime.timedelta(days=7): 
     return "%s day%s ago" % (T_elapsed.days, '' if T_elapsed.days == 1 else 's')
   else: 
-    return "%s %s %s" % (T.day, monthOf[T.month], T.year)
+    return "%s %s %s" % (T.day, monthOf[T.month-1], T.year)
 
 
   
