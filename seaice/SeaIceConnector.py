@@ -50,19 +50,18 @@ stabilityConsensusIntervalLow =  0.25 #: Classify stable term as deprecated.
 
 
 def calculateConsensus(u, d, t, U_sum, D_sum):
-  """
-    Calcluate consensus score. This is a heuristic for the percentage 
-    of the community who finds a term useful. Based on the observation
-    that not every user will vote on a given term, user reptuation is 
-    used to estimate consensus. As the number of voters approaches 
-    the number of users, the votes become more equitable. (See 
-    doc/Scoring.pdf for details.) 
+  """ Calcluate consensus score. This is a heuristic for the percentage 
+      of the community who finds a term useful. Based on the observation
+      that not every user will vote on a given term, user reptuation is 
+      used to estimate consensus. As the number of voters approaches 
+      the number of users, the votes become more equitable. (See 
+      doc/Scoring.pdf for details.) 
    
-    u - number of up voters
-    d - number of donw voters
-    t - number of total users
-    U_sum - sum of up-voters' reputations
-    D_sum - sum of down-voters' reputations
+      :param u: Number of up voters.
+      :param d: Number of donw voters.
+      :param t: Number of total users.
+      :param U_sum: Sum of up-voter reputation.
+      :param D_sum: Sum of down-voter reputation.
   """
   v = u + d
   R = U_sum + D_sum
@@ -70,17 +69,21 @@ def calculateConsensus(u, d, t, U_sum, D_sum):
 
 
 def calculateStability(S, p_S, T_now, T_last, T_stable):
-  """
-    Calculate term stability, returning the time point when the term 
-    become stable (as a datetime.datetime) or None if it's not stable. 
-    This is based on the rate of change of the consensus score: 
+  """Calculate term stability, returning the time point when the term 
+     become stable (as a datetime.datetime) or None if it's not stable. 
+     This is based on the rate of change of the consensus score: 
+     delta_S = (S - P_s) / (T_now - T_last) 
     
-     dS/dt = (S - P_s) / (T_now - T_last) 
-   
-    T_now, T_last - datetime.datetime
-    T_stable - datetime.datetime or None 
-    S - consensus score at T_now
-    p_S - consensus score at T_last
+     :param T_now: Current time.
+     :type T_now: datetime.datetime
+     :param T_last: Time of last consensus score calculation. 
+     :type T_last: datetime.datetime
+     :param T_stable: Time since term stabilized.
+     :type T_last: datetime.datetime or None
+     :param S: Consensus score at T_now.
+     :type S: float
+     :param p_S: Consensus score at T_last.
+     :type p_S: float
   """ 
   try: 
     delta_S = abs((S - p_S) * stabilityFactor / (T_now - T_last).seconds) 
