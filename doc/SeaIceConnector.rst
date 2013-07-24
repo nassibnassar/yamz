@@ -17,11 +17,12 @@ Contents:
       seaice.SeaIceConnector
       seaice.ScopedSeaIceConnector
 
-.. autoclass:: seaice.SeaIceConnector
+.. automodule:: seaice.SeaIceConnector
+.. autoclass:: seaice.SeaIceConnector.SeaIceConnector
    :members:
    :show-inheritance:
 
-.. autoclass:: seaice.ScopedSeaIceConnector
+.. autoclass:: seaice.ConnectorPool.ScopedSeaIceConnector
    :members:
    :show-inheritance:
 

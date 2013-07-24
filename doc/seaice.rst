@@ -21,6 +21,7 @@ Contents:
 
 .. automodule:: seaice
 
+.. automodule:: seaice.SeaIceFlask
 .. autoclass:: SeaIceFlask
    :members:
    :show-inheritance:
