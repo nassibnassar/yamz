@@ -1,4 +1,4 @@
-# IdPool.py - TODO
+# IdPool.py
 # 
 # Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
@@ -26,19 +26,23 @@
 from SeaIceConnector import *
 from threading import Lock
 
-##
-# class IdPool 
-# 
-# A thread-safe object for producing and consuming table row Ids within 
-# a particluar context, i.e. Terms, Users, Comments. 
-#
 class IdPool:
+  """ 
+    A thread-safe object for producing and consuming table row IDs within 
+    a particluar context, i.e. Terms, Users, Comments. When initialized, 
+    an instance queries the table for all assigned IDs in ascending order. 
+    Continuous regions of unassigned IDs are found and added to the pool. 
+    The highest assigned ID is noticed so that when the pool is empty, the 
+    producer function returns the next highest avaialble.
+
+  :param db_con: Connection to the SeaIce database.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param table: Name of the table for which a pool will be created. The table
+                should have a column of surrogate ID scalled "id". 
+  :type table: str
+
+  """
   
-  ## 
-  # Query table for all Ids and sort in ascending order. 
-  # Add non-contiguous regions to pool and determine the 
-  # next Id to assign. 
-  #
   def __init__(self, db_con, table): 
     assert table in ['Users', 'Terms', 'Comments']
     
@@ -58,10 +62,11 @@ class IdPool:
 
     print "Table %s pool:" % table, (self.pool, self.next)
      
-  ##
-  # Assign (consume) the next Id.
-  #
   def ConsumeId(self): 
+    """ Consume the next available ID. 
+  
+    :rtype: int
+    """
     self.L_pool.acquire()
     if len(self.pool) > 0: 
       ret = self.pool.pop()
@@ -71,10 +76,11 @@ class IdPool:
     self.L_pool.release()
     return ret
 
-  ##
-  # Get the next Id to assign without consuming it. 
-  #
   def GetNextId(self): 
+    """ Get the next ID without consuming it (look ahead). 
+
+    :rtype: int
+    """
     self.L_pool.acquire()
     if len(self.pool) > 0: 
       ret = self.pool[-1]
@@ -83,10 +89,12 @@ class IdPool:
     self.L_pool.release()
     return ret
 
-  ##
-  # Release Id to the pool (produce) 
-  #
   def ReleaseId(self, id): 
+    """ Release and ID back into the pool (produce) 
+
+    :param id: Surrogate ID.
+    :type id: int
+    """
     self.L_pool.acquire()
     if id < self.next: 
       self.pool.append(id)
