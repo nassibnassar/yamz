@@ -105,16 +105,17 @@ def calculateStability(S, p_S, T_now, T_last, T_stable):
 orderOfClass = { 'deprecated' : 2, 'vernacular' : 1, 'canonical' : 0 }
 
 class SeaIceConnector: 
-  """ 
-    Connection to the PostgreSQL database. Create or drop schema, 
-    tables, and triggers, encapsulation of all the queries we need. 
-    If the parameters are unspecified, 
-    then attempt to connect to a foreign database specified by the 
-    environment variable DATABASE_URL. This is to support Heroku's
-    functionality. 
-    user     -- Role to use for queries. 
-    password -- User's password.
-    db       -- Name of the database. 
+  """ Connection to the PostgreSQL database. Create or drop schema, 
+      tables, and triggers, encapsulation of all the queries we need. 
+      If the parameters are unspecified, then attempt to connect to a foreign database specified by the 
+      environment variable DATABASE_URL. This is to support Heroku's functionality. 
+
+      :param user: Name of DB role.
+      :type user: str
+      :param passowrd: User's password.
+      :type password: str
+      :param db: Name of database. 
+      :type db: str
   """
 
   def __init__(self, user=None, password=None, db=None):

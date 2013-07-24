@@ -22,6 +22,14 @@ Contents:
    :members:
    :show-inheritance:
 
+.. inheritance-diagram:: 
+      seaice.SeaIceConnector
+      seaice.ScopedSeaIceConnector
+
+.. autoclass:: seaice.ConnectorPool.ScopedSeaIceConnector
+   :members:
+   :show-inheritance:
+
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

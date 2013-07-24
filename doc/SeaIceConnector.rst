@@ -13,13 +13,7 @@ Contents:
  
 .. automodule:: seaice
 
-.. inheritance-diagram:: 
-      seaice.SeaIceConnector
-      seaice.ScopedSeaIceConnector
 
-.. autoclass:: seaice.ConnectorPool.ScopedSeaIceConnector
-   :members:
-   :show-inheritance:
 
 .. automodule:: seaice.SeaIceConnector
 .. autoclass:: seaice.SeaIceConnector.SeaIceConnector

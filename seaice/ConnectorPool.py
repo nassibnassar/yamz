@@ -30,14 +30,21 @@
 from SeaIceConnector import *
 from threading import Condition
 
-##
-# class ScopedSeaIceConnector
-#
-# Sub-class of SeaIceConnector which is released to the pool it comes
-# from once it goes out of scope. This allows for a fancy short-hand. 
-# See SeaIceconnectorPool.getScoped(). 
-#
 class ScopedSeaIceConnector (SeaIceConnector): 
+  """
+    A SeaIce DB Connector which is released to the pool it from whence it 
+    came when it goes out of scope. This type of connector is produced by 
+    :func:`seaice.ConnectorPool.SeaIceConnectorPool.getScoped`
+    and should not be used directly. 
+
+    :param pool: The pool from which this connector originates. 
+                 When the destructor is called, the connection is enqueued 
+                 int to the pool.
+
+    :type pool: seaice.ConnectorPool.SeaIceConnectorPool
+    :param db_con: The connector. 
+    :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  """
 
   def __init__(self, pool, db_con):
     self.con = db_con.con
@@ -48,21 +55,22 @@ class ScopedSeaIceConnector (SeaIceConnector):
     self.pool.enqueue(self.db_con)
 
 
-##
-# class ConnectorPool
-# 
-# A thread-safe connection pool. 
-#
 class ConnectorPool:
+  """ A thread-safe connection pool. 
+
+  TODO: Make this an actual queue, not a stack. Nomenclature is imporant
+  sometimes. 
+  """
   
   def __init__(self, Connector, count=20, user=None, password=None, db=None):
     self.pool = [ Connector(user, password, db) for _ in range(count) ]
     self.C_pool = Condition()
       
   def dequeue(self):
-  #
-  # Get connector 
-  #
+    """ Get connector. 
+    
+    :rtype: seaice.SeaIceConnector.SeaIceConnector
+    """
     self.C_pool.acquire()
     while len(self.pool) == 0: 
       self.C_pool.wait()
@@ -71,24 +79,41 @@ class ConnectorPool:
     return db_con
 
   def enqueue(self, db_con): 
-  #
-  # Release connector
-  #
+    """ Release connector.
+
+    :param db_con: The connector. 
+    :type db_con: seaice.SeaIceConnector.SeaIceConnector
+    """
     self.C_pool.acquire()
     self.pool.append(db_con)
     self.C_pool.notify()
     self.C_pool.release()
 
 
-##
-# class SeaIceConnectorPool
-#
 class SeaIceConnectorPool (ConnectorPool):
+  """ 
+    A thread-safe connection pool which can produce scoped SeaIce 
+    connectors.
+
+    :param count: Size of the pool.
+    :type count: int
+    :param user: Name of DB role (see :class:`seaice.SeaIceConnector.SeaIceConnector` for 
+                 default behavior).
+    :type user: str
+    :param passowrd: User's password.
+    :type password: str
+    :param db: Name of database. 
+    :type db: str
+  """
   
   def __init__(self, count=20, user=None, password=None, db=None):
     ConnectorPool.__init__(self, SeaIceConnector, count, user, password, db)
 
   def getScoped(self):
+    """ Return a scoped connector from the pool.
+
+    :rtype: seaice.SeaIceConnector.SeaIceConnector
+    """
     return ScopedSeaIceConnector(self, self.dequeue())
 
 
