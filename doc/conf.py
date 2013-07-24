@@ -41,7 +41,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'SeaIce API'
+project = u'SeaIce'
 copyright = u'2013, Christopher Patton'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -165,7 +165,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'SeaIceAPIdoc'
+htmlhelp_basename = 'SeaIcedoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------

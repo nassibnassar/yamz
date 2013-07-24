@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Pretty
-======
+Formatting output
+=================
 
 Contents:
 
@@ -13,7 +13,22 @@ Contents:
 
 .. automodule:: seaice.pretty
 
+.. autofunction:: seaice.pretty.printPrettyDate
+.. autofunction:: seaice.pretty.processTags
 
+These are for the terminal.
+
+.. autofunction:: seaice.pretty.printAsJSObject
+.. autofunction:: seaice.pretty.printParagraph
+.. autofunction:: seaice.pretty.printTermsPretty
+
+These are for web browsers. 
+
+.. autofunction:: seaice.pretty.printTermAsHTML
+.. autofunction:: seaice.pretty.printTermsAsHTML
+.. autofunction:: seaice.pretty.printTermsAsBriefHTML
+.. autofunction:: seaice.pretty.printTermsAsLinks
+.. autofunction:: seaice.pretty.printCommentsAsHTML
 
 * :ref:`genindex`
 * :ref:`modindex`

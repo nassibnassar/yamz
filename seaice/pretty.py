@@ -103,7 +103,7 @@ tag_regex = re.compile("#\{([^\{\}]*):([^\{\}]*)\}")
 # Input an regular expression match and output as HTML. If there 
 # are syntax errors, simply return the raw tag.
 #
-def printTagAsHTML(db_con, m): 
+def _printTagAsHTML(db_con, m): 
   (term_id, desc) = m.groups()
   try:
     term_id = int(term_id.strip())
@@ -120,7 +120,7 @@ def printTagAsHTML(db_con, m):
 # Process tags in DB text entries into HTML. 
 #
 def processTags(db_con, string): 
-  return tag_regex.sub(lambda m: printTagAsHTML(db_con, m), string)
+  return tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
     
   
 

@@ -11,6 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   auth.rst
+
 .. automodule:: seaice.user
 
 .. inheritance-diagram::
