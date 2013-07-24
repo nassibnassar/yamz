@@ -17,14 +17,15 @@ Contents:
       seaice.SeaIceConnector
       seaice.ScopedSeaIceConnector
 
+.. autoclass:: seaice.ConnectorPool.ScopedSeaIceConnector
+   :members:
+   :show-inheritance:
+
 .. automodule:: seaice.SeaIceConnector
 .. autoclass:: seaice.SeaIceConnector.SeaIceConnector
    :members:
    :show-inheritance:
 
-.. autoclass:: seaice.ConnectorPool.ScopedSeaIceConnector
-   :members:
-   :show-inheritance:
 
 
 * :ref:`genindex`

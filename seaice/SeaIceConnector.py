@@ -33,50 +33,55 @@ import pretty
 import auth
 import notify
 
-##
-# Some constants for stability calculation
-# 
-stabilityError = 0.10  # consensus score per hour    
-stabilityFactor = 3600 # convert seconds to hours  
-stabilityInterval = 4  # hours
-stabilityConsensusIntervalHigh = 0.75 # promote to canon
-stabilityConsensusIntervalLow =  0.25 # demote (deprecate)
+"""
+  Some constants for stability calculation. 
+"""
+
+#: The maximum varation in consensus allowed 
+#: for score to be considered stable (S/hour).
+stabilityError = 0.10  
+
+stabilityFactor = 3600 #: Convert seconds (datetime.timedelta.seconds) to hours. 
+
+stabilityInterval = 4  #: Interval (in hours) for which.
+
+stabilityConsensusIntervalHigh = 0.75 #: Classify stable term as canonical.
+stabilityConsensusIntervalLow =  0.25 #: Classify stable term as deprecated.
 
 
-##
-# Calcluate consensus score. This is a heuristic for the percentage 
-# of the community who finds a term useful. Based on the observation
-# that not every user will vote on a given term, user reptuation is 
-# used to estimate consensus. As the number of voters approaches 
-# the number of users, the votes become more equitable. (See 
-# doc/Scoring.pdf for details.) 
-#
-# u - number of up voters
-# d - number of donw voters
-# t - number of total users
-# U_sum - sum of up-voters' reputations
-# D_sum - sum of down-voters' reputations
-#
 def calculateConsensus(u, d, t, U_sum, D_sum):
+  """
+    Calcluate consensus score. This is a heuristic for the percentage 
+    of the community who finds a term useful. Based on the observation
+    that not every user will vote on a given term, user reptuation is 
+    used to estimate consensus. As the number of voters approaches 
+    the number of users, the votes become more equitable. (See 
+    doc/Scoring.pdf for details.) 
+   
+    u - number of up voters
+    d - number of donw voters
+    t - number of total users
+    U_sum - sum of up-voters' reputations
+    D_sum - sum of down-voters' reputations
+  """
   v = u + d
   R = U_sum + D_sum
   return (u + (float(U_sum)/R if R > 0 else 0.0) * (t-v)) / t if v else 0
 
 
-##
-# Calculate term stability, returning the time point when the term 
-# become stable (as a datetime.datetime) or None if it's not stable. 
-# This is based on the rate of change of the consensus score: 
-# 
-#  dS/dt = (S - P_s) / (T_now - T_last) 
-#
-# T_now, T_last - datetime.datetime
-# T_stable - datetime.datetime or None 
-# S - consensus score at T_now
-# p_S - consensus score at T_last
-# 
 def calculateStability(S, p_S, T_now, T_last, T_stable):
-  
+  """
+    Calculate term stability, returning the time point when the term 
+    become stable (as a datetime.datetime) or None if it's not stable. 
+    This is based on the rate of change of the consensus score: 
+    
+     dS/dt = (S - P_s) / (T_now - T_last) 
+   
+    T_now, T_last - datetime.datetime
+    T_stable - datetime.datetime or None 
+    S - consensus score at T_now
+    p_S - consensus score at T_last
+  """ 
   try: 
     delta_S = abs((S - p_S) * stabilityFactor / (T_now - T_last).seconds) 
   except ZeroDivisionError: 
@@ -96,21 +101,19 @@ def calculateStability(S, p_S, T_now, T_last, T_stable):
 
 orderOfClass = { 'deprecated' : 2, 'vernacular' : 1, 'canonical' : 0 }
 
-## 
-# class SeaIceConnector 
-# 
-# Connection to the PostgreSQL database. Create or drop schema, 
-# tables, and triggers, encapsulation of all the queries we need. 
-#
 class SeaIceConnector: 
-  
-  ##
-  # Establish connection to database. For a local database, this is
-  # specified by the paramters. If the parameters are unspecified, 
-  # then attempt to connect to a foreign database specified by the 
-  # environment variable DATABASE_URL. This is to support Heroku's
-  # functionality. 
-  # 
+  """ 
+    Connection to the PostgreSQL database. Create or drop schema, 
+    tables, and triggers, encapsulation of all the queries we need. 
+    If the parameters are unspecified, 
+    then attempt to connect to a foreign database specified by the 
+    environment variable DATABASE_URL. This is to support Heroku's
+    functionality. 
+    user     -- Role to use for queries. 
+    password -- User's password.
+    db       -- Name of the database. 
+  """
+
   def __init__(self, user=None, password=None, db=None):
   
     if not user: 
@@ -118,6 +121,7 @@ class SeaIceConnector:
       urlparse.uses_netloc.append("postgres")
       url = urlparse.urlparse(os.environ["DATABASE_URL"])
 
+      #: The PostgreSQL database connection.
       self.con = pgdb.connect(
         database=url.path[1:],
         user=url.username,
@@ -127,7 +131,7 @@ class SeaIceConnector:
       )
       
     else: 
-
+        
       self.con = pgdb.connect(database=db, user=user, password=password)
 
     cur = self.con.cursor()
@@ -137,21 +141,21 @@ class SeaIceConnector:
     self.con.close()
 
 
-  ## 
-  # Create a schema for the SeaIce database that includes the tables
-  # Users, Terms, and Comments, and update triggers. 
-  #
   def createSchema(self):
+    """ 
+      Create a schema for the SeaIce database that includes the tables
+      Users, Terms, and Comments, and update triggers. 
+    """
     
     cur = self.con.cursor()
 
-    # Create SI schema. 
+    #: Create SI schema. 
     cur.execute("""
       CREATE SCHEMA SI; 
       """
     )
     
-    # Create Users table if it doesn't exist. 
+    #: Create Users table if it doesn't exist. 
     cur.execute("""
       CREATE TABLE IF NOT EXISTS SI.Users
         (
@@ -167,7 +171,7 @@ class SeaIceConnector:
       ALTER SEQUENCE SI.Users_id_seq RESTART WITH 1001;"""
     )
 
-    # Create Terms table if it doesn't exist.
+    #: Create Terms table if it doesn't exist.
     cur.execute("""
       CREATE TYPE SI.Class AS ENUM ('vernacular', 'canonical', 'deprecated');
       CREATE TABLE IF NOT EXISTS SI.Terms
@@ -197,7 +201,7 @@ class SeaIceConnector:
       ALTER SEQUENCE SI.Terms_id_seq RESTART WITH 1001;"""
     )
 
-    # Create Comments table if it doesn't exist.
+    #: Create Comments table if it doesn't exist.
     cur.execute("""
       CREATE TABLE IF NOT EXISTS SI.Comments
         (
@@ -214,11 +218,11 @@ class SeaIceConnector:
       ALTER SEQUENCE SI.Comments_id_seq RESTART WITH 1001;"""
     )
 
-    # Create Tracking table if it doesn't exist. This table keeps 
-    # track of the terms users have starred as well as their vote
-    # (+1 or -1). If they haven't voted, then vote = 0. This
-    # implies a rule: if a user untracks a term, then his or her 
-    # vote is removed. 
+    #: Create Tracking table if it doesn't exist. This table keeps 
+    #: track of the terms users have starred as well as their vote
+    #: (+1 or -1). If they haven't voted, then vote = 0. This
+    #: implies a rule: if a user untracks a term, then his or her 
+    #: vote is removed. 
     cur.execute("""
       CREATE TABLE IF NOT EXISTS SI.Tracking
       (
@@ -233,7 +237,7 @@ class SeaIceConnector:
       )"""
     )
     
-    # Create schema and table for notifications.  
+    #: Create schema and table for notifications.  
     cur.execute("""
       CREATE SCHEMA SI_Notify; 
       CREATE TYPE SI_Notify.Class AS ENUM ('Base', 
@@ -255,7 +259,7 @@ class SeaIceConnector:
         );
     """)
   
-    # Create update triggers.
+    #: Create update triggers.
     cur.execute("""
       CREATE OR REPLACE FUNCTION SI.upd_timestamp() RETURNS TRIGGER 
         language plpgsql
@@ -283,41 +287,46 @@ class SeaIceConnector:
           tsvector_update_trigger(tsv, 'pg_catalog.english', term_string, definition, examples);"""
     )
 
-  ##
-  # Drop SeaIce schema. 
-  #
   def dropSchema(self): 
+    """ Drop SeaIce schema. """
     cur = self.con.cursor()
     cur.execute("DROP SCHEMA SI CASCADE")
     cur.execute("DROP SCHEMA IF EXISTS SI_Notify CASCADE")
 
-  ##
-  # Commit changes to database made while the connection was open. This 
-  # should be called before the class destructor is called in order to 
-  # save changes. It should be called freuqently in a mult-threaded 
-  # environment. 
-  #
+  
   def commit(self): 
+    """ Commit changes to database made while the connection was open. This 
+        should be called before the class destructor is called in order to 
+        save changes. It should be called freuqently in a mult-threaded 
+        environment. 
+    """
     return self.con.commit()
 
-  ##
-  # Get T_now timestamp according to database. This is important when
-  # the SeaIce database is deployed to some anonymous server farm. 
-  #
   def getTime(self):
+    """ Get T_now timestamp according to database. This is important when
+        the SeaIce database is deployed to some anonymous server farm.
+
+    :rtype: datetime.datetime
+    """
     cur = self.con.cursor()
     cur.execute("SELECT now()")
     return cur.fetchone()[0]
     
     ## Term queries ##
 
-  ##
-  # Add a term to the database and return the term's Id (None if failed) 
-  #
   def insertTerm(self, term): 
+    """ Add a term to the database and return the term's Id (None if failed) 
+
+    :param term: Term row to be inserted. Default values will be used for 
+                 omitted columns.
+    :type term:  dict
+    :returns: ID of inserted row. If term['id'] isn't assigned, the next
+              available ID in the sequence is given. 
+    :rtype:   int or None
+    """
     cur = self.con.cursor()
 
-    # Default values for table entries.  
+    #: Default values for table entries.  
     defTerm = { 
       "id" : "default",
       "term_string" : "nil", 
@@ -332,7 +341,7 @@ class SeaIceConnector:
       "owner_id" : "default"
     }
 
-    # Format entries for db query
+    #: Format entries for db query
     for (key, value) in term.iteritems():
       if key.lower() in ["created", "modified", "t_stable", "t_last"]:
         defTerm[key] = "'" + str(value) + "'"
@@ -362,16 +371,20 @@ class SeaIceConnector:
         return None
 
     except pgdb.DatabaseError, e:
-      if e.pgcode == '23505': # Duplicate primary key
+      if e.pgcode == '23505': #: Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defTerm['id']
          cur.execute("ROLLBACK;")
          return None 
       raise e
 
-  ##
-  # Remove term from the database and return id of deleted
-  #
   def removeTerm(self, id):
+    """ Remove term row from the database.
+
+    :param id: Term Id.
+    :type id: int
+    :returns: ID of removed term. 
+    :rtype: int or None
+    """
     cur = self.con.cursor()
     cur.execute("DELETE FROM SI.Terms WHERE id=%d RETURNING id" % id)
     res = cur.fetchone()
@@ -379,28 +392,37 @@ class SeaIceConnector:
     else:   return None
 
 
-  ## 
-  # Get term by Id. Return dictionary structure or None. 
-  # 
   def getTerm(self, id): 
+    """ Get term by ID. 
+
+    :param id: Term ID.
+    :type id: int
+    :rtype: dict or None
+    """ 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Terms WHERE id=%d" % id)
     return cur.fetchone()
   
-  ## 
-  # Get term string by Id. Return dictionary structure or None. 
-  # 
   def getTermString(self, id): 
+    """ Get term string by Id.
+
+    :param id: Term ID.
+    :type id: int
+    :rtype: str or None
+    """
     cur = self.con.cursor()
     cur.execute("SELECT term_string FROM SI.Terms WHERE id=%d" % id)
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
   
-  ## 
-  # Return an iterator over all terms (rows) in table. 
-  # 
   def getAllTerms(self, sortBy=None): 
+    """ Return an iterator over all term rows in table. 
+
+    :param sortBy: Column by which sort the results in ascending order.
+    :type sortBy: str
+    :rtype: dict iterator
+    """ 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     if sortBy:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
@@ -416,11 +438,12 @@ class SeaIceConnector:
     for row in cur.fetchall():
       yield row
 
-  ##
-  # Return the various parameters used to calculate consensus 
-  # and stability for each term.  
-  #
   def getTermStats(self):
+    """ Return the various parameters used to calculate consensus 
+        and stability for each term.  
+
+    :rtype: dict iterator
+    """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""SELECT id, owner_id, term_string, modified, created, 
                           up, down, U_sum, D_sum, T_last, T_stable
@@ -428,29 +451,39 @@ class SeaIceConnector:
     for row in cur.fetchall():
       yield row
 
-  ##
-  # Search table by term string and return an iterator over dictionary structures
-  #
   def getByTerm(self, term_string): 
+    """ Search table by term string and return an iterator over the matches.
+
+    :param term_string: The exact term string (case sensitive). 
+    :type term_string: str
+    :rtype: dict or None
+    """
     term_string = term_string.replace("'", "''")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Terms WHERE term_string='%s'" % term_string)
     for row in cur.fetchall():
       yield row
 
-  ##
-  # Return an iterator over terms owned by User
-  #
   def getTermsByUser(self, user_id):
+    """ Return an iterator over terms owned by a user. 
+    
+    :param user_id: ID of the user. 
+    :type user_id: int
+    :rtype: dict iterator
+    """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Terms WHERE owner_id=%d" % user_id) 
     for row in cur.fetchall():
       yield row
 
-  ##
-  # Return an iterator over of terms starred by user
-  #
   def getTermsByTracking(self, user_id):
+    """ Return an iterator over terms tracked by a user (terms that the 
+        user has starred). 
+
+    :param user_id: ID of the user. 
+    :type user_id: int
+    :rtype: dict iterator
+    """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""SELECT * FROM SI.Terms AS term, 
                                  SI.Tracking AS track
@@ -461,22 +494,28 @@ class SeaIceConnector:
     for row in cur.fetchall():
       yield row
 
-  ##
-  # Return an iterator over users tracking term_id
-  # 
   def getTrackingByTerm(self, term_id):
+    """ Return an iterator over users tracking a term.
+
+    :param term_id: ID of term. 
+    :type user_id: int
+    :returns: User rows. 
+    :rtype: dict iterator
+    """ 
     cur = self.con.cursor()
     cur.execute("""SELECT user_id FROM SI.Tracking 
                     WHERE term_id={0} """.format(term_id))
     for row in cur.fetchall():
       yield row[0]
 
-  ##
-  # Search table by term_string, definition and examples.
-  # Rank results by relevance to query, consensus, and
-  # classificaiton. Return a list of results.
-  #
   def search(self, string): 
+    """ Search table by term_string, definition and examples. Rank 
+        results by relevance to query, consensus, and classificaiton.
+
+    :param string: Search query.
+    :type string: str
+    :rtype: dict list
+    """
     string = string.replace("'", "''")
     string = ' & '.join(string.split(' ')) # |'s are also aloud, and paranthesis TODO
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -493,11 +532,16 @@ class SeaIceConnector:
     rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
     return list(rows)
 
-  ##
-  # Modify a term's term_string, deifnition and examples. 
-  # Note: term ownership authenticated upstream! 
-  # 
   def updateTerm(self, id, term): 
+    """ Modify a term's term string, deifnition and examples. 
+        Note: term ownership authenticated upstream! 
+
+    :param id: Term ID. 
+    :type id: int
+    :param term: Dictionary containing atleast the keys 'term_string', 'definition', 
+                 and 'examples' with string values.
+    :type term: dict 
+    """ 
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = unicode(value).replace("'", "''")
@@ -507,10 +551,13 @@ class SeaIceConnector:
 
     ## User queries ##
 
-  ##
-  # Insert a new user into the table and return Users.Id (None if failed) 
-  #
   def insertUser(self, user):
+    """ Insert a new user into the table and return the new ID. 
+
+    :param user: Default values are used for any omitted columns.
+    :type user: dict 
+    :rtype: int or None
+    """
     
     defUser = { 
       "id" : "default",
@@ -550,38 +597,60 @@ class SeaIceConnector:
          return None 
       raise e
 
-  ##
-  # Get User by Id
-  #
   def getUser(self, id):
+    """ Get User by ID.
+
+    :param id: User ID. 
+    :type id: int
+    :rtype: dict or None
+    """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Users WHERE id=%d" % id)
     return cur.fetchone()
   
-  ## 
-  # Return an iterator over all terms (rows) in table. 
-  # 
   def getAllUsers(self): 
+    """ Return an iterator over all terms (rows) in table. 
+
+    :rtype: dict iterator
+    """ 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Users")
     for row in cur.fetchall():
       yield row
       
-  ##
-  # Return Users.Id where Users.auth_id = auth_id and 
-  # Users.authority = authority
-  #
   def getUserByAuth(self, authority, auth_id):
+    """ Get user identified by an authentication ID. It's assumed that this ID 
+        is unique in the context of a particular authority, such as Google. 
+
+    TODO: originally I planned to use (authority, auth_id) as the unique 
+    constraint on the SI.Users table. My guess is that most, if not all 
+    services have an associated email address. The unique constraint is 
+    actually the user's email. This method should be replaced.  
+
+    :param authority: Organization providing authentication. 
+    :type authority: str
+    :param auth_id: Authentication ID.
+    :type auth_id: str
+    :returns: Internal surrogate ID of user. 
+    :rtype: int or None
+    """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Users WHERE auth_id = '%s' AND authority = '%s'" % 
                  (auth_id, authority))
     res = cur.fetchone()
     return res
 
-  ##
-  # Return Users.Name where Users.id = Userid
-  #
   def getUserNameById(self, id, full=False): 
+    """ Get username by ID. 
+
+    :param id: User ID. 
+    :type id: int
+    :param full: Get full name
+    :type full: bool
+    :returns: If full is set, then return the first and last name of the user. 
+              Otherwise, just return the first name. 
+    :rtype: str or None
+    """
     cur = self.con.cursor()
     cur.execute("SELECT first_name, last_name FROM SI.Users WHERE id=%d" % id)
     res = cur.fetchone()
@@ -592,19 +661,29 @@ class SeaIceConnector:
     else: 
       return None
   
-  ##
-  # Update User name
-  # 
   def updateUser(self, id, first, last): 
+    """ Update user's name. 
+
+    :param id: User ID.  
+    :type id: int
+    :param first: First name. 
+    :type first: str
+    :param last: Last name. 
+    :type last: str
+    """ 
     cur = self.con.cursor()
     cur.execute("UPDATE SI.Users SET first_name='%s', last_name='%s' WHERE id=%d" % (
       first, last, id))
 
-  ##
-  # Set reputation of user. This triggers an update of the consensus score
-  # and term stability. Commit updates immediately. 
-  #
   def updateUserReputation(self, id, rep): 
+    """ Set reputation of user. This triggers an update of the consensus score
+        and term stability. Commit updates immediately. 
+
+    :param id: User ID. 
+    :type id: int
+    :param rep: New reputation score. 
+    :type rep: int
+    """
     cur = self.con.cursor()
     cur.execute("SELECT now(), count(*) FROM SI.Users")
     (T_now, t) = cur.fetchone() 
@@ -624,12 +703,12 @@ class SeaIceConnector:
     
     for (vote, term_id, u, d, U_sum, D_sum, T_last, T_stable, p_S) in cur.fetchall():
       
-      # Compute new consensus score
+      #: Compute new consensus score
       if vote == 1:      U_sum += rep - p_rep
       elif vote == -1:   D_sum += rep - p_rep 
       S = calculateConsensus(u, d, t, float(U_sum), float(D_sum))
 
-      # See if stability has changed  
+      #: See if stability has changed  
       T_stable = calculateStability(S, p_S, T_now, T_last, T_stable)
       
       cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', T_stable={3},
@@ -642,10 +721,14 @@ class SeaIceConnector:
 
     ## Comment queries ##
     
-  ##
-  # Insert a new comment into the database. 
-  #
   def insertComment(self, comment): 
+    """ Insert a new comment into the database and return ID of newly inserted term. 
+
+    :param comment: New comment as dictionary. Default values will be used for ommitted 
+                    columns. 
+    :type comment: dict 
+    :rtype: int
+    """
     defComment = { 
       "id" : "default",
       "owner_id" : "default", 
@@ -653,7 +736,7 @@ class SeaIceConnector:
       "comment_string" : "nil"
     }
   
-    # Format entries for db query
+    #: Format entries for db query
     for (key, value) in comment.iteritems():
       if key in ["created", "modified"]:
         defComment[key] = "'" + str(value) + "'"
@@ -672,57 +755,72 @@ class SeaIceConnector:
       else:   return None
     
     except pgdb.DatabaseError, e:
-      if e.pgcode == '23505': # Duplicate primary key
+      if e.pgcode == '23505': #: Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defComment['id']
          cur.execute("ROLLBACK;")
          return None 
       raise e
 
-  ##
-  # Remove comment and return Id.
-  # 
   def removeComment(self, id):
+    """ Remove comment and return ID. 
+    
+    :param id: Comment ID. 
+    :type id: int
+    :rtype: int
+    """ 
     cur = self.con.cursor()
     cur.execute("DELETE FROM SI.Comments WHERE id=%d RETURNING id" % id)
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
 
-  ##
-  #  Update term comment. 
-  #
   def updateComment(self, id, comment):
+    """ Update term comment. Note that user authentication is handled up stream!
+
+    :param id: Comment ID.
+    :type id: int 
+    :param comment: Expects at least the key 'comment_string' with string value. 
+    :type id: dict 
+    """
     cur = self.con.cursor()
     for (key, value) in comment.iteritems():
       comment[key] = unicode(value).replace("'", "''")
     cur.execute("UPDATE SI.Comments SET comment_string='%s' WHERE id=%d" % (
       comment['comment_string'], id))
 
-  ##
-  # Return comment.
-  #
   def getComment(self, id):
+    """  Get comment by ID.
+
+    :param id: Comment ID. 
+    :type id: int
+    :rtype: dict or None
+    """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Comments WHERE id=%d" % id)
     return cur.fetchone()
 
-  ##
-  # Return a term's comment history, ordered by creation date.
-  # Result is an iterator. 
-  #
   def getCommentHistory(self, term_id):
+    """ Return a term's comment history, ordered by creation date.
+
+    :param term_id: Term ID. 
+    :type term_id: int
+    :rtype: dict iterator
+    """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.Comments WHERE term_id=%d ORDER BY created" % term_id)
     for row in cur.fetchall():
       yield row
-  
 
     ## Tracking (Voting) queries ##
 
-  ##
-  # Insert a tracking row, skipping if (term_id, user_id) pair exists
-  #
   def insertTracking(self, tracking): 
+    """ Insert a tracking row, skipping if (term_id, user_id) pair exists. 
+
+    :param tracking: Expect dictionary with keys 'user_id', 'term_id', and 'vote'. 
+    :type tracking: dictionary
+    :returns: (term_id, user_id)
+    :rtype: (int, int) or None
+    """
     defTracking = { 
       "vote" : "default" 
     }
@@ -740,18 +838,23 @@ class SeaIceConnector:
       return cur.fetchone()
     
     except pgdb.DatabaseError, e:
-      if e.pgcode == '23505': # Duplicate primary key
+      if e.pgcode == '23505': #: Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate (TermId=%s, UserId=%s)" % (
           defTracking['term_id'], defTracking['user_id'])
          cur.execute("ROLLBACK;")
          return None 
       raise e
 
-
-  ##
-  # Get user's vote for a term
-  #
   def getVote(self, user_id, term_id): 
+    """ Get user's vote for a term
+
+    :param user_id: User ID. 
+    :type user_id: int
+    :param term_id: Term ID. 
+    :type term_id: int
+    :returns: +1, 0, or -1. 
+    :rtype: int or None
+    """
     cur = self.con.cursor()
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
@@ -759,27 +862,26 @@ class SeaIceConnector:
     if res: return res[0]
     else:   return None 
 
-  ##
-  # User is tracking term. Return 1 if a row was inserted into the Tracking 
-  # table, 0 if not. 
-  #
   def trackTerm(self, user_id, term_id): 
+    """ User has starred a term. Return True if a row was 
+        inserted into the Tracking table, False if not. 
+    
+    :rtype: bool
+    """
     cur = self.con.cursor()
     cur.execute("""SELECT vote FROM SI.Tracking 
                    WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
     if not cur.fetchone(): 
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote) 
                      VALUES ({0}, {1}, 0)""".format(user_id, term_id))
-      return 1
+      return True
     else: 
       cur.execute("""UPDATE SI.Tracking SET star=True
                      WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
-      return 0
+      return False
 
-  ##
-  # Untrack term. 
-  #
   def untrackTerm(self, user_id, term_id):
+    """ Untrack term. """
     cur = self.con.cursor()
     cur.execute("""UPDATE SI.Tracking SET star=False
                    WHERE user_id={0} AND term_id={1} 
@@ -789,10 +891,11 @@ class SeaIceConnector:
       return 1
     else: return 0
 
-  ##
-  # Check tracking
-  #
   def checkTracking(self, user_id, term_id):
+    """ Check tracking
+
+    :rtype: bool
+    """
     cur = self.con.cursor()
     cur.execute("""SELECT star FROM SI.Tracking 
                    WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
@@ -801,12 +904,15 @@ class SeaIceConnector:
       return star[0]
     else: return False
 
-  ##
-  # Prescore term. Returns a tuple of dictionaries 
-  # (User.Id -> User.Reputation) of up voters and 
-  # down voters (U, D).
-  # 
   def preScore(self, term_id):
+    """ Prescore term. Returns a tuple of dictionaries (User.Id -> User.Reputation) 
+        of up voters and down voters (U, D).
+
+    :param term_id: Term ID. 
+    :type term_id: int
+    :returns: (U, D)
+    :rtype: ((int --> int), (int --> int)) 
+    """ 
     cur = self.con.cursor()
     cur.execute("""SELECT v.user_id, v.vote, u.reputation
                    FROM SI.Users as u, SI.Tracking as v
@@ -820,12 +926,15 @@ class SeaIceConnector:
 
     return (U, D) 
 
-  ##
-  # Postscore term. Input the reputations of up voters and down 
-  # voters and compute the consensus score. Update the term row 
-  # as a side-affect. 
-  #
   def postScore(self, term_id, U, D):
+    """ Postscore term. Input the reputations of up voters and down voters and 
+        compute the consensus score. Update the term row as a side-affect. 
+
+    :param U: Up voters. 
+    :type U: (int --> int) 
+    :param D: Down voters. 
+    :type D: (int --> int)
+    """
     cur = self.con.cursor()
     cur.execute("SELECT COUNT(*) FROM SI.Users")
     t = cur.fetchone()[0] # total users
@@ -844,10 +953,17 @@ class SeaIceConnector:
     return S
 
 
-  ##
-  # Cast or change a user's vote on a term. Return the term's new consensus score.
-  #
   def castVote(self, user_id, term_id, vote): 
+    """ Cast or change a user's vote on a term. Return the term's new consensus score.
+
+    :param user_id: User ID. 
+    :type user_id: int
+    :param term_id: Term Id.
+    :type term_id: int
+    :param vote: +1, 0, or -1. 
+    :type vote: int
+    :rtype: float
+    """
     cur = self.con.cursor()
     
     cur.execute("SELECT now(), count(*) FROM SI.Users")
@@ -855,7 +971,7 @@ class SeaIceConnector:
     cur.execute("SELECT reputation FROM SI.Users WHERE id=%d" % user_id) 
     rep = cur.fetchone()[0]
   
-    # Get current state
+    #: Get current state
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
                    user_id={0} AND term_id={1}""".format(user_id, term_id))
     p_vote = cur.fetchone()
@@ -864,7 +980,7 @@ class SeaIceConnector:
                    WHERE id={0}""".format(term_id))
     (u, d, U_sum, D_sum, T_last, T_stable, p_S) = cur.fetchone()
 
-    # Cast vote
+    #: Cast vote
     if not p_vote:
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
                      VALUES ({0}, {1}, {2})""".format(user_id, term_id, vote))
@@ -875,17 +991,17 @@ class SeaIceConnector:
                      WHERE user_id={0} AND term_id={1}""".format(user_id, term_id, vote))
       p_vote = p_vote[0]
 
-    # Calculate new consensus score
+    #: Calculate new consensus score
     if p_vote == 1:    u -= 1; U_sum -= rep 
     elif p_vote == -1: d -= 1; D_sum -= rep
     if vote == 1:      u += 1; U_sum += rep
     elif vote == -1:   d += 1; D_sum += rep
     S = calculateConsensus(u, d, t, float(U_sum), float(D_sum))
 
-    # Calculate stability
+    #: Calculate stability
     T_stable = calculateStability(S, p_S, T_now, T_last, T_stable)
 
-    # Update term
+    #: Update term
     cur.execute("""UPDATE SI.Terms SET consensus={1}, T_last='{2}', t_stable={3},
                    up={4}, down={5}, U_sum={6}, D_sum={7} WHERE id={0}""".format(
       term_id, S, str(T_now), repr(str(T_stable)) if T_stable else "NULL", u, d, U_sum, D_sum))
@@ -893,12 +1009,13 @@ class SeaIceConnector:
     return S
 
 
-  ##
-  # Check if Term is stable. If so, classify it as being 
-  # canonical, vernacular, or deprecated. Update term 
-  # and Return class as string.
-  # 
   def classifyTerm(self, term_id):
+    """ Check if Term is stable. If so, classify it as being canonical, vernacular, 
+        or deprecated. Update term and Return class as string.
+
+    :returns: 'canonical', 'vernacular', or 'deprecated'.
+    :rtype: class
+    """ 
     cur = self.con.cursor()  
 
     cur.execute("SELECT now()")
@@ -922,10 +1039,12 @@ class SeaIceConnector:
     cur.execute("UPDATE SI.Terms SET class={0} WHERE id={1}".format(repr(term_class), term_id))
     return term_class 
 
-  ##
-  # Check that Terms.Consensus is consistent. Update if it wasn't. 
-  #
   def checkTermConsistency(self, term_id):
+    """ Check that a term's consensus score is consistent by scoring it the hard way.
+        Update if it wasn't. 
+
+    :rtype: bool
+    """
     cur = self.con.cursor()
     cur.execute("SELECT consensus FROM SI.Terms where id=%d" % term_id)
     p_S = cur.fetchone()[0]
@@ -937,19 +1056,22 @@ class SeaIceConnector:
 
     ## Notification queries ##
 
-  ##
-  # Get all notifications as iterator
-  #
   def getAllNotifications(self):
+    """ Get all notifications. 
+
+    :rtype: dict iterator
+    """
     cur = self.con.cursor()
     cur.execute("SELECT * FROM SI_Notify.Notify")
     for row in cur.fetchall():
       yield row
   
-  ##
-  # Insert a notification. 
-  #
   def insertNotification(self, user_id, notif):
+    """ Insert a notification. 
+
+    :param notif: Notification. 
+    :type notif: seaice.notify.BaseNotification
+    """
     cur = self.con.cursor()
     if isinstance(notif, notify.Comment):
       cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
@@ -972,10 +1094,12 @@ class SeaIceConnector:
                      VALUES( 'Base', %d, %d, %s ); """ % (
                 user_id, notif.term_id, repr(str(notif.T_notify))))
   
-  ##
-  # Remove a notification.
-  #
   def removeNotification(self, user_id, notif):
+    """ Remove a notification.
+
+    :param notif: Notification. 
+    :type notif: seaice.notify.BaseNotification
+    """
     cur = self.con.cursor()
     print "Lonestar!"
     if isinstance(notif, notify.Comment):
@@ -1006,11 +1130,15 @@ class SeaIceConnector:
   
 
 
-  ## 
-  # Export database in JSON format to "outf". If no file name 
-  # provided, dump to standard out. 
-  #
   def Export(self, table, outf=None):
+    """ Export database in JSON format to "outf". If no file name 
+        provided, dump to standard out. 
+
+    :param table: Name of table.
+    :type table: str
+    :param outf: Filename to output table to.
+    :type outf: str
+    """
     if table not in ['Users', 'Terms', 'Comments', 'Tracking']:
       print >>sys.stderr, "error (export): table '%s' is not defined in the db schema" % table
       return
@@ -1025,10 +1153,14 @@ class SeaIceConnector:
     rows = cur.fetchall()
     pretty.printAsJSObject(rows, fd)
 
-  ##
-  # Import database from JSON formated "inf".
-  #
   def Import(self, table, inf=None): 
+    """ Import database from JSON formated "inf".
+
+    :param table: Name of table. 
+    :type table: str
+    :param inf: File name from which to import.
+    :type inf: str
+    """
     if table not in ['Users', 'Terms', 'Comments', 'Tracking']:
       print >>sys.stderr, "error (import): table '%s' is not defined in the db schema" % table
       return 
