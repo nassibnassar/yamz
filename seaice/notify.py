@@ -25,10 +25,18 @@
 
 import pretty
 
-## class BaseNotificaiton
-#
-#
 class BaseNotification: 
+  """ Base class for notifications in the SeaIce web interface Each sub class 
+      should implement __init__(), __str__(), and getAsHTML(db_con) This data
+      structure only stores surrogate keys for users, terms, and comments. so 
+      that a notification is never inconsistent. As a result, getAsHTML causes
+      a query to the DB. 
+
+      :param term_id: Term ID. 
+      :type term_id: int
+      :param T_notify: The time at which the notification was produced. 
+      :type T_notify: datetime.datetime
+  """
 
   def __init__(self, term_id, T_notify): 
     self.term_id = term_id
@@ -37,12 +45,15 @@ class BaseNotification:
   def __str__(self):
     return 'Id=%d at %s' % (self.term_id, self.T_notify)
 
-  ##
-  # Return an HTML-formatted notification string. To avoid dereferencing
-  # something that has been deleted (term, comment, user, etc.), return 
-  # None if the database has no results. 
-  #
   def getAsHTML(self, db_con): 
+    """ Return an HTML-formatted notification string. To avoid dereferencing
+        something that has been deleted (term, comment, user, etc.), return 
+        None if the database has no results. 
+
+        :param db_con: Connection to database. 
+        :type db_con: seaice.SeaIceConnector.SeaIceConnector
+        :rtype: str or None
+    """
     term = db_con.getTerm(self.term_id)
     if not term: 
       return None
@@ -51,10 +62,16 @@ class BaseNotification:
                         self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
   
 
-## class Comment
-#
-#
 class Comment(BaseNotification):
+  """ Notification object for comments. 
+
+      :param term_id: Term ID. 
+      :type term_id: int
+      :param user_id: ID of the user has commented on a term. 
+      :type user_id: int
+      :param T_notify: The time at which the notification was produced. 
+      :type T_notify: datetime.datetime
+  """
  
   def __init__(self, term_id, user_id, T_notify):
     BaseNotification.__init__(self, term_id, T_notify)
@@ -73,10 +90,17 @@ class Comment(BaseNotification):
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
 
-## class TermUpdate
-#
-#
+
 class TermUpdate(BaseNotification):
+  """ Notification object for term updates. 
+
+      :param term_id: Term ID. 
+      :type term_id: int
+      :param user_id: ID of the user who has updated the term. 
+      :type user_id: int
+      :param T_notify: The time at which the notification was produced. 
+      :type T_notify: datetime.datetime
+  """
  
   def __init__(self, term_id, user_id, T_notify):
     BaseNotification.__init__(self, term_id, T_notify)
@@ -95,10 +119,18 @@ class TermUpdate(BaseNotification):
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
 
-## class TermRemoved
-#
-#
+
 class TermRemoved(BaseNotification):
+  """ Notification object for term removals. 
+
+      :param user_id: ID of the user who has updated the term. 
+      :type user_id: int
+      :param term_string: Term string before the term was deleted. We can't use the ID 
+                          since it has been removed from the database. 
+      :type term_string: str
+      :param T_notify: The time at which the notification was produced. 
+      :type T_notify: datetime.datetime
+  """
  
   def __init__(self, user_id, term_string, T_notify):
     BaseNotification.__init__(self, None,  T_notify)
