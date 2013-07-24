@@ -28,8 +28,8 @@
 from flask import Flask
 from ConnectorPool import * 
 from IdPool import *
-from User import *
-import Notification as notify
+import notify
+import user
 
 MAX_CONNECTIONS = 1
 
@@ -57,9 +57,9 @@ class SeaIceFlask (Flask):
      
     # User structures
     self.SeaIceUsers = {}
-    for user in db_con.getAllUsers():
-      self.SeaIceUsers[user['id']] = User(user['id'], 
-                                     user['first_name'].decode('utf-8'))
+    for row in db_con.getAllUsers():
+      self.SeaIceUsers[row['id']] = user.User(row['id'], 
+                                    row['first_name'].decode('utf-8'))
 
     # Load notifcations 
     for (user_id, notif_class, T_notify, 

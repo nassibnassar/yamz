@@ -11,8 +11,29 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+.. inheritance-diagram::
+   seaice.notify.BaseNotification
+   seaice.notify.Comment
+   seaice.notify.TermUpdate
+   seaice.notify.TermRemoved
 
+.. automodule:: seaice.notify
 
+.. autoclass:: seaice.notify.BaseNotification
+   :members: 
+   :show-inheritance:
+
+.. autoclass:: seaice.notify.Comment
+   :members: 
+   :show-inheritance:
+
+.. autoclass:: seaice.notify.TermUpdate
+   :members: 
+   :show-inheritance:
+
+.. autoclass:: seaice.notify.TermRemoved
+   :members: 
+   :show-inheritance:
 
 * :ref:`genindex`
 * :ref:`modindex`

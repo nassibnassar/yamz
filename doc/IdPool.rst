@@ -13,7 +13,7 @@ Contents:
  
 .. automodule:: seaice
 
-.. autoclass:: IdPool
+.. autoclass:: seaice.IdPool
    :members:
    :show-inheritance:
 

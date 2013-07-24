@@ -1,4 +1,4 @@
-# User.py - implementation of class User, which is used by the Flask web
+# user.py - implementation of class User, which is used by the Flask web
 # framework to store properties of active sessions. class AnonymousUser 
 # inherits User. 
 #

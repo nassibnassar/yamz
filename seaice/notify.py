@@ -1,4 +1,4 @@
-# Notification.py - implementations of various live notificaitons 
+# notify.py - implementations of various live notificaitons 
 #
 # Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
@@ -23,7 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import Pretty
+import pretty
 
 ## class BaseNotificaiton
 #
@@ -48,7 +48,7 @@ class BaseNotification:
       return None
 
     return 'Term <a href="/term=%d">%s</a> <font color="#8B8B8B"><i>%s</i></font>' % (
-                        self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
+                        self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
   
 
 ## class Comment
@@ -71,7 +71,7 @@ class Comment(BaseNotification):
 
     return '''<font color="#4D6C82">%s</font> commented on <a href="/term=%d">%s</a>. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
-            user, self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
+            user, self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
 
 ## class TermUpdate
 #
@@ -93,7 +93,7 @@ class TermUpdate(BaseNotification):
 
     return '''<font color="#4D6C82">%s</font> modified <a href="/term=%d">%s</a>. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
-            user, self.term_id, term['term_string'], Pretty.printPrettyDate(self.T_notify))
+            user, self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
 
 ## class TermRemoved
 #
@@ -116,4 +116,4 @@ class TermRemoved(BaseNotification):
     return '''<font color="#4D6C82">%s</font> has removed 
               <font color="#0088CC"><strong>%s</strong></font> from the metadictionary. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
-            user, self.term_string, Pretty.printPrettyDate(self.T_notify))
+            user, self.term_string, pretty.printPrettyDate(self.T_notify))

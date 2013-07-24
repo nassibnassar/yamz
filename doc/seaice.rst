@@ -11,12 +11,12 @@ Contents:
 .. toctree::
    :maxdepth: 2
  
-   User.rst
-   Pretty.rst
+   user.rst
+   pretty.rst
+   notify.rst
    SeaIceConnector.rst
    ConnectorPool.rst
    IdPool.rst
-   notify.rst
 
 
 .. automodule:: seaice

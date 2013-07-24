@@ -11,22 +11,22 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: seaice
+.. automodule:: seaice.user
 
 .. inheritance-diagram::
-      seaice.BaseUser
-      seaice.AnonymousUser
-      seaice.User
+      seaice.user.BaseUser
+      seaice.user.AnonymousUser
+      seaice.user.User
 
-.. autoclass:: BaseUser
+.. autoclass:: seaice.user.BaseUser
    :members:
    :show-inheritance:
 
-.. autoclass:: User
+.. autoclass:: seaice.user.User
    :members:
    :show-inheritance:
 
-.. autoclass:: AnonymousUser 
+.. autoclass:: seaice.user.AnonymousUser 
    :members:
    :show-inheritance:
 

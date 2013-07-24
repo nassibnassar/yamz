@@ -1,4 +1,4 @@
-# Pretty.py - Pretty formatting for db table rows. There are routines defined
+# pretty.py - Pretty formatting for db table rows. There are routines defined
 # here for use in a terminal as well as on the web. 
 #
 # Copyright (c) 2013, Christopher Patton, all rights reserved.

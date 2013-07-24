@@ -29,7 +29,9 @@
 import os, sys, configparser, urlparse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
-import Pretty, Auth, Notification as notify
+import pretty
+import auth
+import notify
 
 ##
 # Some constants for stability calculation
@@ -1021,7 +1023,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM SI.%s" % table)
     rows = cur.fetchall()
-    Pretty.printAsJSObject(rows, fd)
+    pretty.printAsJSObject(rows, fd)
 
   ##
   # Import database from JSON formated "inf".

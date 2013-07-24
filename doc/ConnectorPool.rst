@@ -13,15 +13,11 @@ Contents:
  
 .. automodule:: seaice
 
-.. inheritance-diagram:: 
-      seaice.ConnectorPool
-      seaice.SeaIceConnectorPool
-
-.. autoclass:: ConnectorPool
+.. autoclass:: seaice.ConnectorPool
    :members:
    :show-inheritance:
 
-.. autoclass:: SeaIceConnectorPool
+.. autoclass:: seaice.SeaIceConnectorPool
    :members:
    :show-inheritance:
 

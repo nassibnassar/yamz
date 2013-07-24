@@ -28,11 +28,11 @@
 # 
 # This is the documentation for the SeaIce Python API. 
 #
+from SeaIceFlask import *
 from SeaIceConnector import *
 from ConnectorPool import *
 from IdPool import *
-from User import *
-from Auth import *
-from Pretty import *
-import Notification as notify
-from SeaIceFlask import *
+from user import *
+from auth import *
+from pretty import *
+import notify

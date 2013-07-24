@@ -1,4 +1,4 @@
-# Auth.py - credentials and datastructures for authenticating users through
+# auth.py - credentials and datastructures for authenticating users through
 # third party accounts. So far we have Google via the Oauth2 protocol. 
 #
 # Copyright (c) 2013, Christopher Patton, Nassib Nassar 
