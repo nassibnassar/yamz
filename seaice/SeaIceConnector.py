@@ -112,7 +112,7 @@ class SeaIceConnector:
 
       :param user: Name of DB role.
       :type user: str
-      :param passowrd: User's password.
+      :param password: User's password.
       :type password: str
       :param db: Name of database. 
       :type db: str

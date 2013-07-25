@@ -100,7 +100,7 @@ class SeaIceConnectorPool (ConnectorPool):
     :param user: Name of DB role (see :class:`seaice.SeaIceConnector.SeaIceConnector` for 
                  default behavior).
     :type user: str
-    :param passowrd: User's password.
+    :param password: User's password.
     :type password: str
     :param db: Name of database. 
     :type db: str

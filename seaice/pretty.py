@@ -27,7 +27,7 @@
 import sys, json, time, re, datetime
 from dateutil import tz
 
-## TODO find a better home for these scripts ##
+  ## Some JavaScripts that are embedded into some of the outputs. ##
 
 js_confirmRemoveTerm = """
   function ConfirmRemoveTerm(id) {
@@ -87,23 +87,35 @@ js_copyToClipboard = """
   }
 """
 
+#: Background color to display with term class. 
 colorOf = { 'vernacular' : '#FFFF66', 
             'canonical' : '#3CEB10', 
             'deprecated' : '#E8E8E8' }
 
+#: Name of months. See :func:`seaice.pretty.printPrettyDate`.
 monthOf = [ 'January', 'February', 'March', 
             'April', 'May', 'June', 
             'July', 'August', 'September', 
             'October', 'November', 'December' ]
 
-
+#: Regular expression for string matches.
 tag_regex = re.compile("#\{([^\{\}]*):([^\{\}]*)\}")
 
-##
-# Input an regular expression match and output as HTML. If there 
-# are syntax errors, simply return the raw tag.
-#
+
+
+  ## Processing tags in text areas. ##
+
 def _printTagAsHTML(db_con, m): 
+  """ Input a regular expression match and output the tag as HTML.
+  
+  A DB connector is required to resolve the term tring by ID. 
+  If there are syntax errors, simply return the raw tag. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
   (term_id, desc) = m.groups()
   try:
     term_id = int(term_id.strip())
@@ -115,23 +127,31 @@ def _printTagAsHTML(db_con, m):
   except: pass
   return m.group(0)
 
-
-##
-# Process tags in DB text entries into HTML. 
-#
 def processTags(db_con, string): 
+  """  Process tags in DB text entries into HTML. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param string: The input string. 
+  :returns: HTML-formatted string.
+  """
   return tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
     
   
 
-## Pretty prints ##
+  ## Pretty prints. ##
 
-##
-# Print date (to string). If a small amount of time 
-# has elapsed, then give this info. 
-# How to hanlde time difference from GET/POST requests? TODO
-#
 def printPrettyDate(T):
+  """ Format output of a timestamp. 
+
+    If a small amount of time has elapsed between *T_now* 
+    and *T*, then return the interval. **TODO:** This should
+    be localized based on the HTTP request. 
+
+  :param T: Timestamp. 
+  :type T: datetime.datetime
+  :rtype: str
+  """
   
   T = T.astimezone(tz.tzlocal())
   T_elapsed = (datetime.datetime.now(tz=tz.tzlocal()) - T)
@@ -149,21 +169,33 @@ def printPrettyDate(T):
   else: 
     return "%s %s %s" % (T.day, monthOf[T.month-1], T.year)
 
-
-  
-##
-# Write table rows in JSON format to 'fd'. #
 def printAsJSObject(rows, fd = sys.stdout):
+  """ Print table rows as JSON-formatted object. 
+
+  :param rows: Table rows. 
+  :type rows: dict iterator
+  :param fd: File descriptor to which to output the result (default is sys.stdout). 
+  :type fd: file
+  """
   for row in rows:
     for (col, value) in row.iteritems(): 
       if type(value) == datetime.datetime:
         row[col] = str(value)
   print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
 
-##
-# Print a nice paragraph. 
-#
 def printParagraph(db_con, text, leftMargin=8, width=60): 
+  """ Format some text into a nice paragraph for displaying in the terminal. 
+      Output the result directly to sys.stdout. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param text: The paragraph. 
+  :type text: str
+  :param leftMargin: Number of spaces to print before the start of each line. 
+  :type leftMargin: int
+  :param width: Number of characters to print per line. 
+  :type wdith: int
+  """
   lineLength = 0
   print " " * (leftMargin-1), 
   for word in text.split(" "):
@@ -175,10 +207,14 @@ def printParagraph(db_con, text, leftMargin=8, width=60):
       lineLength = 0
   print
     
-##
-# Print Terms table rows to the terminal. 
-#
 def printTermsPretty(db_con, rows):
+  """ Print term rows to terminal. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param rows: Table rows. 
+  :type rows: dict iterator
+  """
   for row in rows:
     print "Term: %-26s id No. %-7d created: %s" % ("%s (%d)" % (row['term_string'], 
                                                                 row["up"] - row["down"]),
@@ -193,20 +229,35 @@ def printTermsPretty(db_con, rows):
     print "\n    Ownership: %s" % db_con.getUserNameById(row['owner_id'])
     print
 
-##
-# Print a list of terms with HTML links to term pages (to string)
-#
-def printTermsAsLinks(rows): 
+def printTermsAsLinks(rows):
+  """ Print terms as a link list (pun intended). 
+
+  :param rows: Table rows. 
+  :type rows: dict iterator
+  :returns: HTML-formatted string. 
+  """
   string = ""
   for row in rows: 
     string += '<li><a href="/term=%d">%s</a></li>' % (row['id'], row['term_string'])
   return string
 
-##
-# Print Term in HTML (to string) 
-# 
-def printTermAsHTML(db_con, row, owner_id=0): 
-  vote = db_con.getVote(0 if not owner_id else owner_id, row['id'])
+def printTermAsHTML(db_con, row, user_id=0):
+  """ Format a term for the term page, e.g. `this <http://seaice.herokuapp.com/term=1001>`_.
+
+    This is the main page where you can look at a term. It includes a term definition, 
+    examples, a voting form, ownership, and other stuff.  
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param row: Term row. 
+  :type row: dict
+  :param user_id: Surrogate ID of user requesting the page. Defaults to 0 if session is 
+                  unauthenticated. 
+  :type user_id: int 
+  :returns: HTML-formatted string.
+  """
+
+  vote = db_con.getVote(0 if not user_id else user_id, row['id'])
   string = '<script>' + js_confirmRemoveTerm + js_termAction + js_copyToClipboard + '</script>'
 
   # Voting
@@ -229,7 +280,7 @@ def printTermAsHTML(db_con, row, owner_id=0):
   
   string += '    <br><a id="star" title="Track this term" href="#star"' + \
             '     onclick="return TermAction({1}, \'{0}\');">[{0}]</a><br> '.format(
-             ("unstar" if db_con.checkTracking(0 if not owner_id else owner_id, row['id']) else "star"), row['id'])
+             ("unstar" if db_con.checkTracking(0 if not user_id else user_id, row['id']) else "star"), row['id'])
   string += "  </td></tr>"
   
   # Name/Class
@@ -246,7 +297,7 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += "      <nobr><i>Created %s</i></nobr><br>" % printPrettyDate(row['created'])
   string += "      <nobr><i>Last modified %s</i></nobr><br>" % printPrettyDate(row['modified'])
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
-  if owner_id == row['owner_id']:
+  if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>""" % row['id']
@@ -270,18 +321,26 @@ def printTermAsHTML(db_con, row, owner_id=0):
   string += "</table>"
   return string
 
-
-##
-# Print Terms table rows as an HTML table (to string) 
-# 
-def printTermsAsHTML(db_con, rows, owner_id=0): 
+def printTermsAsHTML(db_con, rows, user_id=0): 
+  """ Format search results for display on the web page. 
+  
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param row: Term rows. 
+  :type row: dict iterator
+  :param user_id: Surrogate ID of user requesting the page. Defaults to 0 if session is 
+                  unauthenticated. 
+  :type user_id: int 
+  :returns: HTML-formatted string.
+  """
+  
   string = '<script>' + js_confirmRemoveTerm + '</script><table>'
   for row in rows:
     string += "  <tr>"
     string += "    <td valign=top width=75%><i>Term:</i>"
     string += "     <font size=\"3\"><strong>{0}</strong></font>".format(row['term_string'])
     string += "      <a href=\"/term=%d\">[view]</a>" % row['id']
-    if owner_id == row['owner_id']:
+    if user_id == row['owner_id']:
       string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
       string += """  <a id="removeTerm" title="Click to delete term" href="#"
                      onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
@@ -303,10 +362,20 @@ def printTermsAsHTML(db_con, rows, owner_id=0):
   string += "</table>"
   return string
 
-##
-# Print Terms table rows as abbreviated HTML table (to string)
-#
-def printTermsAsBriefHTML(db_con, rows, owner_id=0): 
+def printTermsAsBriefHTML(db_con, rows, user_id=0): 
+  """ Format table rows as abbreviated HTML table, e.g. 
+      `this <http://seaice.herokuapp.com/browse/volatile>`_.
+  
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param row: Term rows. 
+  :type row: dict iterator
+  :param user_id: Surrogate ID of user requesting the page. Defaults to 0 if session is 
+                  unauthenticated. 
+  :type user_id: int 
+  :returns: HTML-formatted string.
+  """
+
   string =  '<table width=70%>'
   string += '''<tr style="background-color:#E8E8E8"><td>Term</td>
                   <td>Score</td><td>Consensus</td><td>Class</td><td>Contributed by</td>
@@ -322,15 +391,24 @@ def printTermsAsBriefHTML(db_con, rows, owner_id=0):
   string += "</table>"
   return string
   
-##
-# Print Comments table rows as an HTML table (to string)
-# 
-def printCommentsAsHTML(db_con, rows, owner_id=0): 
+def printCommentsAsHTML(db_con, rows, user_id=0): 
+  """ Format comments for display on the term page. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param row: Comment rows. 
+  :type row: dict iterator
+  :param user_id: Surrogate ID of user requesting the page. Defaults to 0 if session is 
+                  unauthenticated. 
+  :type user_id: int 
+  :returns: HTML-formatted string.
+  """
+
   string = '<script>' + js_confirmRemoveComment + '</script><table>'
   for row in rows:
     string += "<tr>"
     string += "  <td align=left valign=top width=70%>{0}".format(processTags(db_con, row['comment_string']))
-    if owner_id == row['owner_id']:
+    if user_id == row['owner_id']:
       string += " <nobr><a href=\"/comment=%d/edit\">[edit]</a>" % row['id']
       string += """ <a id="removeComment" title="Click to remove this comment" href="#"
                     onclick="return ConfirmRemoveComment(%s);">[remove]</a></nobr>""" % row['id']
