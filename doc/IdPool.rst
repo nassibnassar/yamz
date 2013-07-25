@@ -3,10 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Id pool
-=======
+``class IdPool``
+================
 
-Contents:
+This class implements a surrogate identifier pool 
+for the DB tables ``SI.Terms``, ``SI.Users``, and ``SI.Users``. 
 
 .. toctree::
    :maxdepth: 2
@@ -17,8 +18,4 @@ Contents:
 .. autoclass:: seaice.IdPool.IdPool
    :members:
    :show-inheritance:
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

@@ -34,7 +34,7 @@ MAX_CONNECTIONS = 1
 
 class SeaIceFlask (Flask): 
   """ 
-    A subclass of the Flask. This includes various live data structures
+    A subclass of the main Flask interface. This includes various live data structures
     used in the web interface, as well as a pool of database connectors.
     All features in the SeaIce API that the top-level progams make use of
     are available as attributes of this class. 

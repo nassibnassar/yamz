@@ -28,11 +28,8 @@
 from flask_oauth import OAuth
 import os, stat, configparser
 
-## Local PostgreSQL server configuration ## 
+  ## Local PostgreSQL server configuration ## 
 
-##
-# Verify permissions of configuration file. 
-#
 def accessible_by_group_or_world(file):
   """ Verify the permissions of configuration file. 
       *Contributed by Nassib Nassar*.
@@ -44,10 +41,6 @@ def accessible_by_group_or_world(file):
   st = os.stat(file)
   return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
 
-## 
-# Get Local db configuration from $HOME/.seaice 
-# or file specified. 
-#
 def get_config(config_file = os.environ['HOME'] + '/.seaice'):
   """ Get local db configuration. *Contributed by Nassib Nassar*.
             
@@ -68,13 +61,14 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
   return config
 
 
+  ## Google authentication. ##
 
 #: Google authentication (OAuth)
 #: **TODO**: Change to *google_oauth*.
 oauth = OAuth()
 
-#: Variable prescribed by the Google Oauth API. 
-#: **TODO:** To accomadate othe authentication 
+#: Variable prescribed by the Google OAuth API. 
+#: **TODO:** To accomadate other authentication 
 #: services, change this to '/authorized/google'
 #: (also on code.google.com/apis/console).
 REDIRECT_URI = '/authorized' 
@@ -87,9 +81,7 @@ GOOGLE_CLIENT_ID = '173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleuse
 #: Google OAuth credentials, client secret. 
 GOOGLE_CLIENT_SECRET = '_Wmt-6SZXRMeaJVFXkuRH-rm'
 
-##
-# Google authentication. 
-#
+#: Google authentication.
 google = oauth.remote_app('google',
                           base_url='https://www.google.com/accounts/',
                           authorize_url='https://accounts.google.com/o/oauth2/auth',

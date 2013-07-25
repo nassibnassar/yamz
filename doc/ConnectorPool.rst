@@ -3,10 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-DB connector pool
-=================
+``class ConnectorPool``
+=======================
 
-Contents:
+This class implements a thread-safe DB connector pool in the typical way. 
+``ConnectorPool`` is the generic base class for ``SeaIceConnectorPool``
+which is should be used in practice.  
 
 .. toctree::
    :maxdepth: 2
@@ -27,10 +29,7 @@ Contents:
       seaice.ScopedSeaIceConnector
 
 .. autoclass:: seaice.ConnectorPool.ScopedSeaIceConnector
+   :noindex:
    :members:
    :show-inheritance:
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

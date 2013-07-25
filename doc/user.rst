@@ -3,10 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Users
-=====
+the ``user`` module
+===================
 
-Contents:
+This module implements the live data structures needed for Flask as well as
+notifications. See related topic: 
 
 .. toctree::
    :maxdepth: 2
@@ -32,10 +33,4 @@ Contents:
    :members:
    :show-inheritance:
 
-
-
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

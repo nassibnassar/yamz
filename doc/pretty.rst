@@ -3,10 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Formatting output
-=================
+The ``pretty`` module
+=====================
 
-Contents:
+This module implements various output-formatters that I've have been found
+useful for creating web pages and console output.
 
 .. toctree::
    :maxdepth: 2
@@ -16,13 +17,17 @@ Contents:
 .. autofunction:: seaice.pretty.printPrettyDate
 .. autofunction:: seaice.pretty.processTags
 
-These are for the terminal.
+==========
+Plain text
+==========
 
 .. autofunction:: seaice.pretty.printAsJSObject
 .. autofunction:: seaice.pretty.printParagraph
 .. autofunction:: seaice.pretty.printTermsPretty
 
-These are for web browsers. 
+====
+HTML
+====
 
 .. autofunction:: seaice.pretty.printTermAsHTML
 .. autofunction:: seaice.pretty.printTermsAsHTML
@@ -30,7 +35,4 @@ These are for web browsers.
 .. autofunction:: seaice.pretty.printTermsAsLinks
 .. autofunction:: seaice.pretty.printCommentsAsHTML
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

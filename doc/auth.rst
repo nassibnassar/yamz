@@ -6,7 +6,14 @@
 Authentication
 ===================
 
-Contents:
+This module contains the various data structures used for authenticating
+sessions. *SeaIce* doesn't handle user accounts directly; instead, it 
+utilizes third-party authentication services to make it easy for users 
+log on with existing accounts. So far, only Google account authentication
+is implemented. To add other authenticator services -- Facebook, OpenID, 
+and StackOverflow to name a few -- it will be necessary to restructure 
+this code a bit (noted below). In addition, this will require changing
+``ice`` a fair amount. 
 
 .. automodule:: seaice.auth
 
@@ -18,10 +25,4 @@ Contents:
 .. autodata:: seaice.auth.GOOGLE_CLIENT_ID
 .. autodata:: seaice.auth.GOOGLE_CLIENT_SECRET
 .. autodata:: seaice.auth.google
-
-
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

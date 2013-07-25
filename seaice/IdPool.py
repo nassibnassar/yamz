@@ -29,11 +29,14 @@ from threading import Lock
 class IdPool:
   """ 
     A thread-safe object for producing and consuming table row IDs within 
-    a particluar context, i.e. Terms, Users, Comments. When initialized, 
-    an instance queries the table for all assigned IDs in ascending order. 
-    Continuous regions of unassigned IDs are found and added to the pool. 
-    The highest assigned ID is noticed so that when the pool is empty, the 
-    producer function returns the next highest avaialble.
+    a particluar context, i.e. ``SI.Terms``, ``SI.Users``, and ``SI.Comments``. 
+    When initialized, an instance queries the table for all assigned IDs in 
+    ascending order. Continuous regions of unassigned IDs are found and added 
+    to the pool. The highest assigned ID is noticed so that when the pool is 
+    empty, the producer function returns the next highest avaialble.
+
+    **TODO** This could be made more space-efficient by combining contiguous 
+    free IDs into ranges.
 
   :param db_con: Connection to the SeaIce database.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector

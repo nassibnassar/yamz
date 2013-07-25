@@ -72,7 +72,8 @@ def calculateStability(S, p_S, T_now, T_last, T_stable):
   """Calculate term stability, returning the time point when the term 
      become stable (as a datetime.datetime) or None if it's not stable. 
      This is based on the rate of change of the consensus score: 
-     delta_S = (S - P_s) / (T_now - T_last) 
+     
+        ``delta_S = (S - P_s) / (T_now - T_last)``
     
      :param T_now: Current time.
      :type T_now: datetime.datetime
@@ -105,17 +106,22 @@ def calculateStability(S, p_S, T_now, T_last, T_stable):
 orderOfClass = { 'deprecated' : 2, 'vernacular' : 1, 'canonical' : 0 }
 
 class SeaIceConnector: 
-  """ Connection to the PostgreSQL database. Create or drop schema, 
-      tables, and triggers, encapsulation of all the queries we need. 
-      If the parameters are unspecified, then attempt to connect to a foreign database specified by the 
-      environment variable DATABASE_URL. This is to support Heroku's functionality. 
+  """ Connection to the PostgreSQL database. 
+      
+    This object is capable of either connecting to a local database
+    (specified by the parameters) or a remote database specified by
+    the environment variable ``DATABASE_URL`` if no paramters are 
+    given. This is to support Heroku functionality. For local testing 
+    with your Heroku-Postgres based database, do 
 
-      :param user: Name of DB role.
-      :type user: str
-      :param password: User's password.
-      :type password: str
-      :param db: Name of database. 
-      :type db: str
+    ``export DATABAE_URL=$(heroku config:get DATABASE_URL) && ./ice --config=heroku``
+
+  :param user: Name of DB role.
+  :type user: str
+  :param password: User's password.
+  :type password: str
+  :param db: Name of database. 
+  :type db: str
   """
 
   def __init__(self, user=None, password=None, db=None):
@@ -125,7 +131,8 @@ class SeaIceConnector:
       urlparse.uses_netloc.append("postgres")
       url = urlparse.urlparse(os.environ["DATABASE_URL"])
 
-      #: The PostgreSQL database connection.
+      #: The PostgreSQL database connector provided 
+      #: by the psycopg2 package. 
       self.con = pgdb.connect(
         database=url.path[1:],
         user=url.username,
@@ -147,8 +154,9 @@ class SeaIceConnector:
 
   def createSchema(self):
     """ 
-      Create a schema for the SeaIce database that includes the tables
-      Users, Terms, and Comments, and update triggers. 
+      Create the ``SI`` schema for SeaIce with the tables ``SI.Users``, 
+      ``SI.Terms``, ``SI.Comments``, ``SI.Tracking`` (vote and star), 
+      and various triggers; create ``SI_Notify`` with ``SI_Notify.Notify``.
     """
     
     cur = self.con.cursor()
@@ -292,7 +300,7 @@ class SeaIceConnector:
     )
 
   def dropSchema(self): 
-    """ Drop SeaIce schema. """
+    """ Drop ``SI`` and ``SI_Notify`` schemas. """
     cur = self.con.cursor()
     cur.execute("DROP SCHEMA SI CASCADE")
     cur.execute("DROP SCHEMA IF EXISTS SI_Notify CASCADE")
@@ -307,7 +315,7 @@ class SeaIceConnector:
     return self.con.commit()
 
   def getTime(self):
-    """ Get T_now timestamp according to database. This is important when
+    """ Get *T_now* timestamp according to database. This is important when
         the SeaIce database is deployed to some anonymous server farm.
 
     :rtype: datetime.datetime
@@ -319,7 +327,7 @@ class SeaIceConnector:
     ## Term queries ##
 
   def insertTerm(self, term): 
-    """ Add a term to the database and return the term's Id (None if failed) 
+    """ Add a term to the database and return the term's ID. 
 
     :param term: Term row to be inserted. Default values will be used for 
                  omitted columns.
@@ -408,7 +416,7 @@ class SeaIceConnector:
     return cur.fetchone()
   
   def getTermString(self, id): 
-    """ Get term string by Id.
+    """ Get term string by ID.
 
     :param id: Term ID.
     :type id: int
@@ -421,7 +429,7 @@ class SeaIceConnector:
     else:   return None
   
   def getAllTerms(self, sortBy=None): 
-    """ Return an iterator over all term rows in table. 
+    """ Return an iterator over ``SI.Terms``. 
 
     :param sortBy: Column by which sort the results in ascending order.
     :type sortBy: str
@@ -613,7 +621,7 @@ class SeaIceConnector:
     return cur.fetchone()
   
   def getAllUsers(self): 
-    """ Return an iterator over all terms (rows) in table. 
+    """ Return an iterator over ``SI.Users``. 
 
     :rtype: dict iterator
     """ 
@@ -626,7 +634,7 @@ class SeaIceConnector:
     """ Get user identified by an authentication ID. It's assumed that this ID 
         is unique in the context of a particular authority, such as Google. 
 
-    TODO: originally I planned to use (authority, auth_id) as the unique 
+    **TODO:** originally I planned to use (authority, auth_id) as the unique 
     constraint on the SI.Users table. My guess is that most, if not all 
     services have an associated email address. The unique constraint is 
     actually the user's email. This method should be replaced.  
@@ -651,7 +659,7 @@ class SeaIceConnector:
     :type id: int
     :param full: Get full name
     :type full: bool
-    :returns: If full is set, then return the first and last name of the user. 
+    :returns: If *full* is set, then return the first and last name of the user. 
               Otherwise, just return the first name. 
     :rtype: str or None
     """
@@ -726,7 +734,7 @@ class SeaIceConnector:
     ## Comment queries ##
     
   def insertComment(self, comment): 
-    """ Insert a new comment into the database and return ID of newly inserted term. 
+    """ Insert a new comment into the database and return ID.
 
     :param comment: New comment as dictionary. Default values will be used for ommitted 
                     columns. 
@@ -770,7 +778,7 @@ class SeaIceConnector:
     
     :param id: Comment ID. 
     :type id: int
-    :rtype: int
+    :rtype: int or None
     """ 
     cur = self.con.cursor()
     cur.execute("DELETE FROM SI.Comments WHERE id=%d RETURNING id" % id)
@@ -850,7 +858,7 @@ class SeaIceConnector:
       raise e
 
   def getVote(self, user_id, term_id): 
-    """ Get user's vote for a term
+    """ Get user's vote for a term.
 
     :param user_id: User ID. 
     :type user_id: int
@@ -896,7 +904,7 @@ class SeaIceConnector:
     else: return 0
 
   def checkTracking(self, user_id, term_id):
-    """ Check tracking
+    """ Check tracking.
 
     :rtype: bool
     """
@@ -910,12 +918,12 @@ class SeaIceConnector:
 
   def preScore(self, term_id):
     """ Prescore term. Returns a tuple of dictionaries (User.Id -> User.Reputation) 
-        of up voters and down voters (U, D).
+        of up voters and down voters (*U, D*).
 
     :param term_id: Term ID. 
     :type term_id: int
-    :returns: (U, D)
-    :rtype: ((int --> int), (int --> int)) 
+    :returns: (*U, D*)
+    :rtype: ((*int --> int*), (*int --> int*)) 
     """ 
     cur = self.con.cursor()
     cur.execute("""SELECT v.user_id, v.vote, u.reputation
@@ -935,9 +943,9 @@ class SeaIceConnector:
         compute the consensus score. Update the term row as a side-affect. 
 
     :param U: Up voters. 
-    :type U: (int --> int) 
+    :type U: int --> int 
     :param D: Down voters. 
-    :type D: (int --> int)
+    :type D: int --> int
     """
     cur = self.con.cursor()
     cur.execute("SELECT COUNT(*) FROM SI.Users")
@@ -1014,8 +1022,8 @@ class SeaIceConnector:
 
 
   def classifyTerm(self, term_id):
-    """ Check if Term is stable. If so, classify it as being canonical, vernacular, 
-        or deprecated. Update term and Return class as string.
+    """ Check if term is stable. If so, classify it as being *canonical*, *vernacular*, 
+        or *deprecated*. Update term and return class as string.
 
     :returns: 'canonical', 'vernacular', or 'deprecated'.
     :rtype: class
@@ -1061,7 +1069,7 @@ class SeaIceConnector:
     ## Notification queries ##
 
   def getAllNotifications(self):
-    """ Get all notifications. 
+    """ Return an iterator over ``SI_Notify.Notify``. 
 
     :rtype: dict iterator
     """
@@ -1135,7 +1143,7 @@ class SeaIceConnector:
 
 
   def Export(self, table, outf=None):
-    """ Export database in JSON format to "outf". If no file name 
+    """ Export database in JSON format to *outf*. If no file name 
         provided, dump to standard out. 
 
     :param table: Name of table.
@@ -1158,7 +1166,7 @@ class SeaIceConnector:
     pretty.printAsJSObject(rows, fd)
 
   def Import(self, table, inf=None): 
-    """ Import database from JSON formated "inf".
+    """ Import database from JSON formated *inf*.
 
     :param table: Name of table. 
     :type table: str
