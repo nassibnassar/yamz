@@ -40,7 +40,7 @@ The prototype is deployed on `Heroku <http://www.heroku.com>`_. The source code 
 project is distributed under the terms of the BSD license and is published on 
 `github <http://www.github.com/cjpatton/seaice>`_. 
 
-*SeaIce* was originally developed by `Christopher Patton <http://cjpatton.sdf.org>`_.
+*SeaIce* was originally developed by `Christopher Patton <http://cjpatton.sdf.org>`_
 as an internship for `DataONE <http://www.dataone.org>`_. CSS and JavaScript templates
 were contributed by Karthik Ram. 
 
