@@ -34,6 +34,13 @@ import os, stat, configparser
 # Verify permissions of configuration file. 
 #
 def accessible_by_group_or_world(file):
+  """ Verify the permissions of configuration file. 
+      *Contributed by Nassib Nassar*.
+
+  :param file: File name.
+  :type file: str
+  :rtype: bool
+  """
   st = os.stat(file)
   return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
 
@@ -42,6 +49,15 @@ def accessible_by_group_or_world(file):
 # or file specified. 
 #
 def get_config(config_file = os.environ['HOME'] + '/.seaice'):
+  """ Get local db configuration. *Contributed by Nassib Nassar*.
+            
+    Structure with DB connection parameters for particular 
+    roles. See the top-level program *ice* for example usage.  
+
+  :param config_file: File Name.
+  :type config_file: str
+  :rtype: dict 
+  """
   if accessible_by_group_or_world(config_file):
     print ('error: config file ' + config_file +
       ' has group or world ' +
@@ -51,22 +67,24 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
   config.read(config_file)
   return config
 
-## Google authentication (Oauth) ##
 
+
+#: Google authentication (OAuth)
+#: **TODO**: Change to *google_oauth*.
 oauth = OAuth()
 
-##
-# Google redirect URI 
-# @REDIRECT_URI
-REDIRECT_URI = '/authorized' # TODO Change to '/authorized/google' (also on 
-                             # code.google.com/apis/console). 
-##
-# These credentials are for localhost testing. The actual values for 
-# the SeaIce dictionary deployed to seaice.herokuapp.com are not 
-# published. 
-# @GOOGLE_CLIENT_ID
-# @GOOGLE_CLIENT_SECRET
+#: Variable prescribed by the Google Oauth API. 
+#: **TODO:** To accomadate othe authentication 
+#: services, change this to '/authorized/google'
+#: (also on code.google.com/apis/console).
+REDIRECT_URI = '/authorized' 
+
+#: Google OAuth credentials, client ID. These values are generated
+#: from code.google.com/apis. Note that the actual values for the 
+#: online deployment of SeaIce aren't published. 
 GOOGLE_CLIENT_ID = '173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleusercontent.com'
+
+#: Google OAuth credentials, client secret. 
 GOOGLE_CLIENT_SECRET = '_Wmt-6SZXRMeaJVFXkuRH-rm'
 
 ##
