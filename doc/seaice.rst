@@ -24,8 +24,28 @@ Contents:
 
 .. automodule:: seaice.SeaIceFlask
 .. autoclass:: seaice.SeaIceFlask.SeaIceFlask
-   :members:
    :show-inheritance:
+
+.. attribute:: SeaIceFlask.dbPool
+    
+    :type: :class:`seaice.ConnectorPool.SeaIceConnectorPool`
+
+.. attribute:: SeaIceFlask.userIdPool
+    
+    :type: :class:`seaice.IdPool`
+
+.. attribute:: SeaIceFlask.termIdPool
+    
+    :type: :class:`seaice.IdPool`
+
+.. attribute:: SeaIceFlask.commentIdPool
+    
+    :type: :class:`seaice.IdPool`
+
+.. attribute:: SeaIceFlask.SeaIceUsers
+    
+    :type: :class:`seaice.user.User` dict
+
 
 .. autodata:: seaice.SeaIceFlask.MAX_CONNECTIONS
 

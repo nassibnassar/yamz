@@ -1,6 +1,4 @@
-# SeaIceFlask.py - subclass of Flask. This will store some live
-# datastructures in the applicaiton context, including Users, 
-# notificaitons, Id pools, Db connector pools, etc.
+# SeaIceFlask.py - subclass of Flask. 
 #
 # Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
@@ -31,11 +29,24 @@ from IdPool import *
 import notify
 import user
 
+#: The number of DB connections that will be instantiated. 
 MAX_CONNECTIONS = 1
 
-## class SeaIceFlask
-#
 class SeaIceFlask (Flask): 
+  """ 
+    A subclass of the Flask. This includes various live data structures
+    used in the web interface, as well as a pool of database connectors.
+    All features in the SeaIce API that the top-level progams make use of
+    are available as attributes of this class. 
+
+  :param user: Name of DB role (see :class:`seaice.SeaIceConnector.SeaIceConnector` for 
+               default behavior).
+  :type user: str
+  :param passowrd: User's password.
+  :type password: str
+  :param db: Name of database. 
+  :type db: str
+  """
   
   def __init__(self, import_name, static_path=None, static_url_path=None,
                      static_folder='static', template_folder='templates',
@@ -46,16 +57,17 @@ class SeaIceFlask (Flask):
                          static_folder, template_folder,
                          instance_path, instance_relative_config)
 
-    # DB connector pool
+    #: DB connector pool.
     self.dbPool = SeaIceConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
 
-    # Id pools    
+    # Id pools.
     db_con = self.dbPool.getScoped()
-    self.userIdPool = IdPool(db_con, "Users")
-    self.termIdPool = IdPool(db_con, "Terms")
-    self.commentIdPool = IdPool(db_con, "Comments")
+    
+    self.userIdPool = IdPool(db_con, "Users") #: Pool for user surrogate IDs. 
+    self.termIdPool = IdPool(db_con, "Terms") #: Pool for term surrogate IDs. 
+    self.commentIdPool = IdPool(db_con, "Comments") #: Pool for comment surrogate IDs.
      
-    # User structures
+    #: Live User data structures. This includes storage of notifications. 
     self.SeaIceUsers = {}
     for row in db_con.getAllUsers():
       self.SeaIceUsers[row['id']] = user.User(row['id'], 
