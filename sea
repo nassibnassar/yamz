@@ -117,7 +117,7 @@ try:
 
   else: 
     try: 
-      config = seaice.get_config(options.config_file)
+      config = seaice.auth.get_config(options.config_file)
     except OSError: 
       print >>sys.stderr, "error: config file '%s' not found" % options.config_file
       sys.exit(1)
@@ -159,7 +159,7 @@ try:
     if options.json:
       sea.Export('Terms')
     else:
-      seaice.printTermsPretty(sea, sea.getAllTerms(sortBy="term_string"))
+      seaice.pretty.printTermsPretty(sea, sea.getAllTerms(sortBy="term_string"))
 
   header = True
   if options.score: 
@@ -187,10 +187,10 @@ try:
   if options.search_term:
     terms = sea.search(options.search_term)
     if options.json: 
-      sea.printAsJSObject(terms)
+      seaice.pretty.printAsJSObject(terms)
     elif len(terms) == 0: 
       print >>sys.stderr, "sea: no matches for '%s'" % options.search_term
-    else: seaice.printTermsPretty(sea, terms)
+    else: seaice.pretty.printTermsPretty(sea, terms)
 
   ## Commit database mutations. ##
   sea.commit()

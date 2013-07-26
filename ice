@@ -26,7 +26,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import seaice
-from seaice import SeaIceFlask
 from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash
@@ -77,13 +76,13 @@ db_config = None
 try:
 
   if options.config_file == "heroku": 
-    app = SeaIceFlask(__name__)
+    app = seaice.SeaIceFlask(__name__)
 
   else: 
-    db_config = seaice.get_config(options.config_file)
-    app = SeaIceFlask(__name__, db_user = db_config.get(options.db_role, 'user'),
-                                db_password = db_config.get(options.db_role, 'password'),
-                                db_name = db_config.get(options.db_role, 'dbname'))
+    db_config = seaice.auth.get_config(options.config_file)
+    app = seaice.SeaIceFlask(__name__, db_user = db_config.get(options.db_role, 'user'),
+                                       db_password = db_config.get(options.db_role, 'password'),
+                                       db_name = db_config.get(options.db_role, 'dbname'))
 
 except pgdb.DatabaseError, e:
   print >>sys.stderr, 'error: %s' % e    
@@ -95,7 +94,7 @@ app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
 
 login_manager = l.LoginManager()
 login_manager.init_app(app)
-login_manager.anonymous_user = seaice.AnonymousUser
+login_manager.anonymous_user = seaice.user.AnonymousUser
 
   ## Prescore terms ##
   # This will be used to check for consistency errors in live scoring
@@ -141,8 +140,8 @@ def index():
     g.db = app.dbPool.getScoped()
       # TODO Store these values in class User in order to prevent
       # these queries every time the homepage is accessed.  
-    my = seaice.printTermsAsLinks(g.db.getTermsByUser(l.current_user.id))
-    star = seaice.printTermsAsLinks(g.db.getTermsByTracking(l.current_user.id))
+    my = seaice.pretty.printTermsAsLinks(g.db.getTermsByUser(l.current_user.id))
+    star = seaice.pretty.printTermsAsLinks(g.db.getTermsByTracking(l.current_user.id))
     notify = l.current_user.getNotificationsAsHTML(g.db)
     return render_template("index.html", user_name = l.current_user.name,
                                          my = Markup(my.decode('utf-8')) if my else None,
@@ -183,10 +182,10 @@ def login():
 @app.route("/login/google")
 def login_google():
   callback=url_for('authorized', _external=True)
-  return seaice.google.authorize(callback=callback)
+  return seaice.auth.google.authorize(callback=callback)
 
-@app.route(seaice.REDIRECT_URI)
-@seaice.google.authorized_handler
+@app.route(seaice.auth.REDIRECT_URI)
+@seaice.auth.google.authorized_handler
 def authorized(resp):
   access_token = resp['access_token']
   session['access_token'] = access_token, ''
@@ -212,7 +211,7 @@ def authorized(resp):
     g.db.insertUser(g_user)
     g.db.commit()
     user = g.db.getUserByAuth('google', g_user['auth_id'])
-    app.SeaIceUsers[user['id']] = seaice.User(user['id'], user['first_name'])
+    app.SeaIceUsers[user['id']] = seaice.user.User(user['id'], user['first_name'])
     l.login_user(app.SeaIceUsers.get(user['id']))
     return render_template("settings.html", user_name = l.current_user.name,
                                             email = g_user['email'],
@@ -226,7 +225,7 @@ def authorized(resp):
   return redirect(url_for('index'))
 
 
-@seaice.google.tokengetter
+@seaice.auth.google.tokengetter
 def get_access_token():
   return session.get('access_token')
 
@@ -321,9 +320,9 @@ def getTerm(term_id = None, message = ""):
   try: 
     term = g.db.getTerm(int(term_id))
     if term:
-      result = seaice.printTermAsHTML(g.db, term, l.current_user.id)
+      result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
       result = message + "<hr>" + result + "<hr>"
-      result += seaice.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
+      result += seaice.pretty.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
                                                  l.current_user.id)
       if l.current_user.id:
         result += """ 
@@ -362,23 +361,23 @@ def browse(listing = None):
     )
  
   if listing == "recent": # Most recently added listing 
-    result += seaice.printTermsAsBriefHTML(g.db, 
+    result += seaice.pretty.printTermsAsBriefHTML(g.db, 
                                            sorted(terms, key=lambda term: term['modified'],
                                                          reverse=True),
                                            l.current_user.id)
   
   elif listing == "score": # Highest consensus
     terms = sorted(terms, key=lambda term: term['consensus'], reverse=True)
-    result += seaice.printTermsAsBriefHTML(g.db, 
+    result += seaice.pretty.printTermsAsBriefHTML(g.db, 
       sorted(terms, key=lambda term: term['up'] - term['down'], reverse=True), l.current_user.id)
 
   elif listing == "volatile": # Least stable (Frequent updates, commenting, and voting)
     terms = sorted(terms, key=lambda term: term['t_stable'] or term['t_last'], reverse=True)
-    result += seaice.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
+    result += seaice.pretty.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
 
   elif listing == "stable": # Most stable, highest consensus
     terms = sorted(terms, key=lambda term: term['t_stable'] or term['t_last'])
-    result += seaice.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
+    result += seaice.pretty.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
     
   elif listing == "alphabetical": # Alphabetical listing 
     result += "<table>"
@@ -410,7 +409,7 @@ def returnQuery():
       return render_template("search.html", user_name = l.current_user.name, 
                                             term_string = request.form['term_string'])
     else:
-      result = seaice.printTermsAsHTML(g.db, terms, l.current_user.id)
+      result = seaice.pretty.printTermsAsHTML(g.db, terms, l.current_user.id)
       return render_template("search.html", user_name = l.current_user.name, 
         term_string = request.form['term_string'], result = Markup(result.decode('utf-8')))
 

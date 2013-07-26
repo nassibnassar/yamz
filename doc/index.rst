@@ -20,7 +20,7 @@ out the prototype at `seaice.herokuapp.com <http://seaice.herokuapp.com>`_.
 complete documentation of the API. 
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4 
 
    seaice.rst 
    scoring.rst

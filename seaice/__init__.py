@@ -32,7 +32,4 @@ from SeaIceFlask import *
 from SeaIceConnector import *
 from ConnectorPool import *
 from IdPool import *
-from user import *
-from auth import *
-from pretty import *
-import notify
+import notify, user, auth, pretty 
