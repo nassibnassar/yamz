@@ -6,8 +6,6 @@
 Term scoring and classification
 ===============================
 
-Contents:
-
 .. automodule:: seaice.SeaIceConnector
 
 .. autofunction:: seaice.SeaIceConnector.calculateConsensus
@@ -18,8 +16,4 @@ Contents:
 .. autodata:: stabilityInterval
 .. autodata:: stabilityConsensusIntervalHigh
 .. autodata:: stabilityConsensusIntervalLow
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

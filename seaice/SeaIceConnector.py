@@ -43,8 +43,10 @@ stabilityError = 0.10
 
 stabilityFactor = 3600 #: Convert seconds (datetime.timedelta.seconds) to hours. 
 
-stabilityInterval = 4  #: Interval (in hours) for which.
-
+#: Interval (in hours) for which a term must
+#: be stable in order to be classified. 
+stabilityInterval = 4  
+        
 stabilityConsensusIntervalHigh = 0.75 #: Classify stable term as canonical.
 stabilityConsensusIntervalLow =  0.25 #: Classify stable term as deprecated.
 
