@@ -55,7 +55,7 @@ parser.add_option("--config", dest="config_file", metavar="FILE",
                   help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice'). " + 
                        "If 'heroku' is given, then a connection to a foreign host specified by " + 
                        "DATABASE_URL is established.",
-                  default=(os.environ['HOME'] + '/.seaice'))
+                  default='heroku')
 
 parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
                   help="Start flask in debug mode.")
@@ -88,6 +88,8 @@ except pgdb.DatabaseError, e:
   print >>sys.stderr, 'error: %s' % e    
   sys.exit(1)
 
+app.debug = True
+app.use_reloader = False
 app.secret_key = 'MISSING'
 
   ## Session logins ##
@@ -645,7 +647,6 @@ def remComment(comment_id):
               """Error! You may only edit or remove your own comments.""")
 
 
-
   ## Voting! ##
 
 @app.route("/term=<int:term_id>/vote", methods=['POST'])
@@ -681,11 +682,7 @@ def trackTerm(term_id):
   print "User #%d %sed term #%d" % (l.current_user.id, request.form['action'], term_id)
   return redirect("/term=%d" % term_id)
 
-
-
-## Start HTTP server. ##
-
-if __name__ == '__main__':
-    app.debug = True
-    app.run('0.0.0.0', 5000, use_reloader=True)
-
+## Start HTTP server. (Not relevant on Heroku.) ##
+#if __name__ == '__main__':
+#    app.debug = True
+#    app.run('0.0.0.0', 5000, use_reloader = False)

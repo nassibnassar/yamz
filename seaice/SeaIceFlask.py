@@ -30,7 +30,7 @@ import notify
 import user
 
 #: The number of DB connections that will be instantiated. 
-MAX_CONNECTIONS = 1
+MAX_CONNECTIONS = 10
 
 class SeaIceFlask (Flask): 
   """ 
