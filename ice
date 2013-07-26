@@ -88,7 +88,7 @@ except pgdb.DatabaseError, e:
   print >>sys.stderr, 'error: %s' % e    
   sys.exit(1)
 
-app.secret_key = "\x14\x16o2'\x9c\xa3\x9c\x95k\xb3}\xac\xbb=\x1a\xe1\xf2\xc8!"
+app.secret_key = 'MISSING'
 
   ## Session logins ##
 

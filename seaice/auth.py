@@ -76,10 +76,10 @@ REDIRECT_URI = '/authorized'
 #: Google OAuth credentials, client ID. These values are generated
 #: from code.google.com/apis. Note that the actual values for the 
 #: online deployment of SeaIce aren't published. 
-GOOGLE_CLIENT_ID = '173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleusercontent.com'
+GOOGLE_CLIENT_ID = 'MISSING'
 
 #: Google OAuth credentials, client secret. 
-GOOGLE_CLIENT_SECRET = '_Wmt-6SZXRMeaJVFXkuRH-rm'
+GOOGLE_CLIENT_SECRET = 'MISSING'
 
 #: Google authentication.
 google = oauth.remote_app('google',
