@@ -1,0 +1,232 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>class ConnectorPool &mdash; SeaIce 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SeaIce 0.1 documentation" href="index.html" />
+    <link rel="up" title="The seaice package" href="seaice.html" />
+    <link rel="next" title="class IdPool" href="IdPool.html" />
+    <link rel="prev" title="class SeaIceConnector – interface for PostgreSQL DB" href="SeaIceConnector.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="IdPool.html" title="class IdPool"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="SeaIceConnector.html" title="class SeaIceConnector – interface for PostgreSQL DB"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" accesskey="U">The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="class-connectorpool">
+<h1><tt class="docutils literal"><span class="pre">class</span> <span class="pre">ConnectorPool</span></tt><a class="headerlink" href="#class-connectorpool" title="Permalink to this headline">¶</a></h1>
+<p>This class implements a thread-safe DB connector pool in the typical way.
+<tt class="docutils literal"><span class="pre">ConnectorPool</span></tt> is the generic base class for <tt class="docutils literal"><span class="pre">SeaIceConnectorPool</span></tt>
+which is should be used in practice.</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+<span class="target" id="module-seaice"></span><span class="target" id="module-seaice.ConnectorPool"></span><dl class="class">
+<dt id="seaice.ConnectorPool.ConnectorPool">
+<em class="property">class </em><tt class="descclassname">seaice.ConnectorPool.</tt><tt class="descname">ConnectorPool</tt><big>(</big><em>Connector</em>, <em>count=20</em>, <em>user=None</em>, <em>password=None</em>, <em>db=None</em><big>)</big><a class="reference internal" href="_modules/seaice/ConnectorPool.html#ConnectorPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.ConnectorPool.ConnectorPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>A thread-safe connection pool.</p>
+<p>TODO: Make this an actual queue, not a stack. Nomenclature is imporant
+sometimes.</p>
+<dl class="method">
+<dt id="seaice.ConnectorPool.ConnectorPool.dequeue">
+<tt class="descname">dequeue</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seaice/ConnectorPool.html#ConnectorPool.dequeue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.ConnectorPool.ConnectorPool.dequeue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get connector.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">seaice.SeaIceConnector.SeaIceConnector</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.ConnectorPool.ConnectorPool.enqueue">
+<tt class="descname">enqueue</tt><big>(</big><em>db_con</em><big>)</big><a class="reference internal" href="_modules/seaice/ConnectorPool.html#ConnectorPool.enqueue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.ConnectorPool.ConnectorPool.enqueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Release connector.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; The connector.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="seaice.ConnectorPool.SeaIceConnectorPool">
+<em class="property">class </em><tt class="descclassname">seaice.ConnectorPool.</tt><tt class="descname">SeaIceConnectorPool</tt><big>(</big><em>count=20</em>, <em>user=None</em>, <em>password=None</em>, <em>db=None</em><big>)</big><a class="reference internal" href="_modules/seaice/ConnectorPool.html#SeaIceConnectorPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.ConnectorPool.SeaIceConnectorPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seaice.ConnectorPool.ConnectorPool" title="seaice.ConnectorPool.ConnectorPool"><tt class="xref py py-class docutils literal"><span class="pre">seaice.ConnectorPool.ConnectorPool</span></tt></a></p>
+<p>A thread-safe connection pool which can produce scoped SeaIce 
+connectors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>count</strong> (<em>int</em>) &#8211; Size of the pool.</li>
+<li><strong>user</strong> (<em>str</em>) &#8211; Name of DB role (see <a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceConnector.SeaIceConnector</span></tt></a> for 
+default behavior).</li>
+<li><strong>password</strong> (<em>str</em>) &#8211; User&#8217;s password.</li>
+<li><strong>db</strong> (<em>str</em>) &#8211; Name of database.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="seaice.ConnectorPool.SeaIceConnectorPool.getScoped">
+<tt class="descname">getScoped</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seaice/ConnectorPool.html#SeaIceConnectorPool.getScoped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.ConnectorPool.SeaIceConnectorPool.getScoped" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a scoped connector from the pool.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">seaice.SeaIceConnector.SeaIceConnector</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<p class="graphviz">
+<img src="_images/inheritance-1ae302f782c95272cc88348b3660f39a794538b3.png" alt="Inheritance diagram of seaice.SeaIceConnector, seaice.ScopedSeaIceConnector" usemap="#inheritancecd7b16f004" class="inheritance"/>
+<map id="inheritancecd7b16f004" name="inheritancecd7b16f004">
+<area shape="rect" id="node1" href="SeaIceConnector.html#seaice.ConnectorPool.ScopedSeaIceConnector" title="seaice.ConnectorPool.ScopedSeaIceConnector" alt="" coords="343,5,663,33"/>
+<area shape="rect" id="node2" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector" alt="" coords="5,5,293,33"/>
+</map>
+</p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">seaice.ConnectorPool.</tt><tt class="descname">ScopedSeaIceConnector</tt><big>(</big><em>pool</em>, <em>db_con</em><big>)</big><a class="reference internal" href="_modules/seaice/ConnectorPool.html#ScopedSeaIceConnector"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceConnector.SeaIceConnector</span></tt></a></p>
+<p>A SeaIce DB Connector which is released to the pool it from whence it 
+came when it goes out of scope. This type of connector is produced by 
+<a class="reference internal" href="#seaice.ConnectorPool.SeaIceConnectorPool.getScoped" title="seaice.ConnectorPool.SeaIceConnectorPool.getScoped"><tt class="xref py py-func docutils literal"><span class="pre">seaice.ConnectorPool.SeaIceConnectorPool.getScoped()</span></tt></a>
+and should not be used directly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pool</strong> (<a class="reference internal" href="#seaice.ConnectorPool.SeaIceConnectorPool" title="seaice.ConnectorPool.SeaIceConnectorPool"><em>seaice.ConnectorPool.SeaIceConnectorPool</em></a>) &#8211; The pool from which this connector originates. 
+When the destructor is called, the connection is enqueued 
+int to the pool.</li>
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; The connector.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="SeaIceConnector.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceConnector</span></tt> &#8211; interface for PostgreSQL DB</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="IdPool.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">IdPool</span></tt></a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ConnectorPool.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="IdPool.html" title="class IdPool"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="SeaIceConnector.html" title="class SeaIceConnector – interface for PostgreSQL DB"
+             >previous</a> |</li>
+        <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Christopher Patton.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

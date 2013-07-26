@@ -1,0 +1,6 @@
+<map id="inheritanced6000f55ea" name="inheritanced6000f55ea">
+<area shape="rect" id="node1" href="#seaice.notify.TermUpdate" title="seaice.notify.TermUpdate" alt="" coords="268,5,449,33"/>
+<area shape="rect" id="node2" href="#seaice.notify.BaseNotification" title="seaice.notify.BaseNotification" alt="" coords="5,55,213,83"/>
+<area shape="rect" id="node4" href="#seaice.notify.Comment" title="seaice.notify.Comment" alt="" coords="275,55,443,83"/>
+<area shape="rect" id="node6" href="#seaice.notify.TermRemoved" title="seaice.notify.TermRemoved" alt="" coords="261,106,456,134"/>
+</map>

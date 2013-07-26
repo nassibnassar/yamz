@@ -1,0 +1,189 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>seaice.auth &mdash; SeaIce 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SeaIce 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for seaice.auth</h1><div class="highlight"><pre>
+<span class="c"># auth.py - credentials and datastructures for authenticating users through</span>
+<span class="c"># third party accounts. So far we have Google via the Oauth2 protocol. </span>
+<span class="c">#</span>
+<span class="c"># Copyright (c) 2013, Christopher Patton, Nassib Nassar </span>
+<span class="c"># All rights reserved.</span>
+<span class="c"># </span>
+<span class="c"># Redistribution and use in source and binary forms, with or without</span>
+<span class="c"># modification, are permitted provided that the following conditions are met:</span>
+<span class="c">#   * Redistributions of source code must retain the above copyright</span>
+<span class="c">#     notice, this list of conditions and the following disclaimer.</span>
+<span class="c">#   * Redistributions in binary form must reproduce the above copyright</span>
+<span class="c">#     notice, this list of conditions and the following disclaimer in the</span>
+<span class="c">#     documentation and/or other materials provided with the distribution.</span>
+<span class="c">#   * The names of contributors may be used to endorse or promote products</span>
+<span class="c">#     derived from this software without specific prior written permission.</span>
+<span class="c"># </span>
+<span class="c"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; AND</span>
+<span class="c"># ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED</span>
+<span class="c"># WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE</span>
+<span class="c"># DISCLAIMED. IN NO EVENT SHALL &lt;COPYRIGHT HOLDER&gt; BE LIABLE FOR ANY</span>
+<span class="c"># DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES</span>
+<span class="c"># (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;</span>
+<span class="c"># LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND</span>
+<span class="c"># ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT</span>
+<span class="c"># (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="kn">from</span> <span class="nn">flask_oauth</span> <span class="kn">import</span> <span class="n">OAuth</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">stat</span><span class="o">,</span> <span class="nn">configparser</span>
+
+  <span class="c">## Local PostgreSQL server configuration ## </span>
+
+<div class="viewcode-block" id="accessible_by_group_or_world"><a class="viewcode-back" href="../../auth.html#seaice.auth.accessible_by_group_or_world">[docs]</a><span class="k">def</span> <span class="nf">accessible_by_group_or_world</span><span class="p">(</span><span class="nb">file</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Verify the permissions of configuration file. </span>
+<span class="sd">      *Contributed by Nassib Nassar*.</span>
+
+<span class="sd">  :param file: File name.</span>
+<span class="sd">  :type file: str</span>
+<span class="sd">  :rtype: bool</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
+  <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span> <span class="n">st</span><span class="o">.</span><span class="n">st_mode</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">S_IRWXG</span> <span class="o">|</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IRWXO</span><span class="p">)</span> <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="get_config"><a class="viewcode-back" href="../../auth.html#seaice.auth.get_config">[docs]</a><span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="n">config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOME&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;/.seaice&#39;</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Get local db configuration. *Contributed by Nassib Nassar*.</span>
+<span class="sd">            </span>
+<span class="sd">    Structure with DB connection parameters for particular </span>
+<span class="sd">    roles. See the top-level program *ice* for example usage.  </span>
+
+<span class="sd">  :param config_file: File Name.</span>
+<span class="sd">  :type config_file: str</span>
+<span class="sd">  :rtype: dict </span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">accessible_by_group_or_world</span><span class="p">(</span><span class="n">config_file</span><span class="p">):</span>
+    <span class="k">print</span> <span class="p">(</span><span class="s">&#39;error: config file &#39;</span> <span class="o">+</span> <span class="n">config_file</span> <span class="o">+</span>
+      <span class="s">&#39; has group or world &#39;</span> <span class="o">+</span>
+      <span class="s">&#39;access; permissions should be set to u=rw&#39;</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">RawConfigParser</span><span class="p">()</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">config</span>
+
+
+  <span class="c">## Google authentication. ##</span>
+
+<span class="c">#: Google authentication (OAuth)</span>
+<span class="c">#: **TODO**: Change to *google_oauth*.</span></div>
+<span class="n">oauth</span> <span class="o">=</span> <span class="n">OAuth</span><span class="p">()</span>
+
+<span class="c">#: Variable prescribed by the Google OAuth API. </span>
+<span class="c">#: **TODO:** To accomadate other authentication </span>
+<span class="c">#: services, change this to &#39;/authorized/google&#39;</span>
+<span class="c">#: (also on code.google.com/apis/console).</span>
+<span class="n">REDIRECT_URI</span> <span class="o">=</span> <span class="s">&#39;/authorized&#39;</span> 
+
+<span class="c">#: Google OAuth credentials, client ID. These values are generated</span>
+<span class="c">#: from code.google.com/apis. Note that the actual values for the </span>
+<span class="c">#: online deployment of SeaIce aren&#39;t published. </span>
+<span class="n">GOOGLE_CLIENT_ID</span> <span class="o">=</span> <span class="s">&#39;173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleusercontent.com&#39;</span>
+
+<span class="c">#: Google OAuth credentials, client secret. </span>
+<span class="n">GOOGLE_CLIENT_SECRET</span> <span class="o">=</span> <span class="s">&#39;_Wmt-6SZXRMeaJVFXkuRH-rm&#39;</span>
+
+<span class="c">#: Google authentication.</span>
+<span class="n">google</span> <span class="o">=</span> <span class="n">oauth</span><span class="o">.</span><span class="n">remote_app</span><span class="p">(</span><span class="s">&#39;google&#39;</span><span class="p">,</span>
+                          <span class="n">base_url</span><span class="o">=</span><span class="s">&#39;https://www.google.com/accounts/&#39;</span><span class="p">,</span>
+                          <span class="n">authorize_url</span><span class="o">=</span><span class="s">&#39;https://accounts.google.com/o/oauth2/auth&#39;</span><span class="p">,</span>
+                          <span class="n">request_token_url</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">request_token_params</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;scope&#39;</span><span class="p">:</span> <span class="s">&#39;https://www.googleapis.com/auth/userinfo.email&#39;</span><span class="p">,</span>
+                                                <span class="s">&#39;response_type&#39;</span><span class="p">:</span> <span class="s">&#39;code&#39;</span><span class="p">},</span>
+                          <span class="n">access_token_url</span><span class="o">=</span><span class="s">&#39;https://accounts.google.com/o/oauth2/token&#39;</span><span class="p">,</span>
+                          <span class="n">access_token_method</span><span class="o">=</span><span class="s">&#39;POST&#39;</span><span class="p">,</span>
+                          <span class="n">access_token_params</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s">&#39;authorization_code&#39;</span><span class="p">},</span>
+                          <span class="n">consumer_key</span><span class="o">=</span><span class="n">GOOGLE_CLIENT_ID</span><span class="p">,</span>
+                          <span class="n">consumer_secret</span><span class="o">=</span><span class="n">GOOGLE_CLIENT_SECRET</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Christopher Patton.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

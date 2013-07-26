@@ -219,3 +219,13 @@ tables use surrogate keys to reference each other.
   $ ./sea --config=heroku --import=Tracking <tracking.json
 
 
+
+3. Building the docs 
+====================
+
+The seaice package is autodoc'ed using python-sphinx. The directory 
+doc/sphinx includes a Makefile for exporting the docs to various 
+media. For example, 
+
+  make html
+  make latex

@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The auth module &mdash; SeaIce 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SeaIce 0.1 documentation" href="index.html" />
+    <link rel="up" title="the user module" href="user.html" />
+    <link rel="next" title="The notify module" href="notify.html" />
+    <link rel="prev" title="the user module" href="user.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="notify.html" title="The notify module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="the user module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li>
+          <li><a href="user.html" accesskey="U">the <tt class="docutils literal docutils literal docutils literal"><span class="pre">user</span></tt> module</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-auth-module">
+<h1>The <tt class="docutils literal"><span class="pre">auth</span></tt> module<a class="headerlink" href="#the-auth-module" title="Permalink to this headline">¶</a></h1>
+<p>This module contains the various data structures used for authenticating
+sessions. <em>SeaIce</em> doesn&#8217;t handle user accounts directly; instead, it
+utilizes third-party authentication services to make it easy for users
+log on with existing accounts. So far, only Google account authentication
+is implemented. To add other authenticator services &#8211; Facebook, OpenID,
+and StackOverflow to name a few &#8211; it will be necessary to restructure
+this code a bit (noted below). In addition, this will require changing
+<tt class="docutils literal"><span class="pre">ice</span></tt> a fair amount.</p>
+<span class="target" id="module-seaice.auth"></span><dl class="function">
+<dt id="seaice.auth.accessible_by_group_or_world">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">accessible_by_group_or_world</tt><big>(</big><em>file</em><big>)</big><a class="reference internal" href="_modules/seaice/auth.html#accessible_by_group_or_world"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.auth.accessible_by_group_or_world" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify the permissions of configuration file. 
+<em>Contributed by Nassib Nassar</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>str</em>) &#8211; File name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.auth.get_config">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">get_config</tt><big>(</big><em>config_file='/home/christopher/.seaice'</em><big>)</big><a class="reference internal" href="_modules/seaice/auth.html#get_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.auth.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get local db configuration. <em>Contributed by Nassib Nassar</em>.</p>
+<blockquote>
+<div>Structure with DB connection parameters for particular 
+roles. See the top-level program <em>ice</em> for example usage.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config_file</strong> (<em>str</em>) &#8211; File Name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="seaice.auth.REDIRECT_URI">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">REDIRECT_URI</tt><em class="property"> = '/authorized'</em><a class="headerlink" href="#seaice.auth.REDIRECT_URI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Variable prescribed by the Google OAuth API.
+<strong>TODO:</strong> To accomadate other authentication
+services, change this to &#8216;/authorized/google&#8217;
+(also on code.google.com/apis/console).</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="seaice.auth.GOOGLE_CLIENT_ID">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">GOOGLE_CLIENT_ID</tt><em class="property"> = '173499658661-cissqtglckjctv5rgh9a6mguln721rqr.apps.googleusercontent.com'</em><a class="headerlink" href="#seaice.auth.GOOGLE_CLIENT_ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Google OAuth credentials, client ID. These values are generated
+from code.google.com/apis. Note that the actual values for the
+online deployment of SeaIce aren&#8217;t published.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="seaice.auth.GOOGLE_CLIENT_SECRET">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">GOOGLE_CLIENT_SECRET</tt><em class="property"> = '_Wmt-6SZXRMeaJVFXkuRH-rm'</em><a class="headerlink" href="#seaice.auth.GOOGLE_CLIENT_SECRET" title="Permalink to this definition">¶</a></dt>
+<dd><p>Google OAuth credentials, client secret.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="seaice.auth.google">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">google</tt><em class="property"> = &lt;flask_oauth.OAuthRemoteApp object at 0x2b99150&gt;</em><a class="headerlink" href="#seaice.auth.google" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a remote application.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>oauth</strong> &#8211; the associated <tt class="xref py py-class docutils literal"><span class="pre">OAuth</span></tt> object.</li>
+<li><strong>name</strong> &#8211; then name of the remote application</li>
+<li><strong>request_token_url</strong> &#8211; the URL for requesting new tokens</li>
+<li><strong>access_token_url</strong> &#8211; the URL for token exchange</li>
+<li><strong>authorize_url</strong> &#8211; the URL for authorization</li>
+<li><strong>consumer_key</strong> &#8211; the application specific consumer key</li>
+<li><strong>consumer_secret</strong> &#8211; the application specific consumer secret</li>
+<li><strong>request_token_params</strong> &#8211; an optional dictionary of parameters
+to forward to the request token URL
+or authorize URL depending on oauth
+version.</li>
+<li><strong>access_token_params</strong> &#8211; an option diction of parameters to forward to
+the access token URL</li>
+<li><strong>access_token_method</strong> &#8211; the HTTP method that should be used
+for the access_token_url.  Defaults
+to <tt class="docutils literal"><span class="pre">'GET'</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="user.html"
+                        title="previous chapter">the <tt class="docutils literal docutils literal"><span class="pre">user</span></tt> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="notify.html"
+                        title="next chapter">The <tt class="docutils literal"><span class="pre">notify</span></tt> module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/auth.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="notify.html" title="The notify module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="the user module"
+             >previous</a> |</li>
+        <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li>
+          <li><a href="user.html" >the <tt class="docutils literal docutils literal docutils literal"><span class="pre">user</span></tt> module</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Christopher Patton.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

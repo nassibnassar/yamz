@@ -49,7 +49,7 @@ class SeaIceFlask (Flask):
   """
   
   def __init__(self, import_name, static_path=None, static_url_path=None,
-                     static_folder='static', template_folder='templates',
+                     static_folder='html/static', template_folder='html/templates',
                      instance_path=None, instance_relative_config=False,
                      db_user=None, db_password=None, db_name=None):
 

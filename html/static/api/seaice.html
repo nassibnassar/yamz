@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The seaice package &mdash; SeaIce 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SeaIce 0.1 documentation" href="index.html" />
+    <link rel="next" title="class SeaIceConnector – interface for PostgreSQL DB" href="SeaIceConnector.html" />
+    <link rel="prev" title="Welcome to the SeaIce documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SeaIceConnector.html" title="class SeaIceConnector – interface for PostgreSQL DB"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to the SeaIce documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-seaice-package">
+<h1>The <tt class="docutils literal"><span class="pre">seaice</span></tt> package<a class="headerlink" href="#the-seaice-package" title="Permalink to this headline">¶</a></h1>
+<p><tt class="docutils literal"><span class="pre">seaice</span></tt> is comprised of tools and datastructures on which the front ends are built.
+Distributed with <em>SeaIce</em> are two top level Python programs with very clever names:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">sea</span></tt> &#8211; Command line tool for setting up, tearing down, and other wise interacting
+with the database in various ways.</li>
+<li><tt class="docutils literal"><span class="pre">ice</span></tt> &#8211; Web UI based on Flask for <em>SeaIce</em>. This facilitates user interactions
+with the database by serving various <em>GET/POST</em> requests.</li>
+</ul>
+<p>See the section on top-level programs <strong>[ref]</strong> for more details. The <em>SeaIce</em> API
+should be imported into the application namespace with:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">import</span> <span class="pre">seaice</span></tt></div></blockquote>
+<p>Included in <tt class="docutils literal"><span class="pre">seaice.*</span></tt> are user data structures for Flask-login, <tt class="docutils literal"><span class="pre">get_config()</span></tt> which
+handles local database configuration, and the various output formatters (<tt class="docutils literal"><span class="pre">seaice.pretty.*</span></tt>).
+The most important object, <tt class="docutils literal"><span class="pre">seaice.SeaIceFlask</span></tt> is used to build a Flask-based web interface
+for <em>SeaIce</em>.</p>
+<div class="section" id="module-seaice">
+<span id="class-seaiceflask"></span><h2><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceFlask</span></tt><a class="headerlink" href="#module-seaice" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-seaice.SeaIceFlask"></span><dl class="class">
+<dt id="seaice.SeaIceFlask.SeaIceFlask">
+<em class="property">class </em><tt class="descclassname">seaice.SeaIceFlask.</tt><tt class="descname">SeaIceFlask</tt><big>(</big><em>import_name</em>, <em>static_path=None</em>, <em>static_url_path=None</em>, <em>static_folder='static'</em>, <em>template_folder='templates'</em>, <em>instance_path=None</em>, <em>instance_relative_config=False</em>, <em>db_user=None</em>, <em>db_password=None</em>, <em>db_name=None</em><big>)</big><a class="reference internal" href="_modules/seaice/SeaIceFlask.html#SeaIceFlask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.SeaIceFlask.SeaIceFlask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">flask.app.Flask</span></tt></p>
+<blockquote>
+<div>A subclass of the main Flask interface. This includes various live data structures
+used in the web interface, as well as a pool of database connectors.
+All features in the SeaIce API that the top-level progams make use of
+are available as attributes of this class.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>user</strong> (<em>str</em>) &#8211; Name of DB role (see <a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceConnector.SeaIceConnector</span></tt></a> for 
+default behavior).</li>
+<li><strong>password</strong> (<em>str</em>) &#8211; User&#8217;s password.</li>
+<li><strong>db</strong> (<em>str</em>) &#8211; Name of database.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="seaice.SeaIceFlask.SeaIceFlask.dbPool">
+<tt class="descclassname">SeaIceFlask.</tt><tt class="descname">dbPool</tt><a class="headerlink" href="#seaice.SeaIceFlask.SeaIceFlask.dbPool" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body"><a class="reference internal" href="ConnectorPool.html#seaice.ConnectorPool.SeaIceConnectorPool" title="seaice.ConnectorPool.SeaIceConnectorPool"><tt class="xref py py-class docutils literal"><span class="pre">seaice.ConnectorPool.SeaIceConnectorPool</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="seaice.SeaIceFlask.SeaIceFlask.userIdPool">
+<tt class="descclassname">SeaIceFlask.</tt><tt class="descname">userIdPool</tt><a class="headerlink" href="#seaice.SeaIceFlask.SeaIceFlask.userIdPool" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body"><a class="reference internal" href="IdPool.html#module-seaice.IdPool" title="seaice.IdPool"><tt class="xref py py-class docutils literal"><span class="pre">seaice.IdPool</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="seaice.SeaIceFlask.SeaIceFlask.termIdPool">
+<tt class="descclassname">SeaIceFlask.</tt><tt class="descname">termIdPool</tt><a class="headerlink" href="#seaice.SeaIceFlask.SeaIceFlask.termIdPool" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body"><a class="reference internal" href="IdPool.html#module-seaice.IdPool" title="seaice.IdPool"><tt class="xref py py-class docutils literal"><span class="pre">seaice.IdPool</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="seaice.SeaIceFlask.SeaIceFlask.commentIdPool">
+<tt class="descclassname">SeaIceFlask.</tt><tt class="descname">commentIdPool</tt><a class="headerlink" href="#seaice.SeaIceFlask.SeaIceFlask.commentIdPool" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body"><a class="reference internal" href="IdPool.html#module-seaice.IdPool" title="seaice.IdPool"><tt class="xref py py-class docutils literal"><span class="pre">seaice.IdPool</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="seaice.SeaIceFlask.SeaIceFlask.SeaIceUsers">
+<tt class="descclassname">SeaIceFlask.</tt><tt class="descname">SeaIceUsers</tt><a class="headerlink" href="#seaice.SeaIceFlask.SeaIceFlask.SeaIceUsers" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body"><a class="reference internal" href="user.html#seaice.user.User" title="seaice.user.User"><tt class="xref py py-class docutils literal"><span class="pre">seaice.user.User</span></tt></a> dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="seaice.SeaIceFlask.MAX_CONNECTIONS">
+<tt class="descclassname">seaice.SeaIceFlask.</tt><tt class="descname">MAX_CONNECTIONS</tt><em class="property"> = 1</em><a class="headerlink" href="#seaice.SeaIceFlask.MAX_CONNECTIONS" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of DB connections that will be instantiated.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="classes-and-modules">
+<h2>Classes and modules<a class="headerlink" href="#classes-and-modules" title="Permalink to this headline">¶</a></h2>
+<p>In this index, you can find documentation of the various
+thingys that comprise the package.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="SeaIceConnector.html"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceConnector</span></tt> &#8211; interface for PostgreSQL DB</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SeaIceConnector.html#class-scopedseaiceconnector"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">ScopedSeaIceConnector</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ConnectorPool.html"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">ConnectorPool</span></tt></a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="IdPool.html"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">IdPool</span></tt></a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">the <tt class="docutils literal"><span class="pre">user</span></tt> module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="auth.html">The <tt class="docutils literal"><span class="pre">auth</span></tt> module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="notify.html">The <tt class="docutils literal"><span class="pre">notify</span></tt> module</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pretty.html">The <tt class="docutils literal"><span class="pre">pretty</span></tt> module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pretty.html#plain-text">Plain text</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pretty.html#html">HTML</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a><ul>
+<li><a class="reference internal" href="#module-seaice"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceFlask</span></tt></a></li>
+<li><a class="reference internal" href="#classes-and-modules">Classes and modules</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to the <em>SeaIce</em> documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="SeaIceConnector.html"
+                        title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">class</span> <span class="pre">SeaIceConnector</span></tt> &#8211; interface for PostgreSQL DB</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/seaice.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SeaIceConnector.html" title="class SeaIceConnector – interface for PostgreSQL DB"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to the SeaIce documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Christopher Patton.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

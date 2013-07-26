@@ -1,0 +1,515 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>seaice.pretty &mdash; SeaIce 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SeaIce 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for seaice.pretty</h1><div class="highlight"><pre>
+<span class="c"># pretty.py - Pretty formatting for db table rows. There are routines defined</span>
+<span class="c"># here for use in a terminal as well as on the web. </span>
+<span class="c">#</span>
+<span class="c"># Copyright (c) 2013, Christopher Patton, all rights reserved.</span>
+<span class="c"># </span>
+<span class="c"># Redistribution and use in source and binary forms, with or without</span>
+<span class="c"># modification, are permitted provided that the following conditions are met:</span>
+<span class="c">#   * Redistributions of source code must retain the above copyright</span>
+<span class="c">#     notice, this list of conditions and the following disclaimer.</span>
+<span class="c">#   * Redistributions in binary form must reproduce the above copyright</span>
+<span class="c">#     notice, this list of conditions and the following disclaimer in the</span>
+<span class="c">#     documentation and/or other materials provided with the distribution.</span>
+<span class="c">#   * The names of contributors may be used to endorse or promote products</span>
+<span class="c">#     derived from this software without specific prior written permission.</span>
+<span class="c"># </span>
+<span class="c"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; AND</span>
+<span class="c"># ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED</span>
+<span class="c"># WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE</span>
+<span class="c"># DISCLAIMED. IN NO EVENT SHALL &lt;COPYRIGHT HOLDER&gt; BE LIABLE FOR ANY</span>
+<span class="c"># DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES</span>
+<span class="c"># (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;</span>
+<span class="c"># LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND</span>
+<span class="c"># ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT</span>
+<span class="c"># (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">json</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">dateutil</span> <span class="kn">import</span> <span class="n">tz</span>
+
+  <span class="c">## Some JavaScripts that are embedded into some of the outputs. ##</span>
+
+<span class="n">js_confirmRemoveTerm</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">  function ConfirmRemoveTerm(id) {</span>
+<span class="s">    var r=window.confirm(&quot;Are you sure you want to delete term #&quot; + id + &quot;?&quot;);</span>
+<span class="s">    if (r==true) { </span>
+<span class="s">      x=id; </span>
+<span class="s">      var form = document.createElement(&quot;form&quot;);</span>
+<span class="s">      form.setAttribute(&quot;method&quot;, &quot;post&quot;);</span>
+<span class="s">      form.setAttribute(&quot;action&quot;, &quot;/term=&quot; + id + &quot;/remove&quot;);</span>
+<span class="s">      field = document.createElement(&quot;input&quot;);</span>
+<span class="s">      field.setAttribute(&quot;name&quot;, &quot;id&quot;);</span>
+<span class="s">      field.setAttribute(&quot;value&quot;, id);</span>
+<span class="s">      form.appendChild(field);</span>
+<span class="s">      document.body.appendChild(form); </span>
+<span class="s">      form.submit();</span>
+<span class="s">    } else { x=&quot;nil&quot;; } } &quot;&quot;&quot;</span>
+
+<span class="n">js_confirmRemoveComment</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">  function ConfirmRemoveComment(id) {</span>
+<span class="s">    var r=window.confirm(&quot;Are you sure you want to your comment?&quot;);</span>
+<span class="s">    if (r==true) { </span>
+<span class="s">      x=id; </span>
+<span class="s">      var form = document.createElement(&quot;form&quot;);</span>
+<span class="s">      form.setAttribute(&quot;method&quot;, &quot;post&quot;);</span>
+<span class="s">      form.setAttribute(&quot;action&quot;, &quot;/comment=&quot; + id + &quot;/remove&quot;);</span>
+<span class="s">      field = document.createElement(&quot;input&quot;);</span>
+<span class="s">      field.setAttribute(&quot;name&quot;, &quot;id&quot;);</span>
+<span class="s">      field.setAttribute(&quot;value&quot;, id);</span>
+<span class="s">      form.appendChild(field);</span>
+<span class="s">      document.body.appendChild(form); </span>
+<span class="s">      form.submit();</span>
+<span class="s">    } else { x=&quot;nil&quot;; } } &quot;&quot;&quot;</span>
+
+<span class="n">js_termAction</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">  function TermAction(id, v) {</span>
+<span class="s">    var form = document.createElement(&quot;form&quot;); </span>
+<span class="s">    form.setAttribute(&quot;method&quot;, &quot;post&quot;);</span>
+<span class="s">    if (v == &quot;up&quot; || v == &quot;down&quot;) {</span>
+<span class="s">      var action = &quot;vote&quot;; </span>
+<span class="s">    } else {</span>
+<span class="s">      var action = &quot;track&quot;; </span>
+<span class="s">    }</span>
+<span class="s">    form.setAttribute(&quot;action&quot;, &quot;/term=&quot; + id + &quot;/&quot; + action); </span>
+<span class="s">    field = document.createElement(&quot;input&quot;); </span>
+<span class="s">    field.setAttribute(&quot;name&quot;, &quot;action&quot;)</span>
+<span class="s">    field.setAttribute(&quot;value&quot;, v);</span>
+<span class="s">    form.appendChild(field);</span>
+<span class="s">    document.body.appendChild(form);</span>
+<span class="s">    form.submit(); </span>
+<span class="s">  } &quot;&quot;&quot;</span>
+
+<span class="n">js_copyToClipboard</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">  function CopyToClipboard(text) {</span>
+<span class="s">    window.prompt(&quot;Hit Ctrl-C (Cmd-C), then Enter to copy this tag to your clipboard. &quot; +</span>
+<span class="s">                  &quot;Embedding this tag in your term definition or comment &quot; +</span>
+<span class="s">                  &quot;will create a hyperlink to this term with the term name.&quot;, text);</span>
+<span class="s">  }</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="c">#: Background color to display with term class. </span>
+<span class="n">colorOf</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;vernacular&#39;</span> <span class="p">:</span> <span class="s">&#39;#FFFF66&#39;</span><span class="p">,</span> 
+            <span class="s">&#39;canonical&#39;</span> <span class="p">:</span> <span class="s">&#39;#3CEB10&#39;</span><span class="p">,</span> 
+            <span class="s">&#39;deprecated&#39;</span> <span class="p">:</span> <span class="s">&#39;#E8E8E8&#39;</span> <span class="p">}</span>
+
+<span class="c">#: Name of months. See :func:`seaice.pretty.printPrettyDate`.</span>
+<span class="n">monthOf</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;January&#39;</span><span class="p">,</span> <span class="s">&#39;February&#39;</span><span class="p">,</span> <span class="s">&#39;March&#39;</span><span class="p">,</span> 
+            <span class="s">&#39;April&#39;</span><span class="p">,</span> <span class="s">&#39;May&#39;</span><span class="p">,</span> <span class="s">&#39;June&#39;</span><span class="p">,</span> 
+            <span class="s">&#39;July&#39;</span><span class="p">,</span> <span class="s">&#39;August&#39;</span><span class="p">,</span> <span class="s">&#39;September&#39;</span><span class="p">,</span> 
+            <span class="s">&#39;October&#39;</span><span class="p">,</span> <span class="s">&#39;November&#39;</span><span class="p">,</span> <span class="s">&#39;December&#39;</span> <span class="p">]</span>
+
+<span class="c">#: Regular expression for string matches.</span>
+<span class="n">tag_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;#\{([^\{\}]*):([^\{\}]*)\}&quot;</span><span class="p">)</span>
+
+
+
+  <span class="c">## Processing tags in text areas. ##</span>
+
+<span class="k">def</span> <span class="nf">_printTagAsHTML</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span> 
+  <span class="sd">&quot;&quot;&quot; Input a regular expression match and output the tag as HTML.</span>
+<span class="sd">  </span>
+<span class="sd">  A DB connector is required to resolve the term tring by ID. </span>
+<span class="sd">  If there are syntax errors, simply return the raw tag. </span>
+
+<span class="sd">  :param db_con: DB connection.</span>
+<span class="sd">  :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">  :param m: Regular expression match. </span>
+<span class="sd">  :type m: re.MatchObject</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="p">(</span><span class="n">term_id</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="n">term_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term_id</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;&amp;#34;&#39;</span><span class="p">)</span>
+    <span class="n">term_string</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getTermString</span><span class="p">(</span><span class="n">term_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">term_string</span><span class="p">:</span>
+      <span class="k">return</span> <span class="s">&#39;&lt;a href=/term={0} title=&quot;{1}&quot;&gt;{2}&lt;/a&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>  
+        <span class="n">term_id</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">term_string</span><span class="p">)</span>
+  <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+  <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="processTags"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.processTags">[docs]</a><span class="k">def</span> <span class="nf">processTags</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span> 
+  <span class="sd">&quot;&quot;&quot;  Process tags in DB text entries into HTML. </span>
+
+<span class="sd">  :param db_con: DB connection.</span>
+<span class="sd">  :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">  :param string: The input string. </span>
+<span class="sd">  :returns: HTML-formatted string.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="n">tag_regex</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">_printTagAsHTML</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">m</span><span class="p">),</span> <span class="n">string</span><span class="p">)</span>
+    
+  
+
+  <span class="c">## Pretty prints. ##</span>
+</div>
+<div class="viewcode-block" id="printPrettyDate"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printPrettyDate">[docs]</a><span class="k">def</span> <span class="nf">printPrettyDate</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Format output of a timestamp. </span>
+
+<span class="sd">    If a small amount of time has elapsed between *T_now* </span>
+<span class="sd">    and *T*, then return the interval. **TODO:** This should</span>
+<span class="sd">    be localized based on the HTTP request. </span>
+
+<span class="sd">  :param T: Timestamp. </span>
+<span class="sd">  :type T: datetime.datetime</span>
+<span class="sd">  :rtype: str</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  
+  <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">tz</span><span class="o">.</span><span class="n">tzlocal</span><span class="p">())</span>
+  <span class="n">T_elapsed</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">tz</span><span class="o">.</span><span class="n">tzlocal</span><span class="p">())</span> <span class="o">-</span> <span class="n">T</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">T_elapsed</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;just now&quot;</span>
+  <span class="k">elif</span> <span class="n">T_elapsed</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> seconds ago&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">T_elapsed</span><span class="o">.</span><span class="n">seconds</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">T_elapsed</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> minute</span><span class="si">%s</span><span class="s"> ago&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">T_elapsed</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">60</span><span class="p">,</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">T_elapsed</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">60</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;s&#39;</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">T_elapsed</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">24</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> hour</span><span class="si">%s</span><span class="s"> ago&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">T_elapsed</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">3600</span><span class="p">,</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">T_elapsed</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">3600</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;s&#39;</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">T_elapsed</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span> 
+    <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> day</span><span class="si">%s</span><span class="s"> ago&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">T_elapsed</span><span class="o">.</span><span class="n">days</span><span class="p">,</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">T_elapsed</span><span class="o">.</span><span class="n">days</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;s&#39;</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span> 
+    <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">monthOf</span><span class="p">[</span><span class="n">T</span><span class="o">.</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">T</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="printAsJSObject"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printAsJSObject">[docs]</a><span class="k">def</span> <span class="nf">printAsJSObject</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Print table rows as JSON-formatted object. </span>
+
+<span class="sd">  :param rows: Table rows. </span>
+<span class="sd">  :type rows: dict iterator</span>
+<span class="sd">  :param fd: File descriptor to which to output the result (default is sys.stdout). </span>
+<span class="sd">  :type fd: file</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span> 
+      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">:</span>
+        <span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">fd</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;: &#39;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="printParagraph"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printParagraph">[docs]</a><span class="k">def</span> <span class="nf">printParagraph</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">leftMargin</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span> 
+  <span class="sd">&quot;&quot;&quot; Format some text into a nice paragraph for displaying in the terminal. </span>
+<span class="sd">      Output the result directly to sys.stdout. </span>
+
+<span class="sd">  :param db_con: DB connection.</span>
+<span class="sd">  :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">  :param text: The paragraph. </span>
+<span class="sd">  :type text: str</span>
+<span class="sd">  :param leftMargin: Number of spaces to print before the start of each line. </span>
+<span class="sd">  :type leftMargin: int</span>
+<span class="sd">  :param width: Number of characters to print per line. </span>
+<span class="sd">  :type wdith: int</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">lineLength</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">print</span> <span class="s">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">leftMargin</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> 
+  <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">lineLength</span> <span class="o">&lt;</span> <span class="n">width</span><span class="p">:</span>
+      <span class="k">print</span> <span class="n">word</span><span class="p">,</span> 
+      <span class="n">lineLength</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">leftMargin</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+      <span class="n">lineLength</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">print</span>
+    </div>
+<div class="viewcode-block" id="printTermsPretty"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printTermsPretty">[docs]</a><span class="k">def</span> <span class="nf">printTermsPretty</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">rows</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Print term rows to terminal. </span>
+
+<span class="sd">  :param db_con: DB connection.</span>
+<span class="sd">  :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">  :param rows: Table rows. </span>
+<span class="sd">  :type rows: dict iterator</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;Term: </span><span class="si">%-26s</span><span class="s"> id No. </span><span class="si">%-7d</span><span class="s"> created: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> (</span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> 
+                                                                <span class="n">row</span><span class="p">[</span><span class="s">&quot;up&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">row</span><span class="p">[</span><span class="s">&quot;down&quot;</span><span class="p">]),</span>
+                                                   <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                                                   <span class="n">row</span><span class="p">[</span><span class="s">&#39;created&#39;</span><span class="p">])</span> 
+
+    <span class="k">print</span> <span class="s">&quot; &quot;</span> <span class="o">*</span> <span class="mi">42</span> <span class="o">+</span> <span class="s">&quot;Last modified: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;modified&#39;</span><span class="p">]</span>
+
+    <span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">    definition:</span><span class="se">\n</span><span class="s">&quot;</span>    
+    <span class="n">printParagraph</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;definition&#39;</span><span class="p">])</span>
+    
+    <span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">    Ownership: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">])</span>
+    <span class="k">print</span>
+</div>
+<div class="viewcode-block" id="printTermsAsLinks"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printTermsAsLinks">[docs]</a><span class="k">def</span> <span class="nf">printTermsAsLinks</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Print terms as a link list (pun intended). </span>
+
+<span class="sd">  :param rows: Table rows. </span>
+<span class="sd">  :type rows: dict iterator</span>
+<span class="sd">  :returns: HTML-formatted string. </span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">string</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span> 
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;&lt;li&gt;&lt;a href=&quot;/term=</span><span class="si">%d</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt;&lt;/li&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">])</span>
+  <span class="k">return</span> <span class="n">string</span>
+</div>
+<div class="viewcode-block" id="printTermAsHTML"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printTermAsHTML">[docs]</a><span class="k">def</span> <span class="nf">printTermAsHTML</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Format a term for the term page, e.g. `this &lt;http://seaice.herokuapp.com/term=1001&gt;`_.</span>
+
+<span class="sd">    This is the main page where you can look at a term. It includes a term definition, </span>
+<span class="sd">    examples, a voting form, ownership, and other stuff.  </span>
+
+<span class="sd">  :param db_con: DB connection.</span>
+<span class="sd">  :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">  :param row: Term row. </span>
+<span class="sd">  :type row: dict</span>
+<span class="sd">  :param user_id: Surrogate ID of user requesting the page. Defaults to 0 if session is </span>
+<span class="sd">                  unauthenticated. </span>
+<span class="sd">  :type user_id: int </span>
+<span class="sd">  :returns: HTML-formatted string.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="n">vote</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getVote</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">user_id</span> <span class="k">else</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">])</span>
+  <span class="n">string</span> <span class="o">=</span> <span class="s">&#39;&lt;script&gt;&#39;</span> <span class="o">+</span> <span class="n">js_confirmRemoveTerm</span> <span class="o">+</span> <span class="n">js_termAction</span> <span class="o">+</span> <span class="n">js_copyToClipboard</span> <span class="o">+</span> <span class="s">&#39;&lt;/script&gt;&#39;</span>
+
+  <span class="c"># Voting</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;&lt;table&gt;&#39;</span> 
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;tr&gt;&lt;td width=150px rowspan=4 align=center valign=top&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;    &lt;a id=&quot;voteUp&quot; title=&quot;+1&quot; href=&quot;#up&quot; onclick=&quot;return TermAction(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">up</span><span class="se">\&#39;</span><span class="s">);&quot;&gt;&#39;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;     &lt;img src=&quot;/static/img/</span><span class="si">%s</span><span class="s">.png&quot;&gt;&lt;/a&gt;&lt;br&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;up_set&#39;</span> <span class="k">if</span> <span class="n">vote</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;up&#39;</span><span class="p">)</span>
+
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;    &lt;h4&gt;&#39;</span>
+  <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;up&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;    &lt;font color=&quot;#004d73&quot;&gt;+</span><span class="si">%s</span><span class="s">&lt;/font&gt; &amp;nbsp&#39;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;up&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;down&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> 
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;    &lt;font color=&quot;#797979&quot;&gt;-</span><span class="si">%s</span><span class="s">&lt;/font&gt;&#39;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;down&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;up&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;down&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;0&#39;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;    &lt;/h4&gt;&#39;</span>
+
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;    &lt;a id=&quot;voteDown&quot; title=&quot;-1&quot; href=&quot;#down&quot; onclick=&quot;return TermAction(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">down</span><span class="se">\&#39;</span><span class="s">);&quot;&gt;&#39;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;     &lt;img src=&quot;/static/img/</span><span class="si">%s</span><span class="s">.png&quot;&gt;&lt;/a&gt;&lt;br&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;down_set&#39;</span> <span class="k">if</span> <span class="n">vote</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;down&#39;</span><span class="p">)</span>
+  
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;    &lt;br&gt;&lt;a id=&quot;star&quot; title=&quot;Track this term&quot; href=&quot;#star&quot;&#39;</span> <span class="o">+</span> \
+            <span class="s">&#39;     onclick=&quot;return TermAction({1}, </span><span class="se">\&#39;</span><span class="s">{0}</span><span class="se">\&#39;</span><span class="s">);&quot;&gt;[{0}]&lt;/a&gt;&lt;br&gt; &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+             <span class="p">(</span><span class="s">&quot;unstar&quot;</span> <span class="k">if</span> <span class="n">db_con</span><span class="o">.</span><span class="n">checkTracking</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">user_id</span> <span class="k">else</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">])</span> <span class="k">else</span> <span class="s">&quot;star&quot;</span><span class="p">),</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">])</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;/td&gt;&lt;/tr&gt;&quot;</span>
+  
+  <span class="c"># Name/Class</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;tr&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top width=8%&gt;&lt;i&gt;Term:&lt;/i&gt;&lt;/td&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top width=25%&gt;&lt;font size=</span><span class="se">\&quot;</span><span class="s">3</span><span class="se">\&quot;</span><span class="s">&gt;&lt;strong&gt;{0}&lt;/strong&gt;&lt;/font&gt;&lt;td&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">])</span> 
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top width=5%&gt;&lt;i&gt;Class:&lt;/i&gt;&lt;/td&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;    &lt;td valign=top width=16%&gt;&amp;nbsp&#39;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;      &lt;font style=&quot;background-color:{2}&quot;&gt;&amp;nbsp;{0}&amp;nbsp;&lt;/font&gt; &lt;i&gt;&amp;nbsp({1}%)&lt;/i&gt;&lt;/td&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+              <span class="n">row</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;consensus&#39;</span><span class="p">]),</span> <span class="n">colorOf</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]])</span>
+
+  <span class="c"># Created/modified/Owner </span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top width=20</span><span class="si">% r</span><span class="s">owspan=3&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;      &lt;nobr&gt;&lt;i&gt;Created </span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/nobr&gt;&lt;br&gt;&quot;</span> <span class="o">%</span> <span class="n">printPrettyDate</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;created&#39;</span><span class="p">])</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;      &lt;nobr&gt;&lt;i&gt;Last modified </span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/nobr&gt;&lt;br&gt;&quot;</span> <span class="o">%</span> <span class="n">printPrettyDate</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;modified&#39;</span><span class="p">])</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;      &lt;nobr&gt;&lt;i&gt;Contributed by&lt;/i&gt; </span><span class="si">%s</span><span class="s">&lt;/nobr&gt;&lt;br&gt;&quot;</span><span class="o">%</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">],</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">user_id</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">]:</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;br&gt;&lt;a href=</span><span class="se">\&quot;</span><span class="s">/term=</span><span class="si">%d</span><span class="s">/edit</span><span class="se">\&quot;</span><span class="s">&gt;[edit]&lt;/a&gt;&quot;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&quot;&quot;  &lt;a id=&quot;removeTerm&quot; title=&quot;Click to delete term&quot; href=&quot;#&quot;</span>
+<span class="s">                   onclick=&quot;return ConfirmRemoveTerm(</span><span class="si">%s</span><span class="s">);&quot;&gt;[remove]&lt;/a&gt;&lt;br&gt;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+ 
+  <span class="c"># Copy reference tag</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;&#39;&#39;    &lt;hr&gt;&lt;a id=&quot;copyLink&quot; title=&quot;Click here to get a reference tag.&quot; href=&quot;#&quot;</span>
+<span class="s">                        onclick=&quot;CopyToClipboard(&#39;#{</span><span class="si">%d</span><span class="s"> : related to}&#39;);&quot;&gt;Get tag&lt;/a&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;/td&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;/tr&gt;&quot;</span>
+
+  <span class="c"># Definition/Examples</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;tr&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top&gt;&lt;i&gt;Definition:&lt;/i&gt;&lt;/td&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td colspan=4 valign=top&gt;&lt;font size=</span><span class="se">\&quot;</span><span class="s">3</span><span class="se">\&quot;</span><span class="s">&gt; </span><span class="si">%s</span><span class="s">&lt;/font&gt;&lt;/td&gt;&quot;</span> <span class="o">%</span> <span class="n">processTags</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;definition&#39;</span><span class="p">])</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;/tr&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;tr&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top&gt;&lt;i&gt;Examples:&lt;/i&gt;&lt;/td&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td colspan=4 valign=top&gt;&lt;font size=</span><span class="se">\&quot;</span><span class="s">3</span><span class="se">\&quot;</span><span class="s">&gt; </span><span class="si">%s</span><span class="s">&lt;/font&gt;&lt;/td&gt;&quot;</span> <span class="o">%</span> <span class="n">processTags</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;examples&#39;</span><span class="p">])</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;/tr&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&lt;/table&gt;&quot;</span>
+  <span class="k">return</span> <span class="n">string</span>
+</div>
+<div class="viewcode-block" id="printTermsAsHTML"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printTermsAsHTML">[docs]</a><span class="k">def</span> <span class="nf">printTermsAsHTML</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> 
+  <span class="sd">&quot;&quot;&quot; Format search results for display on the web page. </span>
+<span class="sd">  </span>
+<span class="sd">  :param db_con: DB connection.</span>
+<span class="sd">  :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">  :param row: Term rows. </span>
+<span class="sd">  :type row: dict iterator</span>
+<span class="sd">  :param user_id: Surrogate ID of user requesting the page. Defaults to 0 if session is </span>
+<span class="sd">                  unauthenticated. </span>
+<span class="sd">  :type user_id: int </span>
+<span class="sd">  :returns: HTML-formatted string.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  
+  <span class="n">string</span> <span class="o">=</span> <span class="s">&#39;&lt;script&gt;&#39;</span> <span class="o">+</span> <span class="n">js_confirmRemoveTerm</span> <span class="o">+</span> <span class="s">&#39;&lt;/script&gt;&lt;table&gt;&#39;</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;tr&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top width=75%&gt;&lt;i&gt;Term:&lt;/i&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;     &lt;font size=</span><span class="se">\&quot;</span><span class="s">3</span><span class="se">\&quot;</span><span class="s">&gt;&lt;strong&gt;{0}&lt;/strong&gt;&lt;/font&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">])</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;      &lt;a href=</span><span class="se">\&quot;</span><span class="s">/term=</span><span class="si">%d</span><span class="se">\&quot;</span><span class="s">&gt;[view]&lt;/a&gt;&quot;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">user_id</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">]:</span>
+      <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;a href=</span><span class="se">\&quot;</span><span class="s">/term=</span><span class="si">%d</span><span class="s">/edit</span><span class="se">\&quot;</span><span class="s">&gt;[edit]&lt;/a&gt;&quot;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+      <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&quot;&quot;  &lt;a id=&quot;removeTerm&quot; title=&quot;Click to delete term&quot; href=&quot;#&quot;</span>
+<span class="s">                     onclick=&quot;return ConfirmRemoveTerm(</span><span class="si">%s</span><span class="s">);&quot;&gt;[remove]&lt;/a&gt;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;      &amp;nbsp&lt;i&gt;Class:&lt;/i&gt;&amp;nbsp&lt;font style=&quot;background-color:{2}&quot;&gt;&amp;nbsp;{0}&amp;nbsp;&lt;/font&gt; &lt;i&gt;&amp;nbsp({1}%)&lt;/i&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                 <span class="n">row</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;consensus&#39;</span><span class="p">]),</span> <span class="n">colorOf</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]])</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;/td&gt;&quot;</span> 
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top rowspan=2&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;      &lt;nobr&gt;&lt;i&gt;Created </span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/nobr&gt;&lt;br&gt;&quot;</span> <span class="o">%</span> <span class="n">printPrettyDate</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;created&#39;</span><span class="p">])</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;      &lt;nobr&gt;&lt;i&gt;Last modified </span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/nobr&gt;&lt;br&gt;&quot;</span> <span class="o">%</span> <span class="n">printPrettyDate</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;modified&#39;</span><span class="p">])</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;      &lt;nobr&gt;&lt;i&gt;Contributed by&lt;/i&gt; </span><span class="si">%s</span><span class="s">&lt;/nobr&gt;&lt;br&gt;&quot;</span> <span class="o">%</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">],</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;/td&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;/tr&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;tr&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;    &lt;td valign=top&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;     &lt;i&gt;Definition:&lt;/i&gt;&amp;nbsp;&lt;font size=</span><span class="se">\&quot;</span><span class="s">3</span><span class="se">\&quot;</span><span class="s">&gt; </span><span class="si">%s</span><span class="s">&lt;/font&gt;&amp;nbsp;&quot;</span> <span class="o">%</span> <span class="n">processTags</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;definition&#39;</span><span class="p">])</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;     &lt;i&gt;Examples:&lt;/i&gt;&amp;nbsp;&lt;font size=</span><span class="se">\&quot;</span><span class="s">3</span><span class="se">\&quot;</span><span class="s">&gt; </span><span class="si">%s</span><span class="s">&lt;/font&gt;&lt;/td&gt;&quot;</span> <span class="o">%</span> <span class="n">processTags</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;examples&#39;</span><span class="p">])</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;/tr&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;tr height=16&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&lt;/table&gt;&quot;</span>
+  <span class="k">return</span> <span class="n">string</span>
+</div>
+<div class="viewcode-block" id="printTermsAsBriefHTML"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printTermsAsBriefHTML">[docs]</a><span class="k">def</span> <span class="nf">printTermsAsBriefHTML</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> 
+  <span class="sd">&quot;&quot;&quot; Format table rows as abbreviated HTML table, e.g. </span>
+<span class="sd">      `this &lt;http://seaice.herokuapp.com/browse/volatile&gt;`_.</span>
+<span class="sd">  </span>
+<span class="sd">  :param db_con: DB connection.</span>
+<span class="sd">  :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">  :param row: Term rows. </span>
+<span class="sd">  :type row: dict iterator</span>
+<span class="sd">  :param user_id: Surrogate ID of user requesting the page. Defaults to 0 if session is </span>
+<span class="sd">                  unauthenticated. </span>
+<span class="sd">  :type user_id: int </span>
+<span class="sd">  :returns: HTML-formatted string.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="n">string</span> <span class="o">=</span>  <span class="s">&#39;&lt;table width=70%&gt;&#39;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;&#39;&#39;&lt;tr style=&quot;background-color:#E8E8E8&quot;&gt;&lt;td&gt;Term&lt;/td&gt;</span>
+<span class="s">                  &lt;td&gt;Score&lt;/td&gt;&lt;td&gt;Consensus&lt;/td&gt;&lt;td&gt;Class&lt;/td&gt;&lt;td&gt;Contributed by&lt;/td&gt;</span>
+<span class="s">                  &lt;td&gt;Last modified&lt;/td&gt;&lt;/tr&gt;&#39;&#39;&#39;</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&#39;&#39;&#39;&lt;tr&gt;&lt;td&gt;&lt;a href=/term={5}&gt;{0}&lt;/a&gt;&lt;/td&gt;&lt;td&gt;{1}&lt;/td&gt;&lt;td&gt;{2}%&lt;/td&gt;</span>
+<span class="s">                     &lt;td&gt;&lt;font style=&quot;background-color:{6}&quot;&gt;&amp;nbsp;{3}&amp;nbsp;&lt;/font&gt;&lt;/td&gt;</span>
+<span class="s">                     &lt;td&gt;{4}&lt;/td&gt;</span>
+<span class="s">                     &lt;td&gt;{7}&lt;/tr&gt;&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+      <span class="n">row</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;up&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;down&#39;</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;consensus&#39;</span><span class="p">]),</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">],</span> 
+      <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">],</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">colorOf</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]],</span>
+      <span class="n">printPrettyDate</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;modified&#39;</span><span class="p">]))</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&lt;/table&gt;&quot;</span>
+  <span class="k">return</span> <span class="n">string</span>
+  </div>
+<div class="viewcode-block" id="printCommentsAsHTML"><a class="viewcode-back" href="../../pretty.html#seaice.pretty.printCommentsAsHTML">[docs]</a><span class="k">def</span> <span class="nf">printCommentsAsHTML</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> 
+  <span class="sd">&quot;&quot;&quot; Format comments for display on the term page. </span>
+
+<span class="sd">  :param db_con: DB connection.</span>
+<span class="sd">  :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">  :param row: Comment rows. </span>
+<span class="sd">  :type row: dict iterator</span>
+<span class="sd">  :param user_id: Surrogate ID of user requesting the page. Defaults to 0 if session is </span>
+<span class="sd">                  unauthenticated. </span>
+<span class="sd">  :type user_id: int </span>
+<span class="sd">  :returns: HTML-formatted string.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="n">string</span> <span class="o">=</span> <span class="s">&#39;&lt;script&gt;&#39;</span> <span class="o">+</span> <span class="n">js_confirmRemoveComment</span> <span class="o">+</span> <span class="s">&#39;&lt;/script&gt;&lt;table&gt;&#39;</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&lt;tr&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;td align=left valign=top width=70%&gt;{0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">processTags</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;comment_string&#39;</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">user_id</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">]:</span>
+      <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot; &lt;nobr&gt;&lt;a href=</span><span class="se">\&quot;</span><span class="s">/comment=</span><span class="si">%d</span><span class="s">/edit</span><span class="se">\&quot;</span><span class="s">&gt;[edit]&lt;/a&gt;&quot;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+      <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&quot;&quot; &lt;a id=&quot;removeComment&quot; title=&quot;Click to remove this comment&quot; href=&quot;#&quot;</span>
+<span class="s">                    onclick=&quot;return ConfirmRemoveComment(</span><span class="si">%s</span><span class="s">);&quot;&gt;[remove]&lt;/a&gt;&lt;/nobr&gt;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;/td&gt;&quot;</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  &lt;td align=right valign=top&gt;&lt;font color=</span><span class="se">\&quot;</span><span class="s">#B8B8B8</span><span class="se">\&quot;</span><span class="s">&gt;&lt;i&gt;Submitted {0}&lt;br&gt;by {1}&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+      <span class="n">printPrettyDate</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;created&#39;</span><span class="p">]),</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">]))</span>
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&lt;/tr&gt;&quot;</span> 
+    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&lt;/tr&gt;&lt;tr height=16&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&quot;</span>
+  <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;&lt;/table&gt;&quot;</span>
+  <span class="k">return</span> <span class="n">string</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Christopher Patton.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

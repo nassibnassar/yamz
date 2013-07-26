@@ -154,6 +154,10 @@ def index():
 def about():
   return render_template("about.html", user_name = l.current_user.name)
 
+@app.route("/api")
+def api():
+  return redirect(url_for('static', filename='api/index.html'))
+
 @app.route("/contact")
 def contact():
   return render_template("contact.html", user_name = l.current_user.name)

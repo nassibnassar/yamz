@@ -1,0 +1,1290 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>seaice.SeaIceConnector &mdash; SeaIce 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SeaIce 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for seaice.SeaIceConnector</h1><div class="highlight"><pre>
+<span class="c"># SeaIceConnector.py - implementation of class SeaIceConnector, the API for </span>
+<span class="c"># the SeaIce database. This class is capable of connecting to a local </span>
+<span class="c"># PostgreSQL database, or a foreign one specified by the environment variable </span>
+<span class="c"># DATABASE_URI. </span>
+<span class="c">#</span>
+<span class="c"># Copyright (c) 2013, Christopher Patton, all rights reserved.</span>
+<span class="c"># </span>
+<span class="c"># Redistribution and use in source and binary forms, with or without</span>
+<span class="c"># modification, are permitted provided that the following conditions are met:</span>
+<span class="c">#   * Redistributions of source code must retain the above copyright</span>
+<span class="c">#     notice, this list of conditions and the following disclaimer.</span>
+<span class="c">#   * Redistributions in binary form must reproduce the above copyright</span>
+<span class="c">#     notice, this list of conditions and the following disclaimer in the</span>
+<span class="c">#     documentation and/or other materials provided with the distribution.</span>
+<span class="c">#   * The names of contributors may be used to endorse or promote products</span>
+<span class="c">#     derived from this software without specific prior written permission.</span>
+<span class="c"># </span>
+<span class="c"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; AND</span>
+<span class="c"># ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED</span>
+<span class="c"># WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE</span>
+<span class="c"># DISCLAIMED. IN NO EVENT SHALL &lt;COPYRIGHT HOLDER&gt; BE LIABLE FOR ANY</span>
+<span class="c"># DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES</span>
+<span class="c"># (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;</span>
+<span class="c"># LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND</span>
+<span class="c"># ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT</span>
+<span class="c"># (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">configparser</span><span class="o">,</span> <span class="nn">urlparse</span>
+<span class="kn">import</span> <span class="nn">json</span><span class="o">,</span> <span class="nn">psycopg2</span> <span class="kn">as</span> <span class="nn">pgdb</span>
+<span class="kn">import</span> <span class="nn">psycopg2.extras</span>  
+<span class="kn">import</span> <span class="nn">pretty</span>
+<span class="kn">import</span> <span class="nn">auth</span>
+<span class="kn">import</span> <span class="nn">notify</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Some constants for stability calculation. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c">#: The maximum varation in consensus allowed </span>
+<span class="c">#: for score to be considered stable (S/hour).</span>
+<span class="n">stabilityError</span> <span class="o">=</span> <span class="mf">0.10</span>  
+
+<span class="n">stabilityFactor</span> <span class="o">=</span> <span class="mi">3600</span> <span class="c">#: Convert seconds (datetime.timedelta.seconds) to hours. </span>
+
+<span class="c">#: Interval (in hours) for which a term must</span>
+<span class="c">#: be stable in order to be classified. </span>
+<span class="n">stabilityInterval</span> <span class="o">=</span> <span class="mi">4</span>  
+        
+<span class="n">stabilityConsensusIntervalHigh</span> <span class="o">=</span> <span class="mf">0.75</span> <span class="c">#: Classify stable term as canonical.</span>
+<span class="n">stabilityConsensusIntervalLow</span> <span class="o">=</span>  <span class="mf">0.25</span> <span class="c">#: Classify stable term as deprecated.</span>
+
+
+<div class="viewcode-block" id="calculateConsensus"><a class="viewcode-back" href="../../scoring.html#seaice.SeaIceConnector.calculateConsensus">[docs]</a><span class="k">def</span> <span class="nf">calculateConsensus</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">U_sum</span><span class="p">,</span> <span class="n">D_sum</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Calcluate consensus score. This is a heuristic for the percentage </span>
+<span class="sd">      of the community who finds a term useful. Based on the observation</span>
+<span class="sd">      that not every user will vote on a given term, user reptuation is </span>
+<span class="sd">      used to estimate consensus. As the number of voters approaches </span>
+<span class="sd">      the number of users, the votes become more equitable. (See </span>
+<span class="sd">      doc/Scoring.pdf for details.) </span>
+<span class="sd">   </span>
+<span class="sd">      :param u: Number of up voters.</span>
+<span class="sd">      :param d: Number of donw voters.</span>
+<span class="sd">      :param t: Number of total users.</span>
+<span class="sd">      :param U_sum: Sum of up-voter reputation.</span>
+<span class="sd">      :param D_sum: Sum of down-voter reputation.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">v</span> <span class="o">=</span> <span class="n">u</span> <span class="o">+</span> <span class="n">d</span>
+  <span class="n">R</span> <span class="o">=</span> <span class="n">U_sum</span> <span class="o">+</span> <span class="n">D_sum</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">u</span> <span class="o">+</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">U_sum</span><span class="p">)</span><span class="o">/</span><span class="n">R</span> <span class="k">if</span> <span class="n">R</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">v</span><span class="p">))</span> <span class="o">/</span> <span class="n">t</span> <span class="k">if</span> <span class="n">v</span> <span class="k">else</span> <span class="mi">0</span>
+
+</div>
+<div class="viewcode-block" id="calculateStability"><a class="viewcode-back" href="../../scoring.html#seaice.SeaIceConnector.calculateStability">[docs]</a><span class="k">def</span> <span class="nf">calculateStability</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">p_S</span><span class="p">,</span> <span class="n">T_now</span><span class="p">,</span> <span class="n">T_last</span><span class="p">,</span> <span class="n">T_stable</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Calculate term stability, returning the time point when the term </span>
+<span class="sd">     become stable (as a datetime.datetime) or None if it&#39;s not stable. </span>
+<span class="sd">     This is based on the rate of change of the consensus score: </span>
+<span class="sd">     </span>
+<span class="sd">        ``delta_S = (S - P_s) / (T_now - T_last)``</span>
+<span class="sd">    </span>
+<span class="sd">     :param T_now: Current time.</span>
+<span class="sd">     :type T_now: datetime.datetime</span>
+<span class="sd">     :param T_last: Time of last consensus score calculation. </span>
+<span class="sd">     :type T_last: datetime.datetime</span>
+<span class="sd">     :param T_stable: Time since term stabilized.</span>
+<span class="sd">     :type T_last: datetime.datetime or None</span>
+<span class="sd">     :param S: Consensus score at T_now.</span>
+<span class="sd">     :type S: float</span>
+<span class="sd">     :param p_S: Consensus score at T_last.</span>
+<span class="sd">     :type p_S: float</span>
+<span class="sd">  &quot;&quot;&quot;</span> 
+  <span class="k">try</span><span class="p">:</span> 
+    <span class="n">delta_S</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">((</span><span class="n">S</span> <span class="o">-</span> <span class="n">p_S</span><span class="p">)</span> <span class="o">*</span> <span class="n">stabilityFactor</span> <span class="o">/</span> <span class="p">(</span><span class="n">T_now</span> <span class="o">-</span> <span class="n">T_last</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span><span class="p">)</span> 
+  <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span> 
+    <span class="n">delta_S</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s">&#39;+inf&#39;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">delta_S</span> <span class="o">&lt;</span> <span class="n">stabilityError</span> <span class="ow">and</span> <span class="n">T_stable</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="c"># Score becomes stable</span>
+    <span class="n">T_stable</span> <span class="o">=</span> <span class="n">T_now</span>
+
+  <span class="k">elif</span> <span class="n">delta_S</span> <span class="o">&gt;</span> <span class="n">stabilityError</span><span class="p">:</span> <span class="c"># Score has become unstable, reset T_stable</span>
+    <span class="n">T_stable</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">else</span><span class="p">:</span> <span class="c"># Score is stable and below threshold, do nothing</span>
+    <span class="k">pass</span>
+
+  <span class="k">return</span> <span class="n">T_stable</span>
+
+</div>
+<span class="n">orderOfClass</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;deprecated&#39;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;vernacular&#39;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;canonical&#39;</span> <span class="p">:</span> <span class="mi">0</span> <span class="p">}</span>
+
+<div class="viewcode-block" id="SeaIceConnector"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector">[docs]</a><span class="k">class</span> <span class="nc">SeaIceConnector</span><span class="p">:</span> 
+  <span class="sd">&quot;&quot;&quot; Connection to the PostgreSQL database. </span>
+<span class="sd">      </span>
+<span class="sd">    This object is capable of either connecting to a local database</span>
+<span class="sd">    (specified by the parameters) or a remote database specified by</span>
+<span class="sd">    the environment variable ``DATABASE_URL`` if no paramters are </span>
+<span class="sd">    given. This is to support Heroku functionality. For local testing </span>
+<span class="sd">    with your Heroku-Postgres based database, do </span>
+
+<span class="sd">    ``export DATABAE_URL=$(heroku config:get DATABASE_URL) &amp;&amp; ./ice --config=heroku``</span>
+
+<span class="sd">  :param user: Name of DB role.</span>
+<span class="sd">  :type user: str</span>
+<span class="sd">  :param password: User&#39;s password.</span>
+<span class="sd">  :type password: str</span>
+<span class="sd">  :param db: Name of database. </span>
+<span class="sd">  :type db: str</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+  
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span> 
+
+      <span class="n">urlparse</span><span class="o">.</span><span class="n">uses_netloc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;postgres&quot;</span><span class="p">)</span>
+      <span class="n">url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&quot;DATABASE_URL&quot;</span><span class="p">])</span>
+
+      <span class="c">#: The PostgreSQL database connector provided </span>
+      <span class="c">#: by the psycopg2 package. </span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">con</span> <span class="o">=</span> <span class="n">pgdb</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+        <span class="n">database</span><span class="o">=</span><span class="n">url</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+        <span class="n">user</span><span class="o">=</span><span class="n">url</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="n">url</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
+        <span class="n">host</span><span class="o">=</span><span class="n">url</span><span class="o">.</span><span class="n">hostname</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="n">url</span><span class="o">.</span><span class="n">port</span>
+      <span class="p">)</span>
+      
+    <span class="k">else</span><span class="p">:</span> 
+        
+      <span class="bp">self</span><span class="o">.</span><span class="n">con</span> <span class="o">=</span> <span class="n">pgdb</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">database</span><span class="o">=</span><span class="n">db</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">)</span>
+
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT version(); BEGIN&quot;</span><span class="p">)</span>
+  
+  <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="SeaIceConnector.createSchema"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.createSchema">[docs]</a>  <span class="k">def</span> <span class="nf">createSchema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">      Create the ``SI`` schema for SeaIce with the tables ``SI.Users``, </span>
+<span class="sd">      ``SI.Terms``, ``SI.Comments``, ``SI.Tracking`` (vote and star), </span>
+<span class="sd">      and various triggers; create ``SI_Notify`` with ``SI_Notify.Notify``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c">#: Create SI schema. </span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">      CREATE SCHEMA SI; </span>
+<span class="s">      &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    
+    <span class="c">#: Create Users table if it doesn&#39;t exist. </span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">      CREATE TABLE IF NOT EXISTS SI.Users</span>
+<span class="s">        (</span>
+<span class="s">          id           SERIAL PRIMARY KEY NOT NULL,</span>
+<span class="s">          authority    VARCHAR(64) NOT NULL, </span>
+<span class="s">          auth_id      VARCHAR(64) NOT NULL, </span>
+<span class="s">          email        VARCHAR(64) NOT NULL, </span>
+<span class="s">          last_name    VARCHAR(64) NOT NULL,</span>
+<span class="s">          first_name   VARCHAR(64) NOT NULL,</span>
+<span class="s">          reputation   INTEGER default 1 NOT NULL,</span>
+<span class="s">          UNIQUE (email)</span>
+<span class="s">        );</span>
+<span class="s">      ALTER SEQUENCE SI.Users_id_seq RESTART WITH 1001;&quot;&quot;&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c">#: Create Terms table if it doesn&#39;t exist.</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">      CREATE TYPE SI.Class AS ENUM (&#39;vernacular&#39;, &#39;canonical&#39;, &#39;deprecated&#39;);</span>
+<span class="s">      CREATE TABLE IF NOT EXISTS SI.Terms</span>
+<span class="s">        (</span>
+<span class="s">          id          SERIAL PRIMARY KEY NOT NULL, </span>
+<span class="s">          owner_id    INTEGER DEFAULT 0 NOT NULL,</span>
+<span class="s">          created     TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, </span>
+<span class="s">          modified    TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, </span>
+<span class="s">          term_string TEXT NOT NULL, </span>
+<span class="s">          definition  TEXT NOT NULL,</span>
+<span class="s">          examples    TEXT NOT NULL, </span>
+<span class="s">         </span>
+<span class="s">          up         INTEGER DEFAULT 0 NOT NULL,</span>
+<span class="s">          down       INTEGER DEFAULT 0 NOT NULL,</span>
+<span class="s">          consensus  FLOAT DEFAULT 0 NOT NULL,</span>
+<span class="s">          class SI.Class DEFAULT &#39;vernacular&#39; NOT NULL,</span>
+<span class="s">          </span>
+<span class="s">          U_sum     INTEGER DEFAULT 0 NOT NULL,</span>
+<span class="s">          D_sum     INTEGER DEFAULT 0 NOT NULL,</span>
+<span class="s">          T_last    TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, </span>
+<span class="s">          T_stable  TIMESTAMP WITH TIME ZONE DEFAULT now(), </span>
+<span class="s">          </span>
+<span class="s">          tsv tsvector, </span>
+<span class="s">          </span>
+<span class="s">          FOREIGN KEY (owner_id) REFERENCES SI.Users(id)</span>
+<span class="s">        ); </span>
+<span class="s">      ALTER SEQUENCE SI.Terms_id_seq RESTART WITH 1001;&quot;&quot;&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c">#: Create Comments table if it doesn&#39;t exist.</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">      CREATE TABLE IF NOT EXISTS SI.Comments</span>
+<span class="s">        (</span>
+<span class="s">          id        SERIAL PRIMARY KEY NOT NULL, </span>
+<span class="s">          owner_id  INTEGER DEFAULT 0 NOT NULL, </span>
+<span class="s">          term_id   INTEGER DEFAULT 0 NOT NULL, </span>
+<span class="s">          created   TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,</span>
+<span class="s">          modified  TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, </span>
+<span class="s">          comment_string TEXT NOT NULL,</span>
+
+<span class="s">          FOREIGN kEY (owner_id) REFERENCES SI.Users(id),</span>
+<span class="s">          FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE</span>
+<span class="s">        );</span>
+<span class="s">      ALTER SEQUENCE SI.Comments_id_seq RESTART WITH 1001;&quot;&quot;&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c">#: Create Tracking table if it doesn&#39;t exist. This table keeps </span>
+    <span class="c">#: track of the terms users have starred as well as their vote</span>
+    <span class="c">#: (+1 or -1). If they haven&#39;t voted, then vote = 0. This</span>
+    <span class="c">#: implies a rule: if a user untracks a term, then his or her </span>
+    <span class="c">#: vote is removed. </span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">      CREATE TABLE IF NOT EXISTS SI.Tracking</span>
+<span class="s">      (</span>
+<span class="s">        user_id        INTEGER NOT NULL, </span>
+<span class="s">        term_id        INTEGER NOT NULL,</span>
+<span class="s">        vote INTEGER   DEFAULT 0 NOT NULL, </span>
+<span class="s">        star BOOLEAN   DEFAULT true NOT NULL,</span>
+
+<span class="s">        UNIQUE (user_id, term_id),</span>
+<span class="s">        FOREIGN KEY (user_id) REFERENCES SI.Users(id) ON DELETE CASCADE, </span>
+<span class="s">        FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE</span>
+<span class="s">      )&quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    
+    <span class="c">#: Create schema and table for notifications.  </span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">      CREATE SCHEMA SI_Notify; </span>
+<span class="s">      CREATE TYPE SI_Notify.Class AS ENUM (&#39;Base&#39;, </span>
+<span class="s">                                           &#39;Comment&#39;,</span>
+<span class="s">                                           &#39;TermUpdate&#39;,</span>
+<span class="s">                                           &#39;TermRemoved&#39;);</span>
+<span class="s">                                                                                    </span>
+<span class="s">      CREATE TABLE SI_Notify.Notify</span>
+<span class="s">        (</span>
+<span class="s">          user_id      INTEGER not null, </span>
+<span class="s">          class        SI_notify.class not null, </span>
+<span class="s">          T            TIMESTAMP WITH TIME ZONE not null, </span>
+<span class="s">          term_id      INTEGER, </span>
+<span class="s">          from_user_id INTEGER, </span>
+<span class="s">          term_string  TEXT, </span>
+<span class="s">          FOREIGN KEY (user_id) REFERENCES SI.Users(id) on DELETE CASCADE, </span>
+<span class="s">          FOREIGN KEY (from_user_id) REFERENCES SI.Users(id) on DELETE CASCADE, </span>
+<span class="s">          FOREIGN KEY (term_id) REFERENCES SI.Terms(id) on DELETE CASCADE</span>
+<span class="s">        );</span>
+<span class="s">    &quot;&quot;&quot;</span><span class="p">)</span>
+  
+    <span class="c">#: Create update triggers.</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">      CREATE OR REPLACE FUNCTION SI.upd_timestamp() RETURNS TRIGGER </span>
+<span class="s">        language plpgsql</span>
+<span class="s">        as</span>
+<span class="s">         $$</span>
+<span class="s">          begin</span>
+<span class="s">            new.modified = current_timestamp;</span>
+<span class="s">            return new;</span>
+<span class="s">          end;</span>
+<span class="s">         $$;</span>
+<span class="s">              </span>
+<span class="s">      CREATE TRIGGER term_update</span>
+<span class="s">        before update of term_string, definition, examples on SI.Terms</span>
+<span class="s">        for each row</span>
+<span class="s">         execute procedure SI.upd_timestamp();</span>
+<span class="s">      </span>
+<span class="s">      CREATE TRIGGER comment_update</span>
+<span class="s">        before update on SI.Comments</span>
+<span class="s">        for each row</span>
+<span class="s">         execute procedure SI.upd_timestamp();</span>
+
+<span class="s">      CREATE TRIGGER tsv_update </span>
+<span class="s">        before insert or update on SI.Terms</span>
+<span class="s">        for each row execute procedure</span>
+<span class="s">          tsvector_update_trigger(tsv, &#39;pg_catalog.english&#39;, term_string, definition, examples);&quot;&quot;&quot;</span>
+    <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.dropSchema"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.dropSchema">[docs]</a>  <span class="k">def</span> <span class="nf">dropSchema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Drop ``SI`` and ``SI_Notify`` schemas. &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;DROP SCHEMA SI CASCADE&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;DROP SCHEMA IF EXISTS SI_Notify CASCADE&quot;</span><span class="p">)</span>
+
+  </div>
+<div class="viewcode-block" id="SeaIceConnector.commit"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.commit">[docs]</a>  <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Commit changes to database made while the connection was open. This </span>
+<span class="sd">        should be called before the class destructor is called in order to </span>
+<span class="sd">        save changes. It should be called freuqently in a mult-threaded </span>
+<span class="sd">        environment. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getTime"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getTime">[docs]</a>  <span class="k">def</span> <span class="nf">getTime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Get *T_now* timestamp according to database. This is important when</span>
+<span class="sd">        the SeaIce database is deployed to some anonymous server farm.</span>
+
+<span class="sd">    :rtype: datetime.datetime</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT now()&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="c">## Term queries ##</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.insertTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.insertTerm">[docs]</a>  <span class="k">def</span> <span class="nf">insertTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Add a term to the database and return the term&#39;s ID. </span>
+
+<span class="sd">    :param term: Term row to be inserted. Default values will be used for </span>
+<span class="sd">                 omitted columns.</span>
+<span class="sd">    :type term:  dict</span>
+<span class="sd">    :returns: ID of inserted row. If term[&#39;id&#39;] isn&#39;t assigned, the next</span>
+<span class="sd">              available ID in the sequence is given. </span>
+<span class="sd">    :rtype:   int or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c">#: Default values for table entries.  </span>
+    <span class="n">defTerm</span> <span class="o">=</span> <span class="p">{</span> 
+      <span class="s">&quot;id&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span><span class="p">,</span>
+      <span class="s">&quot;term_string&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;definition&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;examples&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;down&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;up&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;created&quot;</span> <span class="p">:</span> <span class="s">&quot;now()&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;modified&quot;</span> <span class="p">:</span> <span class="s">&quot;now()&quot;</span><span class="p">,</span>
+      <span class="s">&quot;T_stable&quot;</span> <span class="p">:</span> <span class="s">&quot;NULL&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;T_last&quot;</span> <span class="p">:</span> <span class="s">&quot;now()&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;owner_id&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span>
+    <span class="p">}</span>
+
+    <span class="c">#: Format entries for db query</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">term</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+      <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;created&quot;</span><span class="p">,</span> <span class="s">&quot;modified&quot;</span><span class="p">,</span> <span class="s">&quot;t_stable&quot;</span><span class="p">,</span> <span class="s">&quot;t_last&quot;</span><span class="p">]:</span>
+        <span class="n">defTerm</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span>
+      <span class="k">else</span><span class="p">:</span> 
+        <span class="n">defTerm</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="sd">&quot;&quot;&quot;INSERT INTO SI.Terms( id, </span>
+<span class="sd">                              term_string, </span>
+<span class="sd">                              definition, </span>
+<span class="sd">                              examples, </span>
+<span class="sd">                              up,</span>
+<span class="sd">                              down,</span>
+<span class="sd">                              created,</span>
+<span class="sd">                              modified,</span>
+<span class="sd">                              owner_id ) </span>
+<span class="sd">            VALUES(%s, &#39;%s&#39;, &#39;%s&#39;, &#39;%s&#39;, %s, %s, %s, %s, %s) </span>
+<span class="sd">            RETURNING id</span>
+<span class="sd">        &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;definition&#39;</span><span class="p">],</span> <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;examples&#39;</span><span class="p">],</span> 
+               <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;up&#39;</span><span class="p">],</span> <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;down&#39;</span><span class="p">],</span> <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;created&#39;</span><span class="p">],</span> <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;modified&#39;</span><span class="p">],</span> <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">]))</span>
+    
+      <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+      <span class="k">if</span> <span class="n">res</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">except</span> <span class="n">pgdb</span><span class="o">.</span><span class="n">DatabaseError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">pgcode</span> <span class="o">==</span> <span class="s">&#39;23505&#39;</span><span class="p">:</span> <span class="c">#: Duplicate primary key</span>
+         <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;warning: skipping duplicate primary key Id=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">defTerm</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+         <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;ROLLBACK;&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="bp">None</span> 
+      <span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.removeTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.removeTerm">[docs]</a>  <span class="k">def</span> <span class="nf">removeTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Remove term row from the database.</span>
+
+<span class="sd">    :param id: Term Id.</span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :returns: ID of removed term. </span>
+<span class="sd">    :rtype: int or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;DELETE FROM SI.Terms WHERE id=</span><span class="si">%d</span><span class="s"> RETURNING id&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">res</span><span class="p">:</span> <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getTerm">[docs]</a>  <span class="k">def</span> <span class="nf">getTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Get term by ID. </span>
+
+<span class="sd">    :param id: Term ID.</span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :rtype: dict or None</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.Terms WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+  </div>
+<div class="viewcode-block" id="SeaIceConnector.getTermString"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getTermString">[docs]</a>  <span class="k">def</span> <span class="nf">getTermString</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Get term string by ID.</span>
+
+<span class="sd">    :param id: Term ID.</span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :rtype: str or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT term_string FROM SI.Terms WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">res</span><span class="p">:</span> <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="k">return</span> <span class="bp">None</span>
+  </div>
+<div class="viewcode-block" id="SeaIceConnector.getAllTerms"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getAllTerms">[docs]</a>  <span class="k">def</span> <span class="nf">getAllTerms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortBy</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Return an iterator over ``SI.Terms``. </span>
+
+<span class="sd">    :param sortBy: Column by which sort the results in ascending order.</span>
+<span class="sd">    :type sortBy: str</span>
+<span class="sd">    :rtype: dict iterator</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sortBy</span><span class="p">:</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT id, owner_id, term_string, definition, examples, </span>
+<span class="s">                            modified, created, up, down, consensus, class,</span>
+<span class="s">                            T_stable, T_last</span>
+<span class="s">                       FROM SI.Terms </span>
+<span class="s">                      ORDER BY </span><span class="si">%s</span><span class="s">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">sortBy</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT id, owner_id, term_string, definition, examples, </span>
+<span class="s">                            modified, created, up, down, consensus, class,</span>
+<span class="s">                            T_stable, T_last</span>
+<span class="s">                       FROM SI.Terms&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getTermStats"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getTermStats">[docs]</a>  <span class="k">def</span> <span class="nf">getTermStats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return the various parameters used to calculate consensus </span>
+<span class="sd">        and stability for each term.  </span>
+
+<span class="sd">    :rtype: dict iterator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT id, owner_id, term_string, modified, created, </span>
+<span class="s">                          up, down, U_sum, D_sum, T_last, T_stable</span>
+<span class="s">                     FROM SI.Terms&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getByTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getByTerm">[docs]</a>  <span class="k">def</span> <span class="nf">getByTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_string</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Search table by term string and return an iterator over the matches.</span>
+
+<span class="sd">    :param term_string: The exact term string (case sensitive). </span>
+<span class="sd">    :type term_string: str</span>
+<span class="sd">    :rtype: dict or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term_string</span> <span class="o">=</span> <span class="n">term_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.Terms WHERE term_string=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">term_string</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getTermsByUser"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getTermsByUser">[docs]</a>  <span class="k">def</span> <span class="nf">getTermsByUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return an iterator over terms owned by a user. </span>
+<span class="sd">    </span>
+<span class="sd">    :param user_id: ID of the user. </span>
+<span class="sd">    :type user_id: int</span>
+<span class="sd">    :rtype: dict iterator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.Terms WHERE owner_id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_id</span><span class="p">)</span> 
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getTermsByTracking"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getTermsByTracking">[docs]</a>  <span class="k">def</span> <span class="nf">getTermsByTracking</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return an iterator over terms tracked by a user (terms that the </span>
+<span class="sd">        user has starred). </span>
+
+<span class="sd">    :param user_id: ID of the user. </span>
+<span class="sd">    :type user_id: int</span>
+<span class="sd">    :rtype: dict iterator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT * FROM SI.Terms AS term, </span>
+<span class="s">                                 SI.Tracking AS track</span>
+<span class="s">                    WHERE track.user_id={0} </span>
+<span class="s">                      AND track.term_id=term.id </span>
+<span class="s">                      AND term.owner_id!={0}</span>
+<span class="s">                      AND track.star=true&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getTrackingByTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getTrackingByTerm">[docs]</a>  <span class="k">def</span> <span class="nf">getTrackingByTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return an iterator over users tracking a term.</span>
+
+<span class="sd">    :param term_id: ID of term. </span>
+<span class="sd">    :type user_id: int</span>
+<span class="sd">    :returns: User rows. </span>
+<span class="sd">    :rtype: dict iterator</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT user_id FROM SI.Tracking </span>
+<span class="s">                    WHERE term_id={0} &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">term_id</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.search"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.search">[docs]</a>  <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Search table by term_string, definition and examples. Rank </span>
+<span class="sd">        results by relevance to query, consensus, and classificaiton.</span>
+
+<span class="sd">    :param string: Search query.</span>
+<span class="sd">    :type string: str</span>
+<span class="sd">    :rtype: dict list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="s">&#39; &amp; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">))</span> <span class="c"># |&#39;s are also aloud, and paranthesis TODO</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">      SELECT id, owner_id, term_string, definition, examples,  </span>
+<span class="s">             up, down, created, modified, consensus, class,</span>
+<span class="s">             ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank</span>
+<span class="s">        FROM SI.Terms, to_tsquery(&#39;english&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;) query </span>
+<span class="s">        WHERE query @@ tsv </span>
+<span class="s">        ORDER BY rank DESC</span>
+<span class="s">     &quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">string</span><span class="p">)</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">orderOfClass</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]])</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;consensus&#39;</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.updateTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.updateTerm">[docs]</a>  <span class="k">def</span> <span class="nf">updateTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Modify a term&#39;s term string, deifnition and examples. </span>
+<span class="sd">        Note: term ownership authenticated upstream! </span>
+
+<span class="sd">    :param id: Term ID. </span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :param term: Dictionary containing atleast the keys &#39;term_string&#39;, &#39;definition&#39;, </span>
+<span class="sd">                 and &#39;examples&#39; with string values.</span>
+<span class="sd">    :type term: dict </span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">term</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+      <span class="n">term</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;UPDATE SI.Terms SET term_string=&#39;</span><span class="si">%s</span><span class="s">&#39;, definition=&#39;</span><span class="si">%s</span><span class="s">&#39;, examples=&#39;</span><span class="si">%s</span><span class="s">&#39; WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+      <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;definition&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;examples&#39;</span><span class="p">],</span> <span class="nb">id</span><span class="p">))</span>
+ 
+
+    <span class="c">## User queries ##</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.insertUser"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.insertUser">[docs]</a>  <span class="k">def</span> <span class="nf">insertUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Insert a new user into the table and return the new ID. </span>
+
+<span class="sd">    :param user: Default values are used for any omitted columns.</span>
+<span class="sd">    :type user: dict </span>
+<span class="sd">    :rtype: int or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">defUser</span> <span class="o">=</span> <span class="p">{</span> 
+      <span class="s">&quot;id&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span><span class="p">,</span>
+      <span class="s">&quot;email&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;last_name&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;first_name&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;reputation&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;authority&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span><span class="p">,</span>
+      <span class="s">&quot;auth_id&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span>
+    <span class="p">}</span>
+  
+    <span class="c"># Format entries for db query</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+      <span class="n">defUser</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+      <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI.Users(id, email, last_name, first_name, reputation, authority, auth_id) </span>
+<span class="s">                     VALUES (</span><span class="si">%s</span><span class="s">, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;, </span><span class="si">%s</span><span class="s">, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;)</span>
+<span class="s">                     RETURNING id&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defUser</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                                         <span class="n">defUser</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">],</span> 
+                                         <span class="n">defUser</span><span class="p">[</span><span class="s">&#39;last_name&#39;</span><span class="p">],</span> 
+                                         <span class="n">defUser</span><span class="p">[</span><span class="s">&#39;first_name&#39;</span><span class="p">],</span> 
+                                         <span class="n">defUser</span><span class="p">[</span><span class="s">&#39;reputation&#39;</span><span class="p">],</span> 
+                                         <span class="n">defUser</span><span class="p">[</span><span class="s">&#39;authority&#39;</span><span class="p">],</span>
+                                         <span class="n">defUser</span><span class="p">[</span><span class="s">&#39;auth_id&#39;</span><span class="p">]))</span>
+      <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+      <span class="k">if</span> <span class="n">res</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    
+    <span class="k">except</span> <span class="n">pgdb</span><span class="o">.</span><span class="n">DatabaseError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">pgcode</span> <span class="o">==</span> <span class="s">&#39;23505&#39;</span><span class="p">:</span> <span class="c"># Duplicate primary key</span>
+         <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;warning: skipping duplicate primary key Id=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">defUser</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+         <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;ROLLBACK;&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="bp">None</span> 
+      <span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getUser"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getUser">[docs]</a>  <span class="k">def</span> <span class="nf">getUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Get User by ID.</span>
+
+<span class="sd">    :param id: User ID. </span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :rtype: dict or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.Users WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+  </div>
+<div class="viewcode-block" id="SeaIceConnector.getAllUsers"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getAllUsers">[docs]</a>  <span class="k">def</span> <span class="nf">getAllUsers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Return an iterator over ``SI.Users``. </span>
+
+<span class="sd">    :rtype: dict iterator</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.Users&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span>
+      </div>
+<div class="viewcode-block" id="SeaIceConnector.getUserByAuth"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getUserByAuth">[docs]</a>  <span class="k">def</span> <span class="nf">getUserByAuth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">authority</span><span class="p">,</span> <span class="n">auth_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Get user identified by an authentication ID. It&#39;s assumed that this ID </span>
+<span class="sd">        is unique in the context of a particular authority, such as Google. </span>
+
+<span class="sd">    **TODO:** originally I planned to use (authority, auth_id) as the unique </span>
+<span class="sd">    constraint on the SI.Users table. My guess is that most, if not all </span>
+<span class="sd">    services have an associated email address. The unique constraint is </span>
+<span class="sd">    actually the user&#39;s email. This method should be replaced.  </span>
+
+<span class="sd">    :param authority: Organization providing authentication. </span>
+<span class="sd">    :type authority: str</span>
+<span class="sd">    :param auth_id: Authentication ID.</span>
+<span class="sd">    :type auth_id: str</span>
+<span class="sd">    :returns: Internal surrogate ID of user. </span>
+<span class="sd">    :rtype: int or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.Users WHERE auth_id = &#39;</span><span class="si">%s</span><span class="s">&#39; AND authority = &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> 
+                 <span class="p">(</span><span class="n">auth_id</span><span class="p">,</span> <span class="n">authority</span><span class="p">))</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">res</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getUserNameById"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getUserNameById">[docs]</a>  <span class="k">def</span> <span class="nf">getUserNameById</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Get username by ID. </span>
+
+<span class="sd">    :param id: User ID. </span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :param full: Get full name</span>
+<span class="sd">    :type full: bool</span>
+<span class="sd">    :returns: If *full* is set, then return the first and last name of the user. </span>
+<span class="sd">              Otherwise, just return the first name. </span>
+<span class="sd">    :rtype: str or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT first_name, last_name FROM SI.Users WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">res</span> <span class="ow">and</span> <span class="n">full</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">res</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">full</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="bp">None</span>
+  </div>
+<div class="viewcode-block" id="SeaIceConnector.updateUser"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.updateUser">[docs]</a>  <span class="k">def</span> <span class="nf">updateUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Update user&#39;s name. </span>
+
+<span class="sd">    :param id: User ID.  </span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :param first: First name. </span>
+<span class="sd">    :type first: str</span>
+<span class="sd">    :param last: Last name. </span>
+<span class="sd">    :type last: str</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;UPDATE SI.Users SET first_name=&#39;</span><span class="si">%s</span><span class="s">&#39;, last_name=&#39;</span><span class="si">%s</span><span class="s">&#39; WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+      <span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">,</span> <span class="nb">id</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.updateUserReputation"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.updateUserReputation">[docs]</a>  <span class="k">def</span> <span class="nf">updateUserReputation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">rep</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Set reputation of user. This triggers an update of the consensus score</span>
+<span class="sd">        and term stability. Commit updates immediately. </span>
+
+<span class="sd">    :param id: User ID. </span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :param rep: New reputation score. </span>
+<span class="sd">    :type rep: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT now(), count(*) FROM SI.Users&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">T_now</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span> 
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT reputation FROM SI.Users WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span> 
+    <span class="n">p_rep</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">p_rep</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">p_rep</span> <span class="o">=</span> <span class="n">p_rep</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT v.vote, t.id, t.up, t.down, t.U_sum, t.D_sum, </span>
+<span class="s">                          t.T_last, t.T_stable, t.consensus</span>
+<span class="s">                   FROM SI.Tracking as v, </span>
+<span class="s">                        SI.Terms as t</span>
+<span class="s">                   WHERE v.user_id = </span><span class="si">%d</span><span class="s"> </span>
+<span class="s">                     AND v.term_id = t.id</span>
+<span class="s">                     AND v.vote != 0&quot;&quot;&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="p">(</span><span class="n">vote</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">U_sum</span><span class="p">,</span> <span class="n">D_sum</span><span class="p">,</span> <span class="n">T_last</span><span class="p">,</span> <span class="n">T_stable</span><span class="p">,</span> <span class="n">p_S</span><span class="p">)</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      
+      <span class="c">#: Compute new consensus score</span>
+      <span class="k">if</span> <span class="n">vote</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>      <span class="n">U_sum</span> <span class="o">+=</span> <span class="n">rep</span> <span class="o">-</span> <span class="n">p_rep</span>
+      <span class="k">elif</span> <span class="n">vote</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>   <span class="n">D_sum</span> <span class="o">+=</span> <span class="n">rep</span> <span class="o">-</span> <span class="n">p_rep</span> 
+      <span class="n">S</span> <span class="o">=</span> <span class="n">calculateConsensus</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">U_sum</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">D_sum</span><span class="p">))</span>
+
+      <span class="c">#: See if stability has changed  </span>
+      <span class="n">T_stable</span> <span class="o">=</span> <span class="n">calculateStability</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">p_S</span><span class="p">,</span> <span class="n">T_now</span><span class="p">,</span> <span class="n">T_last</span><span class="p">,</span> <span class="n">T_stable</span><span class="p">)</span>
+      
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;UPDATE SI.Terms SET consensus={1}, T_last=&#39;{2}&#39;, T_stable={3},</span>
+<span class="s">                     U_sum={4}, D_sum={5} WHERE id={0}; COMMIT&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">term_id</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">T_now</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">T_stable</span><span class="p">))</span> <span class="k">if</span> <span class="n">T_stable</span> <span class="k">else</span> <span class="s">&quot;NULL&quot;</span><span class="p">,</span> <span class="n">U_sum</span><span class="p">,</span> <span class="n">D_sum</span><span class="p">))</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;UPDATE SI.Users SET reputation=</span><span class="si">%d</span><span class="s"> WHERE id=</span><span class="si">%d</span><span class="s"> RETURNING id; COMMIT&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rep</span><span class="p">,</span> <span class="nb">id</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">id</span>
+
+
+    <span class="c">## Comment queries ##</span>
+    </div>
+<div class="viewcode-block" id="SeaIceConnector.insertComment"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.insertComment">[docs]</a>  <span class="k">def</span> <span class="nf">insertComment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comment</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Insert a new comment into the database and return ID.</span>
+
+<span class="sd">    :param comment: New comment as dictionary. Default values will be used for ommitted </span>
+<span class="sd">                    columns. </span>
+<span class="sd">    :type comment: dict </span>
+<span class="sd">    :rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">defComment</span> <span class="o">=</span> <span class="p">{</span> 
+      <span class="s">&quot;id&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span><span class="p">,</span>
+      <span class="s">&quot;owner_id&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;term_id&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span><span class="p">,</span> 
+      <span class="s">&quot;comment_string&quot;</span> <span class="p">:</span> <span class="s">&quot;nil&quot;</span>
+    <span class="p">}</span>
+  
+    <span class="c">#: Format entries for db query</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+      <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;created&quot;</span><span class="p">,</span> <span class="s">&quot;modified&quot;</span><span class="p">]:</span>
+        <span class="n">defComment</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">defComment</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+      <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI.Comments (id, owner_id, term_id, comment_string) </span>
+<span class="s">                     VALUES (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, &#39;</span><span class="si">%s</span><span class="s">&#39;)</span>
+<span class="s">                     RETURNING id&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defComment</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                                        <span class="n">defComment</span><span class="p">[</span><span class="s">&#39;owner_id&#39;</span><span class="p">],</span> 
+                                        <span class="n">defComment</span><span class="p">[</span><span class="s">&#39;term_id&#39;</span><span class="p">],</span> 
+                                        <span class="n">defComment</span><span class="p">[</span><span class="s">&#39;comment_string&#39;</span><span class="p">]))</span>
+      <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+      <span class="k">if</span> <span class="n">res</span><span class="p">:</span> <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>   <span class="k">return</span> <span class="bp">None</span>
+    
+    <span class="k">except</span> <span class="n">pgdb</span><span class="o">.</span><span class="n">DatabaseError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">pgcode</span> <span class="o">==</span> <span class="s">&#39;23505&#39;</span><span class="p">:</span> <span class="c">#: Duplicate primary key</span>
+         <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;warning: skipping duplicate primary key Id=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">defComment</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+         <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;ROLLBACK;&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="bp">None</span> 
+      <span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.removeComment"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.removeComment">[docs]</a>  <span class="k">def</span> <span class="nf">removeComment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Remove comment and return ID. </span>
+<span class="sd">    </span>
+<span class="sd">    :param id: Comment ID. </span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :rtype: int or None</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;DELETE FROM SI.Comments WHERE id=</span><span class="si">%d</span><span class="s"> RETURNING id&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">res</span><span class="p">:</span> <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.updateComment"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.updateComment">[docs]</a>  <span class="k">def</span> <span class="nf">updateComment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">comment</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Update term comment. Note that user authentication is handled up stream!</span>
+
+<span class="sd">    :param id: Comment ID.</span>
+<span class="sd">    :type id: int </span>
+<span class="sd">    :param comment: Expects at least the key &#39;comment_string&#39; with string value. </span>
+<span class="sd">    :type id: dict </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+      <span class="n">comment</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;UPDATE SI.Comments SET comment_string=&#39;</span><span class="si">%s</span><span class="s">&#39; WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+      <span class="n">comment</span><span class="p">[</span><span class="s">&#39;comment_string&#39;</span><span class="p">],</span> <span class="nb">id</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getComment"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getComment">[docs]</a>  <span class="k">def</span> <span class="nf">getComment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  Get comment by ID.</span>
+
+<span class="sd">    :param id: Comment ID. </span>
+<span class="sd">    :type id: int</span>
+<span class="sd">    :rtype: dict or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.Comments WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getCommentHistory"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getCommentHistory">[docs]</a>  <span class="k">def</span> <span class="nf">getCommentHistory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return a term&#39;s comment history, ordered by creation date.</span>
+
+<span class="sd">    :param term_id: Term ID. </span>
+<span class="sd">    :type term_id: int</span>
+<span class="sd">    :rtype: dict iterator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.Comments WHERE term_id=</span><span class="si">%d</span><span class="s"> ORDER BY created&quot;</span> <span class="o">%</span> <span class="n">term_id</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span>
+
+    <span class="c">## Tracking (Voting) queries ##</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.insertTracking"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.insertTracking">[docs]</a>  <span class="k">def</span> <span class="nf">insertTracking</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tracking</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Insert a tracking row, skipping if (term_id, user_id) pair exists. </span>
+
+<span class="sd">    :param tracking: Expect dictionary with keys &#39;user_id&#39;, &#39;term_id&#39;, and &#39;vote&#39;. </span>
+<span class="sd">    :type tracking: dictionary</span>
+<span class="sd">    :returns: (term_id, user_id)</span>
+<span class="sd">    :rtype: (int, int) or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">defTracking</span> <span class="o">=</span> <span class="p">{</span> 
+      <span class="s">&quot;vote&quot;</span> <span class="p">:</span> <span class="s">&quot;default&quot;</span> 
+    <span class="p">}</span>
+    
+    <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tracking</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+      <span class="n">defTracking</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+  
+    <span class="k">try</span><span class="p">:</span>
+      <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI.Tracking (user_id, term_id, vote) </span>
+<span class="s">                     VALUES (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)</span>
+<span class="s">                     RETURNING user_id, term_id&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defTracking</span><span class="p">[</span><span class="s">&#39;user_id&#39;</span><span class="p">],</span> 
+                                                      <span class="n">defTracking</span><span class="p">[</span><span class="s">&#39;term_id&#39;</span><span class="p">],</span> 
+                                                      <span class="n">defTracking</span><span class="p">[</span><span class="s">&#39;vote&#39;</span><span class="p">]))</span>
+      <span class="k">return</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    
+    <span class="k">except</span> <span class="n">pgdb</span><span class="o">.</span><span class="n">DatabaseError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">pgcode</span> <span class="o">==</span> <span class="s">&#39;23505&#39;</span><span class="p">:</span> <span class="c">#: Duplicate primary key</span>
+         <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;warning: skipping duplicate (TermId=</span><span class="si">%s</span><span class="s">, UserId=</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+          <span class="n">defTracking</span><span class="p">[</span><span class="s">&#39;term_id&#39;</span><span class="p">],</span> <span class="n">defTracking</span><span class="p">[</span><span class="s">&#39;user_id&#39;</span><span class="p">])</span>
+         <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;ROLLBACK;&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="bp">None</span> 
+      <span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getVote"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getVote">[docs]</a>  <span class="k">def</span> <span class="nf">getVote</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Get user&#39;s vote for a term.</span>
+
+<span class="sd">    :param user_id: User ID. </span>
+<span class="sd">    :type user_id: int</span>
+<span class="sd">    :param term_id: Term ID. </span>
+<span class="sd">    :type term_id: int</span>
+<span class="sd">    :returns: +1, 0, or -1. </span>
+<span class="sd">    :rtype: int or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT vote FROM SI.Tracking WHERE</span>
+<span class="s">                   user_id={0} AND term_id={1}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">))</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">res</span><span class="p">:</span> <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="k">return</span> <span class="bp">None</span> 
+</div>
+<div class="viewcode-block" id="SeaIceConnector.trackTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.trackTerm">[docs]</a>  <span class="k">def</span> <span class="nf">trackTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; User has starred a term. Return True if a row was </span>
+<span class="sd">        inserted into the Tracking table, False if not. </span>
+<span class="sd">    </span>
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT vote FROM SI.Tracking </span>
+<span class="s">                   WHERE user_id={0} AND term_id={1}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">():</span> 
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI.Tracking (user_id, term_id, vote) </span>
+<span class="s">                     VALUES ({0}, {1}, 0)&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">))</span>
+      <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span> 
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;UPDATE SI.Tracking SET star=True</span>
+<span class="s">                     WHERE user_id={0} AND term_id={1}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">))</span>
+      <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.untrackTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.untrackTerm">[docs]</a>  <span class="k">def</span> <span class="nf">untrackTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Untrack term. &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;UPDATE SI.Tracking SET star=False</span>
+<span class="s">                   WHERE user_id={0} AND term_id={1} </span>
+<span class="s">                   RETURNING vote&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">))</span>
+    <span class="n">vote</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">vote</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="mi">0</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.checkTracking"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.checkTracking">[docs]</a>  <span class="k">def</span> <span class="nf">checkTracking</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Check tracking.</span>
+
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT star FROM SI.Tracking </span>
+<span class="s">                   WHERE user_id={0} AND term_id={1}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">))</span>
+    <span class="n">star</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">star</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">star</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.preScore"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.preScore">[docs]</a>  <span class="k">def</span> <span class="nf">preScore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Prescore term. Returns a tuple of dictionaries (User.Id -&gt; User.Reputation) </span>
+<span class="sd">        of up voters and down voters (*U, D*).</span>
+
+<span class="sd">    :param term_id: Term ID. </span>
+<span class="sd">    :type term_id: int</span>
+<span class="sd">    :returns: (*U, D*)</span>
+<span class="sd">    :rtype: ((*int --&gt; int*), (*int --&gt; int*)) </span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT v.user_id, v.vote, u.reputation</span>
+<span class="s">                   FROM SI.Users as u, SI.Tracking as v</span>
+<span class="s">                   WHERE v.term_id = </span><span class="si">%d</span><span class="s"> AND v.user_id = u.id&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">term_id</span><span class="p">)</span>
+    <span class="n">U</span> <span class="o">=</span> <span class="p">{};</span> <span class="n">D</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">vote</span><span class="p">,</span> <span class="n">rep</span><span class="p">)</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">if</span> <span class="n">vote</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> 
+        <span class="n">U</span><span class="p">[</span><span class="n">user_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">rep</span>
+      <span class="k">elif</span> <span class="n">vote</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">D</span><span class="p">[</span><span class="n">user_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">rep</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span> 
+</div>
+<div class="viewcode-block" id="SeaIceConnector.postScore"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.postScore">[docs]</a>  <span class="k">def</span> <span class="nf">postScore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Postscore term. Input the reputations of up voters and down voters and </span>
+<span class="sd">        compute the consensus score. Update the term row as a side-affect. </span>
+
+<span class="sd">    :param U: Up voters. </span>
+<span class="sd">    :type U: int --&gt; int </span>
+<span class="sd">    :param D: Down voters. </span>
+<span class="sd">    :type D: int --&gt; int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT COUNT(*) FROM SI.Users&quot;</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># total users</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> 
+    <span class="n">d</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+
+    <span class="n">U_sum</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">ri</span><span class="p">,</span><span class="n">rj</span><span class="p">:</span> <span class="n">ri</span><span class="o">+</span><span class="n">rj</span><span class="p">,</span> 
+                    <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">Ri</span><span class="p">:</span> <span class="n">Ri</span><span class="p">,</span> <span class="n">U</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+    <span class="n">D_sum</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">ri</span><span class="p">,</span><span class="n">rj</span><span class="p">:</span> <span class="n">ri</span><span class="o">+</span><span class="n">rj</span><span class="p">,</span> 
+                    <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">Ri</span><span class="p">:</span> <span class="n">Ri</span><span class="p">,</span> <span class="n">D</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+    <span class="n">S</span> <span class="o">=</span> <span class="n">calculateConsensus</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">U_sum</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">D_sum</span><span class="p">))</span> 
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;UPDATE SI.Terms SET up={1}, down={2}, U_sum={3}, D_sum={4}, consensus={5}</span>
+<span class="s">                   WHERE id={0}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">term_id</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">U_sum</span><span class="p">,</span> <span class="n">D_sum</span><span class="p">,</span> <span class="n">S</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">S</span>
+
+</div>
+<div class="viewcode-block" id="SeaIceConnector.castVote"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.castVote">[docs]</a>  <span class="k">def</span> <span class="nf">castVote</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">vote</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Cast or change a user&#39;s vote on a term. Return the term&#39;s new consensus score.</span>
+
+<span class="sd">    :param user_id: User ID. </span>
+<span class="sd">    :type user_id: int</span>
+<span class="sd">    :param term_id: Term Id.</span>
+<span class="sd">    :type term_id: int</span>
+<span class="sd">    :param vote: +1, 0, or -1. </span>
+<span class="sd">    :type vote: int</span>
+<span class="sd">    :rtype: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT now(), count(*) FROM SI.Users&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">T_now</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span> 
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT reputation FROM SI.Users WHERE id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_id</span><span class="p">)</span> 
+    <span class="n">rep</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+  
+    <span class="c">#: Get current state</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT vote FROM SI.Tracking WHERE</span>
+<span class="s">                   user_id={0} AND term_id={1}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">))</span>
+    <span class="n">p_vote</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT up, down, U_sum, D_sum, t_last, t_stable, consensus FROM SI.Terms</span>
+<span class="s">                   WHERE id={0}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">term_id</span><span class="p">))</span>
+    <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">U_sum</span><span class="p">,</span> <span class="n">D_sum</span><span class="p">,</span> <span class="n">T_last</span><span class="p">,</span> <span class="n">T_stable</span><span class="p">,</span> <span class="n">p_S</span><span class="p">)</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+    <span class="c">#: Cast vote</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">p_vote</span><span class="p">:</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI.Tracking (user_id, term_id, vote)</span>
+<span class="s">                     VALUES ({0}, {1}, {2})&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">vote</span><span class="p">))</span>
+      <span class="n">p_vote</span> <span class="o">=</span> <span class="mi">0</span>
+      
+    <span class="k">elif</span> <span class="n">p_vote</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">vote</span><span class="p">:</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;UPDATE SI.Tracking SET vote={2}</span>
+<span class="s">                     WHERE user_id={0} AND term_id={1}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">vote</span><span class="p">))</span>
+      <span class="n">p_vote</span> <span class="o">=</span> <span class="n">p_vote</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c">#: Calculate new consensus score</span>
+    <span class="k">if</span> <span class="n">p_vote</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>    <span class="n">u</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">U_sum</span> <span class="o">-=</span> <span class="n">rep</span> 
+    <span class="k">elif</span> <span class="n">p_vote</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">d</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">D_sum</span> <span class="o">-=</span> <span class="n">rep</span>
+    <span class="k">if</span> <span class="n">vote</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>      <span class="n">u</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">U_sum</span> <span class="o">+=</span> <span class="n">rep</span>
+    <span class="k">elif</span> <span class="n">vote</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>   <span class="n">d</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">D_sum</span> <span class="o">+=</span> <span class="n">rep</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">calculateConsensus</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">U_sum</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">D_sum</span><span class="p">))</span>
+
+    <span class="c">#: Calculate stability</span>
+    <span class="n">T_stable</span> <span class="o">=</span> <span class="n">calculateStability</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">p_S</span><span class="p">,</span> <span class="n">T_now</span><span class="p">,</span> <span class="n">T_last</span><span class="p">,</span> <span class="n">T_stable</span><span class="p">)</span>
+
+    <span class="c">#: Update term</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;UPDATE SI.Terms SET consensus={1}, T_last=&#39;{2}&#39;, t_stable={3},</span>
+<span class="s">                   up={4}, down={5}, U_sum={6}, D_sum={7} WHERE id={0}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+      <span class="n">term_id</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">T_now</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">T_stable</span><span class="p">))</span> <span class="k">if</span> <span class="n">T_stable</span> <span class="k">else</span> <span class="s">&quot;NULL&quot;</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">U_sum</span><span class="p">,</span> <span class="n">D_sum</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">S</span>
+
+</div>
+<div class="viewcode-block" id="SeaIceConnector.classifyTerm"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.classifyTerm">[docs]</a>  <span class="k">def</span> <span class="nf">classifyTerm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Check if term is stable. If so, classify it as being *canonical*, *vernacular*, </span>
+<span class="sd">        or *deprecated*. Update term and return class as string.</span>
+
+<span class="sd">    :returns: &#39;canonical&#39;, &#39;vernacular&#39;, or &#39;deprecated&#39;.</span>
+<span class="sd">    :rtype: class</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>  
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT now()&quot;</span><span class="p">)</span>
+    <span class="n">T_now</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT consensus, T_stable, T_last, modified, class FROM SI.Terms where id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term_id</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">T_stable</span><span class="p">,</span> <span class="n">T_last</span><span class="p">,</span> <span class="n">T_modified</span><span class="p">,</span> <span class="n">term_class</span><span class="p">)</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="p">((</span><span class="n">T_stable</span> <span class="ow">and</span> <span class="p">((</span><span class="n">T_now</span> <span class="o">-</span> <span class="n">T_stable</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="n">stabilityFactor</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">stabilityInterval</span><span class="p">)</span> \
+        <span class="ow">or</span> <span class="p">((</span><span class="n">T_now</span> <span class="o">-</span> <span class="n">T_last</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="n">stabilityFactor</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">stabilityInterval</span><span class="p">)</span> \
+        <span class="ow">and</span> <span class="p">((</span><span class="n">T_now</span> <span class="o">-</span> <span class="n">T_modified</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="n">stabilityFactor</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">stabilityInterval</span><span class="p">:</span> 
+      
+      <span class="k">if</span> <span class="n">S</span> <span class="o">&gt;</span> <span class="n">stabilityConsensusIntervalHigh</span><span class="p">:</span>
+        <span class="n">term_class</span> <span class="o">=</span> <span class="s">&quot;canonical&quot;</span>
+      
+      <span class="k">elif</span> <span class="n">S</span> <span class="o">&lt;</span> <span class="n">stabilityConsensusIntervalLow</span><span class="p">:</span> 
+        <span class="n">term_class</span> <span class="o">=</span> <span class="s">&quot;deprecated&quot;</span>
+
+      <span class="k">else</span><span class="p">:</span> <span class="n">term_class</span> <span class="o">=</span> <span class="s">&quot;vernacular&quot;</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;UPDATE SI.Terms SET class={0} WHERE id={1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">term_class</span><span class="p">),</span> <span class="n">term_id</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">term_class</span> 
+</div>
+<div class="viewcode-block" id="SeaIceConnector.checkTermConsistency"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.checkTermConsistency">[docs]</a>  <span class="k">def</span> <span class="nf">checkTermConsistency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Check that a term&#39;s consensus score is consistent by scoring it the hard way.</span>
+<span class="sd">        Update if it wasn&#39;t. </span>
+
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT consensus FROM SI.Terms where id=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term_id</span><span class="p">)</span>
+    <span class="n">p_S</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preScore</span><span class="p">(</span><span class="n">term_id</span><span class="p">)</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">postScore</span><span class="p">(</span><span class="n">term_id</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span> 
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">p_S</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">S</span><span class="p">):</span>
+      <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="c">## Notification queries ##</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.getAllNotifications"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.getAllNotifications">[docs]</a>  <span class="k">def</span> <span class="nf">getAllNotifications</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return an iterator over ``SI_Notify.Notify``. </span>
+
+<span class="sd">    :rtype: dict iterator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI_Notify.Notify&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+      <span class="k">yield</span> <span class="n">row</span>
+  </div>
+<div class="viewcode-block" id="SeaIceConnector.insertNotification"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.insertNotification">[docs]</a>  <span class="k">def</span> <span class="nf">insertNotification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Insert a notification. </span>
+
+<span class="sd">    :param notif: Notification. </span>
+<span class="sd">    :type notif: seaice.notify.BaseNotification</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notif</span><span class="p">,</span> <span class="n">notify</span><span class="o">.</span><span class="n">Comment</span><span class="p">):</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) </span>
+<span class="s">                     VALUES( &#39;Comment&#39;, </span><span class="si">%d</span><span class="s">, </span><span class="si">%d</span><span class="s">, </span><span class="si">%d</span><span class="s">, </span><span class="si">%s</span><span class="s"> ); &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">notif</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))))</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notif</span><span class="p">,</span> <span class="n">notify</span><span class="o">.</span><span class="n">TermUpdate</span><span class="p">):</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) </span>
+<span class="s">                     VALUES( &#39;TermUpdate&#39;, </span><span class="si">%d</span><span class="s">, </span><span class="si">%d</span><span class="s">, </span><span class="si">%d</span><span class="s">, </span><span class="si">%s</span><span class="s"> ); &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">notif</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))))</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notif</span><span class="p">,</span> <span class="n">notify</span><span class="o">.</span><span class="n">TermRemoved</span><span class="p">):</span>
+      <span class="n">notif</span><span class="o">.</span><span class="n">term_string</span> <span class="o">=</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI_Notify.Notify( class, user_id, term_string, from_user_id, T ) </span>
+<span class="s">                     VALUES( &#39;TermRemoved&#39;, </span><span class="si">%d</span><span class="s">, &#39;</span><span class="si">%s</span><span class="s">&#39;, </span><span class="si">%d</span><span class="s">, </span><span class="si">%s</span><span class="s"> ); &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_string</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">notif</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))))</span> 
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO SI_Notify.Notify( class, user_id, term_id, T )   </span>
+<span class="s">                     VALUES( &#39;Base&#39;, </span><span class="si">%d</span><span class="s">, </span><span class="si">%d</span><span class="s">, </span><span class="si">%s</span><span class="s"> ); &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">notif</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))))</span>
+  </div>
+<div class="viewcode-block" id="SeaIceConnector.removeNotification"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.removeNotification">[docs]</a>  <span class="k">def</span> <span class="nf">removeNotification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Remove a notification.</span>
+
+<span class="sd">    :param notif: Notification. </span>
+<span class="sd">    :type notif: seaice.notify.BaseNotification</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">&quot;Lonestar!&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notif</span><span class="p">,</span> <span class="n">notify</span><span class="o">.</span><span class="n">Comment</span><span class="p">):</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;DELETE FROM SI_Notify.Notify</span>
+<span class="s">                      WHERE class=&#39;Comment&#39; AND user_id=</span><span class="si">%d</span><span class="s"> AND term_id=</span><span class="si">%d</span><span class="s"> </span>
+<span class="s">                        AND from_user_id=</span><span class="si">%d</span><span class="s"> AND T=</span><span class="si">%s</span><span class="s"> ; &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">notif</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))))</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notif</span><span class="p">,</span> <span class="n">notify</span><span class="o">.</span><span class="n">TermUpdate</span><span class="p">):</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;DELETE FROM SI_Notify.Notify</span>
+<span class="s">                      WHERE class=&#39;TermUpdate&#39; AND user_id=</span><span class="si">%d</span><span class="s"> AND term_id=</span><span class="si">%d</span><span class="s"></span>
+<span class="s">                        AND from_user_id=</span><span class="si">%d</span><span class="s"> AND T=</span><span class="si">%s</span><span class="s"> ; &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">notif</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))))</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notif</span><span class="p">,</span> <span class="n">notify</span><span class="o">.</span><span class="n">TermRemoved</span><span class="p">):</span>
+      <span class="n">notif</span><span class="o">.</span><span class="n">term_string</span> <span class="o">=</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;DELETE FROM SI_Notify.Notify</span>
+<span class="s">                      WHERE class=&#39;TermRemoved&#39; AND user_id=</span><span class="si">%d</span><span class="s"></span>
+<span class="s">                        AND term_string=&#39;</span><span class="si">%s</span><span class="s">&#39; AND from_user_id=</span><span class="si">%d</span><span class="s"></span>
+<span class="s">                        AND T=</span><span class="si">%s</span><span class="s"> ; &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_string</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">notif</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))))</span> 
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;DELETE FROM SI_Notify.Notify( class, user_id, term_id, T )   </span>
+<span class="s">                      WHERE class=&#39;Base&#39; AND user_id=</span><span class="si">%d</span><span class="s"> </span>
+<span class="s">                        AND term_id=</span><span class="si">%d</span><span class="s"> and T=</span><span class="si">%s</span><span class="s"> ; &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">user_id</span><span class="p">,</span> <span class="n">notif</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">notif</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))))</span>
+  
+
+</div>
+<div class="viewcode-block" id="SeaIceConnector.Export"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.Export">[docs]</a>  <span class="k">def</span> <span class="nf">Export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">outf</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Export database in JSON format to *outf*. If no file name </span>
+<span class="sd">        provided, dump to standard out. </span>
+
+<span class="sd">    :param table: Name of table.</span>
+<span class="sd">    :type table: str</span>
+<span class="sd">    :param outf: Filename to output table to.</span>
+<span class="sd">    :type outf: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">table</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Users&#39;</span><span class="p">,</span> <span class="s">&#39;Terms&#39;</span><span class="p">,</span> <span class="s">&#39;Comments&#39;</span><span class="p">,</span> <span class="s">&#39;Tracking&#39;</span><span class="p">]:</span>
+      <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;error (export): table &#39;</span><span class="si">%s</span><span class="s">&#39; is not defined in the db schema&quot;</span> <span class="o">%</span> <span class="n">table</span>
+      <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">outf</span><span class="p">:</span> 
+      <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outf</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">fd</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extras</span><span class="o">.</span><span class="n">RealDictCursor</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT * FROM SI.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">table</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">pretty</span><span class="o">.</span><span class="n">printAsJSObject</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">fd</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SeaIceConnector.Import"><a class="viewcode-back" href="../../SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.Import">[docs]</a>  <span class="k">def</span> <span class="nf">Import</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">inf</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Import database from JSON formated *inf*.</span>
+
+<span class="sd">    :param table: Name of table. </span>
+<span class="sd">    :type table: str</span>
+<span class="sd">    :param inf: File name from which to import.</span>
+<span class="sd">    :type inf: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">table</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Users&#39;</span><span class="p">,</span> <span class="s">&#39;Terms&#39;</span><span class="p">,</span> <span class="s">&#39;Comments&#39;</span><span class="p">,</span> <span class="s">&#39;Tracking&#39;</span><span class="p">]:</span>
+      <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;error (import): table &#39;</span><span class="si">%s</span><span class="s">&#39; is not defined in the db schema&quot;</span> <span class="o">%</span> <span class="n">table</span>
+      <span class="k">return</span> 
+
+    <span class="k">if</span> <span class="n">inf</span><span class="p">:</span>
+      <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">fd</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span>
+
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()):</span>
+      <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s">&quot;Users&quot;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insertUser</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+      <span class="k">elif</span> <span class="n">table</span> <span class="o">==</span> <span class="s">&quot;Terms&quot;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insertTerm</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+      <span class="k">elif</span> <span class="n">table</span> <span class="o">==</span> <span class="s">&quot;Comments&quot;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insertComment</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+      <span class="k">elif</span> <span class="n">table</span> <span class="o">==</span> <span class="s">&quot;Tracking&quot;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insertTracking</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+  
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Christopher Patton.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

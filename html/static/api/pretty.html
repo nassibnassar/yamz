@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The pretty module &mdash; SeaIce 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SeaIce 0.1 documentation" href="index.html" />
+    <link rel="up" title="The seaice package" href="seaice.html" />
+    <link rel="next" title="Term scoring and classification" href="scoring.html" />
+    <link rel="prev" title="The notify module" href="notify.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scoring.html" title="Term scoring and classification"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="notify.html" title="The notify module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" accesskey="U">The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-pretty-module">
+<h1>The <tt class="docutils literal"><span class="pre">pretty</span></tt> module<a class="headerlink" href="#the-pretty-module" title="Permalink to this headline">¶</a></h1>
+<p>This module implements various output-formatters that I&#8217;ve have been found
+useful for creating web pages and console output.</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+<span class="target" id="module-seaice.pretty"></span><dl class="function">
+<dt id="seaice.pretty.printPrettyDate">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printPrettyDate</tt><big>(</big><em>T</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printPrettyDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printPrettyDate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format output of a timestamp.</p>
+<blockquote>
+<div>If a small amount of time has elapsed between <em>T_now</em> 
+and <em>T</em>, then return the interval. <strong>TODO:</strong> This should
+be localized based on the HTTP request.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> (<em>datetime.datetime</em>) &#8211; Timestamp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.pretty.processTags">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">processTags</tt><big>(</big><em>db_con</em>, <em>string</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#processTags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.processTags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process tags in DB text entries into HTML.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+<li><strong>string</strong> &#8211; The input string.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">HTML-formatted string.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="section" id="plain-text">
+<h2>Plain text<a class="headerlink" href="#plain-text" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="seaice.pretty.printAsJSObject">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printAsJSObject</tt><big>(</big><em>rows</em>, <em>fd=&lt;open file '&lt;stdout&gt;'</em>, <em>mode 'w' at 0x2b6af8e6c1e0&gt;</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printAsJSObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printAsJSObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print table rows as JSON-formatted object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rows</strong> (<em>dict iterator</em>) &#8211; Table rows.</li>
+<li><strong>fd</strong> (<em>file</em>) &#8211; File descriptor to which to output the result (default is sys.stdout).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.pretty.printParagraph">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printParagraph</tt><big>(</big><em>db_con</em>, <em>text</em>, <em>leftMargin=8</em>, <em>width=60</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printParagraph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printParagraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format some text into a nice paragraph for displaying in the terminal. 
+Output the result directly to sys.stdout.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+<li><strong>text</strong> (<em>str</em>) &#8211; The paragraph.</li>
+<li><strong>leftMargin</strong> (<em>int</em>) &#8211; Number of spaces to print before the start of each line.</li>
+<li><strong>width</strong> &#8211; Number of characters to print per line.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.pretty.printTermsPretty">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printTermsPretty</tt><big>(</big><em>db_con</em>, <em>rows</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printTermsPretty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printTermsPretty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print term rows to terminal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+<li><strong>rows</strong> (<em>dict iterator</em>) &#8211; Table rows.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="html">
+<h2>HTML<a class="headerlink" href="#html" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="seaice.pretty.printTermAsHTML">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printTermAsHTML</tt><big>(</big><em>db_con</em>, <em>row</em>, <em>user_id=0</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printTermAsHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printTermAsHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format a term for the term page, e.g. <a class="reference external" href="http://seaice.herokuapp.com/term=1001">this</a>.</p>
+<blockquote>
+<div>This is the main page where you can look at a term. It includes a term definition, 
+examples, a voting form, ownership, and other stuff.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+<li><strong>row</strong> (<em>dict</em>) &#8211; Term row.</li>
+<li><strong>user_id</strong> (<em>int</em>) &#8211; Surrogate ID of user requesting the page. Defaults to 0 if session is 
+unauthenticated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">HTML-formatted string.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.pretty.printTermsAsHTML">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printTermsAsHTML</tt><big>(</big><em>db_con</em>, <em>rows</em>, <em>user_id=0</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printTermsAsHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printTermsAsHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format search results for display on the web page.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+<li><strong>row</strong> (<em>dict iterator</em>) &#8211; Term rows.</li>
+<li><strong>user_id</strong> (<em>int</em>) &#8211; Surrogate ID of user requesting the page. Defaults to 0 if session is 
+unauthenticated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">HTML-formatted string.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.pretty.printTermsAsBriefHTML">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printTermsAsBriefHTML</tt><big>(</big><em>db_con</em>, <em>rows</em>, <em>user_id=0</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printTermsAsBriefHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printTermsAsBriefHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format table rows as abbreviated HTML table, e.g. 
+<a class="reference external" href="http://seaice.herokuapp.com/browse/volatile">this</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+<li><strong>row</strong> (<em>dict iterator</em>) &#8211; Term rows.</li>
+<li><strong>user_id</strong> (<em>int</em>) &#8211; Surrogate ID of user requesting the page. Defaults to 0 if session is 
+unauthenticated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">HTML-formatted string.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.pretty.printTermsAsLinks">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printTermsAsLinks</tt><big>(</big><em>rows</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printTermsAsLinks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printTermsAsLinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print terms as a link list (pun intended).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rows</strong> (<em>dict iterator</em>) &#8211; Table rows.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">HTML-formatted string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.pretty.printCommentsAsHTML">
+<tt class="descclassname">seaice.pretty.</tt><tt class="descname">printCommentsAsHTML</tt><big>(</big><em>db_con</em>, <em>rows</em>, <em>user_id=0</em><big>)</big><a class="reference internal" href="_modules/seaice/pretty.html#printCommentsAsHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.pretty.printCommentsAsHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format comments for display on the term page.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+<li><strong>row</strong> (<em>dict iterator</em>) &#8211; Comment rows.</li>
+<li><strong>user_id</strong> (<em>int</em>) &#8211; Surrogate ID of user requesting the page. Defaults to 0 if session is 
+unauthenticated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">HTML-formatted string.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <tt class="docutils literal"><span class="pre">pretty</span></tt> module</a><ul>
+<li><a class="reference internal" href="#plain-text">Plain text</a></li>
+<li><a class="reference internal" href="#html">HTML</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="notify.html"
+                        title="previous chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">notify</span></tt> module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="scoring.html"
+                        title="next chapter">Term scoring and classification</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pretty.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scoring.html" title="Term scoring and classification"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="notify.html" title="The notify module"
+             >previous</a> |</li>
+        <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Christopher Patton.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

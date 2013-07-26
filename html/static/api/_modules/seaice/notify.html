@@ -1,0 +1,245 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>seaice.notify &mdash; SeaIce 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SeaIce 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for seaice.notify</h1><div class="highlight"><pre>
+<span class="c"># notify.py - implementations of various live notificaitons </span>
+<span class="c">#</span>
+<span class="c"># Copyright (c) 2013, Christopher Patton, all rights reserved.</span>
+<span class="c"># </span>
+<span class="c"># Redistribution and use in source and binary forms, with or without</span>
+<span class="c"># modification, are permitted provided that the following conditions are met:</span>
+<span class="c">#   * Redistributions of source code must retain the above copyright</span>
+<span class="c">#     notice, this list of conditions and the following disclaimer.</span>
+<span class="c">#   * Redistributions in binary form must reproduce the above copyright</span>
+<span class="c">#     notice, this list of conditions and the following disclaimer in the</span>
+<span class="c">#     documentation and/or other materials provided with the distribution.</span>
+<span class="c">#   * The names of contributors may be used to endorse or promote products</span>
+<span class="c">#     derived from this software without specific prior written permission.</span>
+<span class="c"># </span>
+<span class="c"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; AND</span>
+<span class="c"># ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED</span>
+<span class="c"># WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE</span>
+<span class="c"># DISCLAIMED. IN NO EVENT SHALL &lt;COPYRIGHT HOLDER&gt; BE LIABLE FOR ANY</span>
+<span class="c"># DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES</span>
+<span class="c"># (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;</span>
+<span class="c"># LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND</span>
+<span class="c"># ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT</span>
+<span class="c"># (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="kn">import</span> <span class="nn">pretty</span>
+
+<div class="viewcode-block" id="BaseNotification"><a class="viewcode-back" href="../../notify.html#seaice.notify.BaseNotification">[docs]</a><span class="k">class</span> <span class="nc">BaseNotification</span><span class="p">:</span> 
+  <span class="sd">&quot;&quot;&quot; Base class for notifications in the SeaIce web interface Each sub class </span>
+<span class="sd">      should implement __init__(), __str__(), and getAsHTML(db_con) This data</span>
+<span class="sd">      structure only stores surrogate keys for users, terms, and comments. so </span>
+<span class="sd">      that a notification is never inconsistent. As a result, getAsHTML causes</span>
+<span class="sd">      a query to the DB. </span>
+
+<span class="sd">      :param term_id: Term ID. </span>
+<span class="sd">      :type term_id: int</span>
+<span class="sd">      :param T_notify: The time at which the notification was produced. </span>
+<span class="sd">      :type T_notify: datetime.datetime</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">):</span> 
+    <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span> <span class="o">=</span> <span class="n">term_id</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span> <span class="o">=</span> <span class="n">T_notify</span>
+
+  <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&#39;Id=</span><span class="si">%d</span><span class="s"> at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaseNotification.getAsHTML"><a class="viewcode-back" href="../../notify.html#seaice.notify.BaseNotification.getAsHTML">[docs]</a>  <span class="k">def</span> <span class="nf">getAsHTML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Return an HTML-formatted notification string. To avoid dereferencing</span>
+<span class="sd">        something that has been deleted (term, comment, user, etc.), return </span>
+<span class="sd">        None if the database has no results. </span>
+
+<span class="sd">        :param db_con: Connection to database. </span>
+<span class="sd">        :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">        :rtype: str or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getTerm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="s">&#39;Term &lt;a href=&quot;/term=</span><span class="si">%d</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt; &lt;font color=&quot;#8B8B8B&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+  
+</div></div>
+<div class="viewcode-block" id="Comment"><a class="viewcode-back" href="../../notify.html#seaice.notify.Comment">[docs]</a><span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="n">BaseNotification</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Notification object for comments. </span>
+
+<span class="sd">      :param term_id: Term ID. </span>
+<span class="sd">      :type term_id: int</span>
+<span class="sd">      :param user_id: ID of the user has commented on a term. </span>
+<span class="sd">      :type user_id: int</span>
+<span class="sd">      :param T_notify: The time at which the notification was produced. </span>
+<span class="sd">      :type T_notify: datetime.datetime</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+ 
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">):</span>
+    <span class="n">BaseNotification</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">user_id</span>
+
+  <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&#39;UserId=</span><span class="si">%d</span><span class="s"> commented on TermId=</span><span class="si">%d</span><span class="s"> at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">getAsHTML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span> 
+    <span class="n">term</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getTerm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;font color=&quot;#4D6C82&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt; commented on &lt;a href=&quot;/term=</span><span class="si">%d</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt;. </span>
+<span class="s">              &lt;font color=&quot;#B8B8B8&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="TermUpdate"><a class="viewcode-back" href="../../notify.html#seaice.notify.TermUpdate">[docs]</a><span class="k">class</span> <span class="nc">TermUpdate</span><span class="p">(</span><span class="n">BaseNotification</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Notification object for term updates. </span>
+
+<span class="sd">      :param term_id: Term ID. </span>
+<span class="sd">      :type term_id: int</span>
+<span class="sd">      :param user_id: ID of the user who has updated the term. </span>
+<span class="sd">      :type user_id: int</span>
+<span class="sd">      :param T_notify: The time at which the notification was produced. </span>
+<span class="sd">      :type T_notify: datetime.datetime</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+ 
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">):</span>
+    <span class="n">BaseNotification</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">user_id</span>
+
+  <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&#39;UserId=</span><span class="si">%d</span><span class="s"> modified TermId=</span><span class="si">%d</span><span class="s"> at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">getAsHTML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span> 
+    <span class="n">term</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getTerm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;font color=&quot;#4D6C82&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt; modified &lt;a href=&quot;/term=</span><span class="si">%d</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt;. </span>
+<span class="s">              &lt;font color=&quot;#B8B8B8&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="TermRemoved"><a class="viewcode-back" href="../../notify.html#seaice.notify.TermRemoved">[docs]</a><span class="k">class</span> <span class="nc">TermRemoved</span><span class="p">(</span><span class="n">BaseNotification</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Notification object for term removals. </span>
+
+<span class="sd">      :param user_id: ID of the user who has updated the term. </span>
+<span class="sd">      :type user_id: int</span>
+<span class="sd">      :param term_string: Term string before the term was deleted. We can&#39;t use the ID </span>
+<span class="sd">                          since it has been removed from the database. </span>
+<span class="sd">      :type term_string: str</span>
+<span class="sd">      :param T_notify: The time at which the notification was produced. </span>
+<span class="sd">      :type T_notify: datetime.datetime</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+ 
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">term_string</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">):</span>
+    <span class="n">BaseNotification</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span>  <span class="n">T_notify</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">user_id</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">term_string</span> <span class="o">=</span> <span class="n">term_string</span>
+
+  <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&#39;UserId=</span><span class="si">%d</span><span class="s"> has removed TermString=</span><span class="si">%d</span><span class="s"> at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_string</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">getAsHTML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span> 
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;font color=&quot;#4D6C82&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt; has removed </span>
+<span class="s">              &lt;font color=&quot;#0088CC&quot;&gt;&lt;strong&gt;</span><span class="si">%s</span><span class="s">&lt;/strong&gt;&lt;/font&gt; from the metadictionary. </span>
+<span class="s">              &lt;font color=&quot;#B8B8B8&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_string</span><span class="p">,</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Christopher Patton.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

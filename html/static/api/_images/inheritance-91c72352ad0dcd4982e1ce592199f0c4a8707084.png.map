@@ -1,0 +1,5 @@
+<map id="inheritance9dc66ea023" name="inheritance9dc66ea023">
+<area shape="rect" id="node1" href="#seaice.user.User" title="seaice.user.User" alt="" coords="252,5,380,33"/>
+<area shape="rect" id="node2" href="#seaice.user.BaseUser" title="seaice.user.BaseUser" alt="" coords="5,30,165,58"/>
+<area shape="rect" id="node4" href="#seaice.user.AnonymousUser" title="seaice.user.AnonymousUser" alt="" coords="215,55,417,83"/>
+</map>
