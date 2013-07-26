@@ -85,12 +85,12 @@ try:
                                        db_name = db_config.get(options.db_role, 'dbname'))
 
 except pgdb.DatabaseError, e:
-  print >>sys.stderr, 'error: %s' % e    
+  print >>sys.stderr, "error: %s" % e 
   sys.exit(1)
 
 app.debug = True
-app.use_reloader = False
-app.secret_key = 'MISSING'
+app.use_reloader = True
+app.secret_key = '\xfbRc\x0c\xd1>\xbc\x08"\x15\xf1\x87\xba\x13_\xad\x0f\x889\xad'
 
   ## Session logins ##
 
