@@ -80,45 +80,72 @@
 
       <hr>
 
-      <a href="/api">Link to API documentation</a>
 
+      
+      <p>
+          The SeaIce Metadictionary (metadata dictionary) prototype is guided by the 
+          NSF-funded <a href="http://www.dataone.org">DataONE</a> Metadata Working Group. 
+          The duration of the effort is from June 2013 until July 2014. 
+          The prototype is a proof-of-concept web-based software service acting as an 
+          open registry of metadata terms from all domains and from all parts of "metadata 
+          speech". With no login required, anyone can search for and link to registry term 
+          definitions. Anyone can register to be able to login and create terms.
+      </p>
 
+      <p>
+          We aim for the metadictionary to become a high-quality cross-domain metadata 
+          vocabulary that is directly connected to evolving user needs. Change will be 
+          rapid and affordable, with no need for panels of experts to convene and arbitrate 
+          to improve it. We expect dramatic simplification compared to the situation today, 
+          in which there is an overwhelming number of vocabularies (ontologies) to choose from.
+      </p>
 
+      <p>
+          Our hope is that users will be able to find most of the terms they need in <i>one place</i>
+          (one vocabulary namespace), namely, the Metadictionary.  This should minimize the need for 
+          maintaining expensive crosswalks with other vocabularies and cluttering up expressed 
+          metadata with lots of namespace qualifiers.  Although it is not our central goal, the 
+          vocabulary is shovel-ready for those wishing to create linked data applications.
+      </p>
+      
+      <p>
+        The source code for the <i>SeaIce</i> metadictionary is distributed as a Python 
+        package under the terms of a BSD license and is published on 
+        <a href="http://www.github.com/cjpatton/seaice">Github</a>. Full documentation 
+        of the API can be found <a href="/api">here</a>.
+      </p>
 
-        The SeaIce Metadictionary (metadata dictionary) prototype is guided by the NSF-funded DataONE Metadata Working Group.  The duration of the effort is from June 2013 until July 2014. 
-</p><p>
-The prototype is a proof-of-concept web-based software service acting as an open registry of metadata terms from all domains and from all parts of "metadata speech". With no login required, anyone can search for and link to registry term definitions. Anyone can register to be able to login and create terms.
-</p><p>
-We aim for the Metadictionary to become a high-quality cross-domain metadata vocabulary that is directly connected to evolving user needs. Change will be rapid and affordable, with no need for panels of experts to convene and arbitrate to improve it. We expect dramatic simplification compared to the situation today, in which there is an overwhelming number of vocabularies (ontologies) to choose from.
-</p><p>
-  Our hope is that users will be able to find most of the terms they need in _one place_ (one vocabulary namespace), namely, the Metadictionary.  This should minimize the need for maintaining expensive crosswalks with other vocabularies and cluttering up expressed metadata with lots of namespace qualifiers.  Although it is not our central goal, the vocabulary is shovel-ready for those wishing to create linked data applications.
-</p><p>
-### Basic Metadictionary structure
-</p><p>
-Across the dictionary there are three disjoint classes of term:
-</p><p>
- * Vernacular: <br/>
-   + unstable terms; link to a vernacular term only as "work-in-progress" <br/>
-   + anyone can propose new vernacular terms (with user registration) <br/>
-   + proposer(s) of a term "own" it initially; only they can make changes <br/>
-   + ownership can be transferred to other community members at any time <br/>
-   + communities of interest spring up around related term clusters <br/>
-   + vernacular terms expire in 6 months unless renewed (editing auto-renews) <br/>
-   + all similar to the Internet-Draft process for Internet standards <br/>
-</p><p>
- * Canonical: <br/>
-   + stable, unchanging terms, safe for long-term reference <br/>
-   + terms move from vernacular to canonical by periodic approval <br/>
-   + approval is a lightweight process supervised by community elders <br/>
-   + terms still subject to voting or similar mechanisms <br/>
-</p><p> 
- * Deprecated: <br/>
-   + stable terms, but deprecated for long-term reference <br/>
-   + terms move from canonical to archival by periodic approval <br/>
-   + archival terms have links such as "ObsoletedBy: term X" <br/>
-</p><p>
-All terms start out as Vernacular.  All parts of every term, including definitions, examples, and illustrations, fall under a CC0 license.
-</p>
+      <h3>Basic metadictionary structure</h3>
+
+      <p>
+          Across the dictionary there are three disjoint classes. Classification of terms 
+          into these categories is a fully-automated process based on voting and user 
+          reputation. 
+          
+          <h4>Vernacular</h4><br>
+            <li>unstable terms; link to a vernacular term only as "work-in-progress"</li>
+            <li>anyone can propose new vernacular terms (with user registration)</li>
+            <li>proposer(s) of a term "own" it initially; only they can make changes</li>
+            <li>ownership can be transferred to other community members at any time</li>
+            <li>communities of interest spring up around related term clusters</li>
+            <li>vernacular terms expire in 6 months unless renewed (editing auto-renews)</li>
+            <li>all similar to the Internet-Draft process for Internet standards</li>
+
+          <h4>Canonical</h4><br>
+            <li>stable, unchanging terms, safe for long-term reference</li>
+            <li>terms move from vernacular to canonical by periodic approval</li>
+            <li>approval is a lightweight process supervised by community elders</li>  
+            <li>terms still subject to voting or similar mechanisms</li>
+
+          <h4>Deprecated</h4><br>
+            <li>stable terms, but deprecated for long-term reference</li>
+            <li>terms move from canonical to archival by periodic approval</li>
+            <li>archival terms have links such as "ObsoletedBy: term X"</li>
+      
+          All parts of every term, including definitions, examples, and illustrations are 
+          dedicated to the public domain under the terms of the CC0 license. 
+      </p>
+      
       <hr>
 
       <div class="footer" align=right><font size="2" color="#8B8B8B">
