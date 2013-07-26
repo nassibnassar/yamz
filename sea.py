@@ -51,7 +51,7 @@ parser.add_option("--config", dest="config_file", metavar="FILE",
                   help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice'). " + 
                        "If 'heroku' is given, then a connection to a foreign host specified by " + 
                        "DATABASE_URL is established.",
-                  default=(os.environ['HOME'] + '/.seaice'))
+                  default='heroku')
 
 parser.add_option("--import", dest="import_table",
                   help="Import JSON-formatted FILE into the dictionary.",
