@@ -16,7 +16,7 @@ verified in social a ecosystem. We're calling the service a *metadictionary*. Ch
 out the prototype at `seaice.herokuapp.com <http://seaice.herokuapp.com>`_. 
 
 *SeaIce* is written in Python on top of a PostgreSQL database and uses  
-`Flask <http://flask.pocoo.org/>`_. for the web frontend. Here you can find the 
+`Flask <http://flask.pocoo.org/>`_ for the web framework. Here you can find the 
 complete documentation of the API. 
 
 .. toctree::
