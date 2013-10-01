@@ -214,6 +214,7 @@ def authorized(resp):
     g_user['id'] = app.userIdPool.ConsumeId()
     g_user['last_name'] = "nil"
     g_user['first_name'] = "nil"
+    g_user['reputation'] = "30"
     g.db.insertUser(g_user)
     g.db.commit()
     user = g.db.getUserByAuth('google', g_user['auth_id'])
