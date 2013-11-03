@@ -1,0 +1,110 @@
+[
+  {
+    "auth_id": "112635160614837780008",
+    "authority": "google",
+    "email": "nassar@etymon.com",
+    "first_name": "Nassib",
+    "id": 1002,
+    "last_name": "Nassar",
+    "reputation": 50
+  },
+  {
+    "auth_id": "113264384537331141490",
+    "authority": "google",
+    "email": "jeznuk@gmail.com",
+    "first_name": "John",
+    "id": 1003,
+    "last_name": "Kunze",
+    "reputation": 200
+  },
+  {
+    "auth_id": "105267514831512253030",
+    "authority": "google",
+    "email": "mbjones.89@gmail.com",
+    "first_name": "Matt",
+    "id": 1004,
+    "last_name": "Jones",
+    "reputation": 20
+  },
+  {
+    "auth_id": "114962278946781101196",
+    "authority": "google",
+    "email": "karthik.ram@gmail.com",
+    "first_name": "Karthik",
+    "id": 1005,
+    "last_name": "Ram",
+    "reputation": 100
+  },
+  {
+    "auth_id": "101175833703603386550",
+    "authority": "google",
+    "email": "angelamuril@gmail.com",
+    "first_name": "Angela ",
+    "id": 1006,
+    "last_name": "Murillo",
+    "reputation": 10
+  },
+  {
+    "auth_id": "106019582307949199391",
+    "authority": "google",
+    "email": "jakkbl@gmail.com",
+    "first_name": "John",
+    "id": 1007,
+    "last_name": "Kunze",
+    "reputation": 43
+  },
+  {
+    "auth_id": "101353398504259663104",
+    "authority": "google",
+    "email": "robgur@gmail.com",
+    "first_name": "Rob",
+    "id": 1008,
+    "last_name": "Guralnick",
+    "reputation": 140
+  },
+  {
+    "auth_id": "100788741624588023845",
+    "authority": "google",
+    "email": "cjpatton@ucdavis.edu",
+    "first_name": "\u00dcwe",
+    "id": 1009,
+    "last_name": "Nordberger",
+    "reputation": 78
+  },
+  {
+    "auth_id": "115333521364236941241",
+    "authority": "google",
+    "email": "gjanee@ucop.edu",
+    "first_name": "Greg",
+    "id": 1010,
+    "last_name": "Jan\u00e9e",
+    "reputation": 103
+  },
+  {
+    "auth_id": "115866460232479600477",
+    "authority": "google",
+    "email": "adrian.turner@ucop.edu",
+    "first_name": "Adrian",
+    "id": 1011,
+    "last_name": "Turner",
+    "reputation": 62
+  },
+  {
+    "auth_id": "107944198772926204468",
+    "authority": "google",
+    "email": "karthik.ram@berkeley.edu",
+    "first_name": "nil",
+    "id": 1012,
+    "last_name": "nil",
+    "reputation": 113
+  },
+  {
+    "auth_id": "101648374372443287675",
+    "authority": "google",
+    "email": "chrispatton@gmail.com",
+    "first_name": "Chris",
+    "id": 1001,
+    "last_name": "Patton",
+    "reputation": 100
+  }
+]

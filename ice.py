@@ -55,7 +55,7 @@ parser.add_option("--config", dest="config_file", metavar="FILE",
                   help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice'). " + 
                        "If 'heroku' is given, then a connection to a foreign host specified by " + 
                        "DATABASE_URL is established.",
-                  default=(os.environ['HOME'] + '/.seaice'))
+                  default='heroku')
 
 parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
                   help="Start flask in debug mode.")
@@ -85,10 +85,12 @@ try:
                                        db_name = db_config.get(options.db_role, 'dbname'))
 
 except pgdb.DatabaseError, e:
-  print >>sys.stderr, 'error: %s' % e    
+  print >>sys.stderr, "error: %s" % e 
   sys.exit(1)
 
-app.secret_key = 'MISSING'
+app.debug = True
+app.use_reloader = True
+app.secret_key = '\xfbRc\x0c\xd1>\xbc\x08"\x15\xf1\x87\xba\x13_\xad\x0f\x889\xad'
 
   ## Session logins ##
 
@@ -212,6 +214,7 @@ def authorized(resp):
     g_user['id'] = app.userIdPool.ConsumeId()
     g_user['last_name'] = "nil"
     g_user['first_name'] = "nil"
+    g_user['reputation'] = "30"
     g.db.insertUser(g_user)
     g.db.commit()
     user = g.db.getUserByAuth('google', g_user['auth_id'])
@@ -645,7 +648,6 @@ def remComment(comment_id):
               """Error! You may only edit or remove your own comments.""")
 
 
-
   ## Voting! ##
 
 @app.route("/term=<int:term_id>/vote", methods=['POST'])
@@ -681,11 +683,7 @@ def trackTerm(term_id):
   print "User #%d %sed term #%d" % (l.current_user.id, request.form['action'], term_id)
   return redirect("/term=%d" % term_id)
 
-
-
-## Start HTTP server. ##
-
-if __name__ == '__main__':
-    app.debug = True
-    app.run('0.0.0.0', 5000, use_reloader=True)
-
+## Start HTTP server. (Not relevant on Heroku.) ##
+#if __name__ == '__main__':
+#    app.debug = True
+#    app.run('0.0.0.0', 5000, use_reloader = False)
