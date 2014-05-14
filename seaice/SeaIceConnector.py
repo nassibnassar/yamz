@@ -196,6 +196,9 @@ class SeaIceConnector:
           modified    TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
           term_string TEXT NOT NULL, 
           definition  TEXT NOT NULL,
+          persistent_id  TEXT NOT NULL,
+		  UNIQUE (persistent_id),
+		  CHECK (persistent_id <> ''),
           examples    TEXT NOT NULL, 
          
           up         INTEGER DEFAULT 0 NOT NULL,
