@@ -147,8 +147,8 @@ class SeaIceConnector:
         
       self.con = pgdb.connect(database=db, user=user, password=password)
 
-    cur = self.con.cursor()
-    cur.execute("SELECT version(); BEGIN")
+#    cur = self.con.cursor()
+#    cur.execute("SELECT version(); BEGIN")
   
   def __del__(self):
     self.con.close()
