@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# SeaIce API documentation build configuration file, created by
+# YAMZ/SeaIce API documentation build configuration file, created by
 # sphinx-quickstart on Tue Jul 23 14:37:11 2013.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -41,8 +41,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'SeaIce'
-copyright = u'2013, Christopher Patton'
+# Author: Christopher Patton, CC-BY 2013
+project = u'YAMZ/SeaIce'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -154,7 +154,7 @@ html_static_path = ['_static']
 #html_show_sphinx = True
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-#html_show_copyright = True
+html_show_copyright = False
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
@@ -165,7 +165,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'SeaIcedoc'
+htmlhelp_basename = 'YAMZdoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -184,7 +184,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'SeaIceAPI.tex', u'SeaIce API Documentation',
+  ('index', 'SeaIceAPI.tex', u'YAMZ/SeaIce API Documentation',
    u'Christopher Patton', 'manual'),
 ]
 
@@ -214,7 +214,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'seaiceapi', u'SeaIce API Documentation',
+    ('index', 'seaiceapi', u'YAMZ/SeaIce API Documentation',
      [u'Christopher Patton'], 1)
 ]
 
@@ -228,7 +228,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'SeaIceAPI', u'SeaIce API Documentation',
+  ('index', 'SeaIceAPI', u'YAMZ/SeaIce API Documentation',
    u'Christopher Patton', 'SeaIceAPI', 'One line description of project.',
    'Miscellaneous'),
 ]
