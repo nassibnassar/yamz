@@ -196,6 +196,9 @@ class SeaIceConnector:
           modified    TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
           term_string TEXT NOT NULL, 
           definition  TEXT NOT NULL,
+          persistent_id  TEXT NOT NULL,
+		  UNIQUE (persistent_id),
+		  CHECK (persistent_id <> ''),
           examples    TEXT NOT NULL, 
          
           up         INTEGER DEFAULT 0 NOT NULL,
@@ -414,7 +417,12 @@ class SeaIceConnector:
     :rtype: dict or None
     """ 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM SI.Terms WHERE id=%d" % id)
+    cur.execute("""
+        select id, owner_id, created, modified, term_string,
+               definition, examples, up, down, consensus, class,
+               U_sum, D_sum, T_last, T_stable, tsv
+            from SI.Terms where id=%d;
+        """ % id)
     return cur.fetchone()
   
   def getTermString(self, id): 
@@ -474,7 +482,12 @@ class SeaIceConnector:
     """
     term_string = term_string.replace("'", "''")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM SI.Terms WHERE term_string='%s'" % term_string)
+    cur.execute("""
+        select id, owner_id, created, modified, term_string,
+               definition, examples, up, down, consensus, class,
+               U_sum, D_sum, T_last, T_stable, tsv
+            from SI.Terms where term_string='%s';
+        """ % term_string)
     for row in cur.fetchall():
       yield row
 
@@ -486,7 +499,12 @@ class SeaIceConnector:
     :rtype: dict iterator
     """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM SI.Terms WHERE owner_id=%d" % user_id) 
+    cur.execute("""
+        select id, owner_id, created, modified, term_string,
+               definition, examples, up, down, consensus, class,
+               U_sum, D_sum, T_last, T_stable, tsv
+            from SI.Terms where owner_id=%d;
+        """ % user_id) 
     for row in cur.fetchall():
       yield row
 
@@ -499,12 +517,19 @@ class SeaIceConnector:
     :rtype: dict iterator
     """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("""SELECT * FROM SI.Terms AS term, 
-                                 SI.Tracking AS track
-                    WHERE track.user_id={0} 
-                      AND track.term_id=term.id 
-                      AND term.owner_id!={0}
-                      AND track.star=true""".format(user_id))
+    cur.execute("""
+        select term.id, term.owner_id, term.created, term.modified,
+               term.term_string, term.definition, term.examples, term.up,
+               term.down, term.consensus, term.class, term.U_sum, term.D_sum,
+               term.T_last, term.T_stable, term.tsv,
+               track.user_id, track.term_id, track.vote, track.star
+            from SI.Terms as term, 
+                 SI.Tracking as track
+            where track.user_id={0} 
+                      and track.term_id=term.id 
+                      and term.owner_id!={0}
+                      and track.star=true;
+        """.format(user_id))
     for row in cur.fetchall():
       yield row
 
@@ -619,7 +644,11 @@ class SeaIceConnector:
     :rtype: dict or None
     """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM SI.Users WHERE id=%d" % id)
+    cur.execute("""
+        select id, authority, auth_id, email, last_name, first_name,
+               reputation
+            from SI.Users where id=%d;
+        """ % id)
     return cur.fetchone()
   
   def getAllUsers(self): 
@@ -628,7 +657,11 @@ class SeaIceConnector:
     :rtype: dict iterator
     """ 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM SI.Users")
+    cur.execute("""
+        select id, authority, auth_id, email, last_name, first_name,
+               reputation
+            from SI.Users;
+        """)
     for row in cur.fetchall():
       yield row
       
@@ -649,8 +682,11 @@ class SeaIceConnector:
     :rtype: int or None
     """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM SI.Users WHERE auth_id = '%s' AND authority = '%s'" % 
-                 (auth_id, authority))
+    cur.execute("""
+        select id, authority, auth_id, email, last_name, first_name,
+               reputation
+            from SI.Users where auth_id = '%s' and authority = '%s';
+        """ % (auth_id, authority))
     res = cur.fetchone()
     return res
 
@@ -813,7 +849,10 @@ class SeaIceConnector:
     :rtype: dict or None
     """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM SI.Comments WHERE id=%d" % id)
+    cur.execute("""
+        select id, owner_id, term_id, created, modified, comment_string
+            from SI.Comments where id=%d;
+        """ % id)
     return cur.fetchone()
 
   def getCommentHistory(self, term_id):
@@ -824,7 +863,10 @@ class SeaIceConnector:
     :rtype: dict iterator
     """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM SI.Comments WHERE term_id=%d ORDER BY created" % term_id)
+    cur.execute("""
+        select id, owner_id, term_id, created, modified, comment_string
+            from SI.Comments where term_id=%d order by created;
+        """ % term_id)
     for row in cur.fetchall():
       yield row
 
@@ -1033,6 +1075,11 @@ class SeaIceConnector:
     :returns: 'canonical', 'vernacular', or 'deprecated'.
     :rtype: class
     """ 
+
+    # Temporary modification: force all terms to remain at the default
+    # classification, which is vernacular.
+    return "vernacular"
+
     cur = self.con.cursor()  
 
     cur.execute("SELECT now()")
@@ -1079,7 +1126,10 @@ class SeaIceConnector:
     :rtype: dict iterator
     """
     cur = self.con.cursor()
-    cur.execute("SELECT * FROM SI_Notify.Notify")
+    cur.execute("""
+        select user_id, class, T, term_id, from_user_id, term_string
+            from SI_Notify.Notify;
+        """)
     for row in cur.fetchall():
       yield row
   
