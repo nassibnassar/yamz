@@ -309,6 +309,12 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "    </td>"
   string += "  </tr>"
 
+  # Persistent ID
+  string += "  <tr>"
+  string += "    <td valign=top><i>Concept ID:</i></td>"
+  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % processTags(db_con, row['persistent_id'])
+  string += "  </tr>"
+
   # Definition/Examples
   string += "  <tr>"
   string += "    <td valign=top><i>Definition:</i></td>"
