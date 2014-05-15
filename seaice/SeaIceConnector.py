@@ -666,14 +666,17 @@ class SeaIceConnector:
     :rtype: str or None
     """
     cur = self.con.cursor()
-    cur.execute("SELECT first_name, last_name FROM SI.Users WHERE id=%d" % id)
-    res = cur.fetchone()
-    if res and full: 
-      return res[0] + " " + res[1]
-    elif res and not full: 
-      return res[0]
-    else: 
-      return None
+    try:
+      cur.execute("SELECT first_name, last_name FROM SI.Users WHERE id=%d" % id)
+      res = cur.fetchone()
+      if res and full: 
+        return res[0] + " " + res[1]
+      elif res and not full: 
+        return res[0]
+      else: 
+        return None
+    finally:
+      cur.close()
   
   def updateUser(self, id, first, last): 
     """ Update user's name. 
