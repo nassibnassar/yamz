@@ -373,6 +373,18 @@ def printTermsAsHTML(db_con, rows, user_id=0):
   string += "</table>"
   return string
 
+def summarizeConsensus(consensus):
+    """
+    Return 'high', 'medium' or 'low' as a rough indicator of consensus.
+    """
+    cons = int(100 * consensus)
+    if cons >= 70:
+        return 'high'
+    elif cons >= 30:
+        return 'medium'
+    else:
+	return 'low'
+
 def printTermsAsBriefHTML(db_con, rows, user_id=0): 
   """ Format table rows as abbreviated HTML table, e.g. 
       `this <http://seaice.herokuapp.com/browse/volatile>`_.
@@ -396,7 +408,9 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
                      <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
                      <td>{4}</td>
                      <td>{7}</tr>'''.format(
-      row['term_string'], row['up'] - row['down'], int(100 * row['consensus']), row['class'], 
+      row['term_string'], row['up'] - row['down'],
+      summarizeConsensus(row['consensus']),
+      row['class'], 
       db_con.getUserNameById(row['owner_id'], full=True), row['id'], colorOf[row['class']],
       printPrettyDate(row['modified']))
   string += "</table>"
