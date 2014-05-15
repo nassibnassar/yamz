@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,14 +6,14 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to the SeaIce documentation! &mdash; SeaIce 0.1 documentation</title>
+    <title>Welcome to the YAMZ/SeaIce documentation! &mdash; SeaIce 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    './',
         VERSION:     '0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
@@ -36,9 +34,6 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="seaice.html" title="The seaice package"
              accesskey="N">next</a> |</li>
         <li><a href="#">SeaIce 0.1 documentation</a> &raquo;</li> 
@@ -50,23 +45,23 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="welcome-to-the-seaice-documentation">
-<h1>Welcome to the <em>SeaIce</em> documentation!<a class="headerlink" href="#welcome-to-the-seaice-documentation" title="Permalink to this headline">¶</a></h1>
-<p><em>SeaIce</em> is an online, open-source, crowd-sourced dictionary for metadata terms. Users log in and
-contribute terms, vote on others&#8217;, and leave comments. A reputation-based heuristic
-is used to estimate community consensus on these terms as a percentage. This
-<strong>consensus score</strong> is used in combination with a <strong>term stability</strong> metric to
-classify terms as being <strong>vernacular</strong>, <strong>canonical</strong>, or <strong>deprecated</strong>. The hope is that
-<em>SeaIce</em> will facilitate the evolution of a set of stable, canonical metadata terms,
-verified in social a ecosystem. We&#8217;re calling the service a <em>metadictionary</em>. Check
-out the prototype at <a class="reference external" href="http://seaice.herokuapp.com">seaice.herokuapp.com</a>.</p>
-<p><em>SeaIce</em> is written in Python on top of a PostgreSQL database and uses
-<a class="reference external" href="http://flask.pocoo.org/">Flask</a> for the web framework. Here you can find the
-complete documentation of the API.</p>
+  <div class="section" id="welcome-to-the-yamz-seaice-documentation">
+<h1>Welcome to the <em>YAMZ/SeaIce</em> documentation!<a class="headerlink" href="#welcome-to-the-yamz-seaice-documentation" title="Permalink to this headline">¶</a></h1>
+<p><em>YAMZ</em> is an online, open-source, crowd-sourced dictionary for metadata
+terms, and <em>SeaIce</em> is a Python/PostgreSQL/Flask implementation of it.</p>
+<p>Users log in to <em>YAMZ</em> and contribute terms, vote on others&#8217;, and leave
+comments. A reputation-based heuristic is used to estimate community
+consensus on these terms as a percentage. This <strong>consensus score</strong> is
+used in combination with a <strong>term stability</strong> metric to classify terms as
+being <strong>vernacular</strong>, <strong>canonical</strong>, or <strong>deprecated</strong>. The hope is that
+<em>YAMZ</em> will facilitate the evolution of a set of stable, canonical
+metadata terms, verified in social a ecosystem. We&#8217;re calling the service
+a <em>metadictionary</em>. Check out the prototype at <a class="reference external" href="http://yamz.herokuapp.com">yamz.herokuapp.com</a>.</p>
+<p>Here you can find the complete documentation of the <em>SeaIce</em> API.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="seaice.html">The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="seaice.html#module-seaice"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceFlask</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="seaice.html#class-seaiceflask"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceFlask</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="seaice.html#classes-and-modules">Classes and modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SeaIceConnector.html"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceConnector</span></tt> &#8211; interface for PostgreSQL DB</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SeaIceConnector.html#class-scopedseaiceconnector"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">ScopedSeaIceConnector</span></tt></a></li>
@@ -103,21 +98,20 @@ complete documentation of the API.</p>
 </li>
 </ul>
 </div>
-<p>This version of <em>SeaIce</em> is meant as a proof-of-concept and is missing some desirable
-features. Currently, reputation of users is seeded in the database and there is no
-way to gain reputation by contributing to the metadictionary. Other missing features
-include:</p>
+<p>This version of <em>SeaIce</em> is meant as a proof-of-concept and is missing
+some desirable features. Currently, reputation of users is seeded in the
+database and there is no way to gain reputation by contributing to the
+metadictionary. Other missing features include:</p>
 <ul class="simple">
 <li>Contextual IDs for terms. The ability to reference terms on <em>SeaIce</em> elswehere.</li>
 <li>Flag irrelevant/abusive terms and comments. This is standard on other crowd-sourced
 services.</li>
 <li>More notifications.</li>
 </ul>
-<p>The prototype is deployed on <a class="reference external" href="http://www.heroku.com">Heroku</a>. The source code for the
-project is distributed under the terms of the BSD license and is published on
-<a class="reference external" href="http://www.github.com/cjpatton/seaice">github</a>.</p>
-<p><em>SeaIce</em> was originally developed by <a class="reference external" href="http://cjpatton.sdf.org">Christopher Patton</a>
-as an internship for <a class="reference external" href="http://www.dataone.org">DataONE</a>. CSS and JavaScript templates
+<p>The prototype is deployed on <a class="reference external" href="http://www.heroku.com">Heroku</a>. The
+source code for the project is distributed under the terms of the BSD
+license and is published on <a class="reference external" href="http://www.github.com/nassar/yamz">github</a>.</p>
+<p><em>SeaIce</em> was originally developed by <a class="reference external" href="http://cjpatton.sdf.org">Christopher Patton</a> as an internship for <a class="reference external" href="http://www.dataone.org">DataONE</a>. CSS and JavaScript templates
 were contributed by Karthik Ram.</p>
 </div>
 <div class="section" id="indices-and-tables">
@@ -137,7 +131,7 @@ were contributed by Karthik Ram.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to the <em>SeaIce</em> documentation!</a><ul>
+<li><a class="reference internal" href="#">Welcome to the <em>YAMZ/SeaIce</em> documentation!</a><ul>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -175,9 +169,6 @@ were contributed by Karthik Ram.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="seaice.html" title="The seaice package"
              >next</a> |</li>
         <li><a href="#">SeaIce 0.1 documentation</a> &raquo;</li> 
@@ -185,7 +176,7 @@ were contributed by Karthik Ram.</p>
     </div>
     <div class="footer">
         &copy; Copyright 2013, Christopher Patton.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
   </body>
 </html>

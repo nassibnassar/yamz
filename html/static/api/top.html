@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -15,7 +13,7 @@
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    './',
         VERSION:     '0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
@@ -36,9 +34,6 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="scoring.html" title="Term scoring and classification"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li> 
@@ -52,15 +47,15 @@
             
   <div class="section" id="top-level-programs-sea-and-ice">
 <h1>Top level programs <tt class="docutils literal"><span class="pre">sea</span></tt> and <tt class="docutils literal"><span class="pre">ice</span></tt><a class="headerlink" href="#top-level-programs-sea-and-ice" title="Permalink to this headline">¶</a></h1>
-<p>Two top-level Python programs that make use of the <em>SeaIce</em> API are available
-in the root directory of the source distribution. Both share two parameters in
-comon:</p>
+<p>Two top-level Python programs that make use of the <em>SeaIce</em> API (which
+implements the <em>YAMZ</em> metadictionary) are available in the root directory
+of the source distribution. Both share two parameters in common:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">--config</span></tt> &#8211; File that specifies the postgres role for a local database,
 typically <tt class="docutils literal"><span class="pre">$HOME/.seaice</span></tt>. (Syntax of this file given below.) If <tt class="docutils literal"><span class="pre">heroku</span></tt>
 is given instead of a filename, then a remote database specified by the
 environment variable <tt class="docutils literal"><span class="pre">DATABSE_URL</span></tt> will be used. See
-<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceConnector</span></tt></a>
+<tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceConnector</span></tt>
 for details.</li>
 <li><tt class="docutils literal"><span class="pre">--role</span></tt> &#8211; Role to use for connection to a local database. The parameter
 value must appear in the DB config file.</li>
@@ -127,14 +122,14 @@ for all up voters and down voters of each term are collected and used to compute
 the score. This is quite inefficient, roughly <em>O(mn)</em> for <em>m</em> users and <em>n</em> votes. In
 addition, it causes a join on the <em>User</em> and <em>Tracking</em> tables. In spite of this, I found
 it useful for verifying the more complex functions
-<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.castVote" title="seaice.SeaIceConnector.SeaIceConnector.castVote"><tt class="xref py py-func docutils literal"><span class="pre">SeaIceConnector.castVote</span></tt></a> and
-<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.updateUserReputation" title="seaice.SeaIceConnector.SeaIceConnector.updateUserReputation"><tt class="xref py py-func docutils literal"><span class="pre">SeaIceConnector.updateUserReputaiton</span></tt></a>
+<tt class="xref py py-func docutils literal"><span class="pre">SeaIceConnector.castVote</span></tt> and
+<tt class="xref py py-func docutils literal"><span class="pre">SeaIceConnector.updateUserReputaiton</span></tt>
 in development.</p>
 </div>
 <div class="section" id="ice">
 <h2><tt class="docutils literal"><span class="pre">ice</span></tt><a class="headerlink" href="#ice" title="Permalink to this headline">¶</a></h2>
 <p>This program utilizes the entire <em>SeaIce</em> API functionality to implement a Flask-based
-web framework. The main object, <a class="reference internal" href="seaice.html#seaice.SeaIceFlask.SeaIceFlask" title="seaice.SeaIceFlask.SeaIceFlask"><tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceFlask</span></tt></a>
+web framework. The main object, <tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceFlask</span></tt>
 creates a DB connection pool (all inherit the <tt class="docutils literal"><span class="pre">--config</span></tt> configuration), surrogate ID pools for
 tables, and data structures for authenticated user sessions and notifications. The code in
 <tt class="docutils literal"><span class="pre">ice</span></tt> defines the various <em>GET</em> and <em>POST</em> requests that are served. In addition,
@@ -208,9 +203,6 @@ password = SECRET
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="scoring.html" title="Term scoring and classification"
              >previous</a> |</li>
         <li><a href="index.html">SeaIce 0.1 documentation</a> &raquo;</li> 
@@ -218,7 +210,7 @@ password = SECRET
     </div>
     <div class="footer">
         &copy; Copyright 2013, Christopher Patton.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
   </body>
 </html>

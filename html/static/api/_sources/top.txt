@@ -4,9 +4,9 @@
 Top level programs ``sea`` and ``ice``
 ======================================
 
-Two top-level Python programs that make use of the *SeaIce* API are available 
-in the root directory of the source distribution. Both share two parameters in 
-comon: 
+Two top-level Python programs that make use of the *SeaIce* API (which
+implements the *YAMZ* metadictionary) are available in the root directory
+of the source distribution. Both share two parameters in common: 
 
 * ``--config`` -- File that specifies the postgres role for a local database, 
   typically ``$HOME/.seaice``. (Syntax of this file given below.) If ``heroku``

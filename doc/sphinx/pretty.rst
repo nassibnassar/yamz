@@ -6,7 +6,7 @@
 The ``pretty`` module
 =====================
 
-This module implements various output-formatters that I've have been found
+This module implements various output-formatters that have been found
 useful for creating web pages and console output.
 
 .. toctree::
