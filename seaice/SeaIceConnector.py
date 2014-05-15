@@ -420,7 +420,7 @@ class SeaIceConnector:
     cur.execute("""
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
-               U_sum, D_sum, T_last, T_stable, tsv
+               U_sum, D_sum, T_last, T_stable, tsv, persistent_id
             from SI.Terms where id=%d;
         """ % id)
     return cur.fetchone()
