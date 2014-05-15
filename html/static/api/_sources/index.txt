@@ -6,8 +6,9 @@
 Welcome to the *YAMZ/SeaIce* documentation!
 ======================================
 
-*YAMZ* is an online, open-source, crowd-sourced dictionary for metadata
-terms, and *SeaIce* is a Python/PostgreSQL/Flask implementation of it.
+*YAMZ* is an online, crowd-sourced dictionary for metadata terms, and
+*SeaIce* (frozen sea water) is an open-source implementation of it using
+Python, PostgreSQL, and Flask.
 
 Users log in to *YAMZ* and contribute terms, vote on others', and leave
 comments. A reputation-based heuristic is used to estimate community
