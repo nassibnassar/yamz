@@ -283,17 +283,22 @@ def printTermAsHTML(db_con, row, user_id=0):
              ("unstar" if db_con.checkTracking(0 if not user_id else user_id, row['id']) else "star"), row['id'])
   string += "  </td></tr>"
   
+  # Retrieve persistent_id
+  persistent_id = row['persistent_id']
+  persistent_id_short = persistent_id.split('/')[-1]
+
   # Name/Class
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
   string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(row['term_string']) 
-  string += "    <td valign=top width=5%><i>Class:</i></td>"
+# string += "    <td valign=top width=5%><i>Class:</i></td>"
+  string += "    <td valign=top width=5% rowspan=2>"
+  string += "      <nobr><i>Class:</i></nobr><br>"
+  string += "      <nobr><i>Concept ID:</i> %s</nobr><br>" % persistent_id_short
+  string += "    </td>"
   string += '    <td valign=top width=16%>&nbsp'
   string += '      <font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i></td>'.format(
               row['class'], int(100 * row['consensus']), colorOf[row['class']])
-
-  # Retrieve persistent_id
-  persistent_id = row['persistent_id']
 
   # Created/modified/Owner 
   string += "    <td valign=top width=20% rowspan=3>"
@@ -313,14 +318,6 @@ def printTermAsHTML(db_con, row, user_id=0):
 
   string += "    </td>"
   string += "  </tr>"
-
-# # Persistent ID
-
-# string += "  <tr>"
-# string += "    <td valign=top><i>Concept Id:</i></td>"
-# string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" %
-#           processTags(db_con, persistent_id)
-# string += "  </tr>"
 
   # Definition/Examples
   string += "  <tr>"
