@@ -292,11 +292,16 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += '      <font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i></td>'.format(
               row['class'], int(100 * row['consensus']), colorOf[row['class']])
 
+  # Retrieve persistent_id
+  persistent_id = row['persistent_id']
+
   # Created/modified/Owner 
   string += "    <td valign=top width=20% rowspan=3>"
   string += "      <nobr><i>Created %s</i></nobr><br>" % printPrettyDate(row['created'])
   string += "      <nobr><i>Last modified %s</i></nobr><br>" % printPrettyDate(row['modified'])
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
+  string += "      <nobr><i>Permalink</i></nobr><br>"
+  string += "      <nobr>%s</nobr><br>" % persistent_id
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
@@ -309,11 +314,13 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "    </td>"
   string += "  </tr>"
 
-  # Persistent ID
-  string += "  <tr>"
-  string += "    <td valign=top><i>Concept ID:</i></td>"
-  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % processTags(db_con, row['persistent_id'])
-  string += "  </tr>"
+# # Persistent ID
+
+# string += "  <tr>"
+# string += "    <td valign=top><i>Concept Id:</i></td>"
+# string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" %
+#           processTags(db_con, persistent_id)
+# string += "  </tr>"
 
   # Definition/Examples
   string += "  <tr>"
