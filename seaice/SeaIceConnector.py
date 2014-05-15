@@ -1036,6 +1036,11 @@ class SeaIceConnector:
     :returns: 'canonical', 'vernacular', or 'deprecated'.
     :rtype: class
     """ 
+
+    # Temporary modification: force all terms to remain at the default
+    # classification, which is vernacular.
+    return "vernacular"
+
     cur = self.con.cursor()  
 
     cur.execute("SELECT now()")
