@@ -3,13 +3,13 @@
 import re
 import urllib
 import urllib2
-import seaice
+import auth
 
 MINTER_URL = "https://n2t-pre.cdlib.org/a/yamz/m/ark/99152/h"
 BINDER_URL = "https://n2t-pre.cdlib.org/a/yamz/b"
 REALM = "yamz"
 USERNAME = "yamz"
-PASSWORD = seaice.auth.get_config().get('default', 'minter_password')
+PASSWORD = auth.get_config().get('default', 'minter_password')
 TARGET_URL_TEMPLATE = "http://yamz.net/term=%d"
 
 _opener = None
