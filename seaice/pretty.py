@@ -310,8 +310,8 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "    <td valign=top width=20% rowspan=3>"
   string += "      <nobr><i>Created %s</i></nobr><br>" % printPrettyDate(row['created'])
   string += "      <nobr><i>Last modified %s</i></nobr><br>" % printPrettyDate(row['modified'])
-  string += "      <nobr><i>Concept Id:</i> %s</nobr><br>" % persistent_id_short
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
+  string += "      <nobr><i>Concept Id:&nbsp;&nbsp;</i>%s</nobr><br>" % persistent_id_short
   string += '      <nobr><i>' + permalink + '</i></nobr><br>'
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
