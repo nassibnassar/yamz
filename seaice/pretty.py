@@ -284,8 +284,13 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "  </td></tr>"
   
   # Retrieve persistent_id
-  persistent_id = row['persistent_id']
-  persistent_id_short = persistent_id.split('/')[-1]
+  term_persistent_id = row['persistent_id']
+  if term_persistent_id is None:
+      persistent_id = ''
+      persistent_id_short = ''
+  else:
+      persistent_id = term_persistent_id
+      persistent_id_short = persistent_id.split('/')[-1]
 
   # Name/Class
   string += "  <tr>"
