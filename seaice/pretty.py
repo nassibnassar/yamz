@@ -311,8 +311,14 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "      <nobr><i>Created %s</i></nobr><br>" % printPrettyDate(row['created'])
   string += "      <nobr><i>Last modified %s</i></nobr><br>" % printPrettyDate(row['modified'])
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
-  string += ( '      <nobr><i><a href="%s">Permalink</a></i></nobr><br>' %
-              persistent_id )
+  if persistent_id == '':
+      permalink_start = ''
+      permalink_end = ''
+  else:	
+      permalink_start = '<a href="%s">' % persistent_id
+      permalink_end = '</a>'
+  string += ( '      <nobr><i>' + permalink_start + 'Permalink' +
+                                  permalink_end + '</i></nobr><br>' )
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
