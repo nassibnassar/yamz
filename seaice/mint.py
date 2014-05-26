@@ -1,6 +1,7 @@
 # Contributed by Greg Janee
 
 import re
+import os
 import urllib
 import urllib2
 import auth
@@ -9,7 +10,13 @@ MINTER_URL = "https://n2t-pre.cdlib.org/a/yamz/m/ark/99152/h"
 BINDER_URL = "https://n2t-pre.cdlib.org/a/yamz/b"
 REALM = "yamz"
 USERNAME = "yamz"
-PASSWORD = auth.get_config().get('default', 'minter_password')
+
+CONFIG = auth.get_config()
+if CONFIG.has_option('default', 'minter_password'):
+    PASSWORD = CONFIG.get('default', 'minter_password')
+else:
+    PASSWORD = os.environ.get('MINTER_PASSWORD')
+
 TARGET_URL_TEMPLATE = "http://yamz.net/term=%d"
 
 _opener = None
