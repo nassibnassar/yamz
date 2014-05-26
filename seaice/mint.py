@@ -17,7 +17,7 @@ if CONFIG.has_option('default', 'minter_password'):
 else:
     PASSWORD = os.environ.get('MINTER_PASSWORD')
 
-TARGET_URL_TEMPLATE = "http://yamz.net/term=%d"
+TARGET_URL_TEMPLATE = "http://yamz.net/term/concept=%d"
 
 _opener = None
 
