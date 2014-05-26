@@ -16,6 +16,7 @@ _opener = None
 def mintArkIdentifier (id):
   # Takes an internal term identifier as an integer (e.g., 123) and
   # returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
+  # Note that exceptions are not handled here but passed to the caller.
   global _opener
   if not _opener:
     m = urllib2.HTTPPasswordMgr()
