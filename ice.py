@@ -353,6 +353,40 @@ def getTerm(term_id = None, message = ""):
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
+@app.route("/term_persistent_id=<term_persistent_id>")
+def getTerm(term_persistent_id = None, message = ""):
+  
+  g.db = app.dbPool.getScoped()
+  try: 
+    term = g.db.getTermByPersistentId(str(term_persistent_id))
+    if term:
+      result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
+      result = message + "<hr>" + result + "<hr>"
+      result += seaice.pretty.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
+                                                 l.current_user.id)
+      if l.current_user.id:
+        result += """ 
+        <form action="/term={0}/comment" method="post">
+          <table cellpadding=16 width=60%>
+            <tr><td><textarea type="text" name="comment_string" rows=3
+              style="width:100%; height:100%"
+              placeholder="Add comment"></textarea></td></tr>
+            <tr><td align=right><input type="submit" value="Comment"><td>
+            </td>
+          </table>
+        </form>""".format(term['id'])
+      return render_template("basic_page.html", user_name = l.current_user.name, 
+                                                title = "Term - %s" %
+                                                        term_persistent_id, 
+                                                headline = "Term", 
+                                                content = Markup(result.decode('utf-8')))
+  except ValueError: pass
+
+  return render_template("basic_page.html", user_name = l.current_user.name, 
+                                            title = "Term not found",
+                                            headline = "Term", 
+                                            content = Markup("Term <strong>#%s</strong> not found!" % term_persistent_id))
+
 @app.route("/browse")
 @app.route("/browse/<listing>")
 def browse(listing = None):

@@ -432,6 +432,22 @@ class SeaIceConnector:
         """ % id)
     return cur.fetchone()
   
+  def getTermByPersistentId(self, persistent_id): 
+    """ Get term by ID. 
+
+    :param persistent_id: Persistent Id.
+    :type id: str
+    :rtype: dict or None
+    """ 
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        select id, owner_id, created, modified, term_string,
+               definition, examples, up, down, consensus, class,
+               U_sum, D_sum, T_last, T_stable, tsv, persistent_id
+            from SI.Terms where persistent_id=%s;
+        """ % persistent_id)
+    return cur.fetchone()
+  
   def getTermString(self, id): 
     """ Get term string by ID.
 
