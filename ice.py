@@ -353,7 +353,7 @@ def getTerm(term_id = None, message = ""):
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
-@app.route("/concept=<term_concept_id>")
+@app.route("/term/concept=<term_concept_id>")
 def getTermByPersistentId(term_concept_id = None, message = ""):
   
   g.db = app.dbPool.getScoped()
