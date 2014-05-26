@@ -32,6 +32,7 @@ import psycopg2.extras
 import pretty
 import auth
 import notify
+import mint
 
 """
   Some constants for stability calculation. 
@@ -386,7 +387,7 @@ class SeaIceConnector:
       id = None if res is None else res[0]
 
       # Mint persistent ID for term
-      persistent_id = seaice.mint.mint_persistent_id(id)
+      persistent_id = mint.mint_persistent_id(id)
       sql = "update si.terms set persistent_id = %s where id = %s;"
       data = (persistent_id, id)
       cur.execute(sql, data)
