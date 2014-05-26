@@ -355,7 +355,8 @@ class SeaIceConnector:
       "modified" : "now()",
       "T_stable" : "NULL", 
       "T_last" : "now()", 
-      "owner_id" : "default"
+      "owner_id" : "default",
+      "persistent_id" : "NULL"
     }
 
     #: Format entries for db query
@@ -375,11 +376,12 @@ class SeaIceConnector:
                               down,
                               created,
                               modified,
-                              owner_id ) 
-            VALUES(%s, '%s', '%s', '%s', %s, %s, %s, %s, %s) 
+                              owner_id,
+                              persistent_id ) 
+            VALUES(%s, '%s', '%s', '%s', %s, %s, %s, %s, %s, %s) 
             RETURNING id
         """ % (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['examples'], 
-               defTerm['up'], defTerm['down'], defTerm['created'], defTerm['modified'], defTerm['owner_id']))
+               defTerm['up'], defTerm['down'], defTerm['created'], defTerm['modified'], defTerm['owner_id'], defTerm['persistent_id']))
     
       res = cur.fetchone()
       if res: 
