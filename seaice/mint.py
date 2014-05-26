@@ -17,13 +17,12 @@ if CONFIG.has_option('default', 'minter_password'):
 else:
     PASSWORD = os.environ.get('MINTER_PASSWORD')
 
-TARGET_URL_TEMPLATE = "http://yamz.net/term/concept=%d"
+TARGET_URL_TEMPLATE = "http://yamz.net/term/concept=%s"
 
 _opener = None
 
-def mintArkIdentifier (id):
-  # Takes an internal term identifier as an integer (e.g., 123) and
-  # returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
+def mintArkIdentifier ():
+  # Returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
   # Note that exceptions are not handled here but passed to the caller.
   global _opener
   if not _opener:
@@ -43,14 +42,15 @@ def mintArkIdentifier (id):
     if c: c.close()
   c = None
   try:
+    concept_id = arkId.split('/')[-1]
     c = _opener.open(BINDER_URL + "?" +\
-      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, id)))
+      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
     r = c.readlines()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
   finally:
     if c: c.close()
   return arkId
 
-def mint_persistent_id(id):
-    return 'http://n2t.net/' + mintArkIdentifier(id)
+def mint_persistent_id():
+    return 'http://n2t.net/' + mintArkIdentifier()
 
