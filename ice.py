@@ -358,7 +358,7 @@ def getTermByPersistentId(term_concept_id = None, message = ""):
   
   g.db = app.dbPool.getScoped()
   try: 
-    term = g.db.getTermByConceptId(str(term_concept_id))
+    term = g.db.getTermByConceptId(term_concept_id)
     if term:
       result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
       result = message + "<hr>" + result + "<hr>"

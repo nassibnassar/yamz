@@ -433,10 +433,10 @@ class SeaIceConnector:
     return cur.fetchone()
   
   def getTermByConceptId(self, concept_id): 
-    """ Get term by ID. 
+    """ Get term by Concept Id. 
 
     :param concept_id: Concept Id.
-    :type id: str
+    :type concept_id: str
     :rtype: dict or None
     """ 
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -444,7 +444,7 @@ class SeaIceConnector:
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
                U_sum, D_sum, T_last, T_stable, tsv, persistent_id
-            from SI.Terms where persistent_id=%s;
+            from SI.Terms where persistent_id='%s';
         """ % ('http://n2t.net/ark:/99152/' + concept_id) )
     return cur.fetchone()
   
