@@ -198,6 +198,7 @@ class SeaIceConnector:
           term_string TEXT NOT NULL, 
           definition  TEXT NOT NULL,
           persistent_id  TEXT,
+                  UNIQUE (persistent_id),
 		  CHECK (persistent_id <> ''),
           examples    TEXT NOT NULL, 
          
