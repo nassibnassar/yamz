@@ -282,17 +282,6 @@ def printTermAsHTML(db_con, row, user_id=0):
             '     onclick="return TermAction({1}, \'{0}\');">[{0}]</a><br> '.format(
              ("unstar" if db_con.checkTracking(0 if not user_id else user_id, row['id']) else "star"), row['id'])
   string += "  </td></tr>"
-  
-  # Retrieve persistent_id
-  term_persistent_id = row['persistent_id']
-  if term_persistent_id is None:
-      persistent_id = ''
-      persistent_id_short = ''
-      permalink = ''
-  else:
-      persistent_id = term_persistent_id
-      persistent_id_short = persistent_id.split('/')[-1]
-      permalink = '<a href="%s">Permalink</a>' % persistent_id
 
   # Name/Class
   string += "  <tr>"
@@ -306,13 +295,24 @@ def printTermAsHTML(db_con, row, user_id=0):
               row['class'], int(100 * row['consensus']), colorOf[row['class']])
   string += "    </td>"
 
+  # Retrieve persistent_id
+  term_persistent_id = row['persistent_id']
+  if term_persistent_id is None:
+      persistent_id = ''
+      concept_id = ''
+      permalink = ''
+  else:
+      persistent_id = term_persistent_id
+      concept_id = persistent_id.split('/')[-1]
+      permalink = '<a href="%s">Permalink</a>' % persistent_id
+
   # Created/modified/Owner 
   string += "    <td valign=top width=20% rowspan=3>"
   string += "      <nobr><i>Created %s</i></nobr><br>" % printPrettyDate(row['created'])
   string += "      <nobr><i>Last modified %s</i></nobr><br>" % printPrettyDate(row['modified'])
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
   string += "      <br>"
-  string += "      <nobr><i>Concept Id:</i> %s</nobr><br>" % persistent_id_short
+  string += "      <nobr><i>Concept Id:</i> %s</nobr><br>" % concept_id
   string += '      <nobr><i>' + permalink + '</i></nobr><br>'
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
