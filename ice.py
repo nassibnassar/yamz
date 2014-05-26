@@ -433,13 +433,11 @@ def addTerm():
 
   if request.method == "POST": 
     g.db = app.dbPool.dequeue()
-    id = app.termIdPool.ConsumeId()
     term = { 'term_string' : request.form['term_string'],
              'definition' : request.form['definition'],
              'examples' : request.form['examples'],
              'owner_id' : l.current_user.id,
-             'id' : id,
-             'persistent_id' : seaice.mint.mint_persistent_id(id) }
+             'id' : app.termIdPool.ConsumeId() }
 
     id = g.db.insertTerm(term)
     g.db.commit()

@@ -196,8 +196,7 @@ class SeaIceConnector:
           modified    TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
           term_string TEXT NOT NULL, 
           definition  TEXT NOT NULL,
-          persistent_id  TEXT NOT NULL,
-		  UNIQUE (persistent_id),
+          persistent_id  TEXT,
 		  CHECK (persistent_id <> ''),
           examples    TEXT NOT NULL, 
          
@@ -384,10 +383,15 @@ class SeaIceConnector:
                defTerm['up'], defTerm['down'], defTerm['created'], defTerm['modified'], defTerm['owner_id'], defTerm['persistent_id']))
     
       res = cur.fetchone()
-      if res: 
-        return res[0]
-      else:
-        return None
+      id = None if res is None else res[0]
+
+      # Mint persistent ID for term
+      persistent_id = seaice.mint.mint_persistent_id(id)
+      sql = "update si.terms set persistent_id = %s where id = %s;"
+      data = (persistent_id, id)
+      cur.execute(sql, data)
+
+      return id
 
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': #: Duplicate primary key
