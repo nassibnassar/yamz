@@ -51,15 +51,15 @@ def get_config(config_file = os.environ['HOME'] + '/.seaice'):
   :type config_file: str
   :rtype: dict 
   """
-  if accessible_by_group_or_world(config_file):
-    print ('error: config file ' + config_file +
-      ' has group or world ' +
-      'access; permissions should be set to u=rw')
-    sys.exit(1)
   config = configparser.RawConfigParser()
-  config.read(config_file)
+  if os.path.isfile(config_file):
+      if accessible_by_group_or_world(config_file):
+        print ('error: config file ' + config_file +
+          ' has group or world ' +
+          'access; permissions should be set to u=rw')
+        sys.exit(1)
+      config.read(config_file)
   return config
-
 
   ## Google authentication. ##
 
