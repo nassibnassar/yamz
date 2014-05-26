@@ -432,10 +432,10 @@ class SeaIceConnector:
         """ % id)
     return cur.fetchone()
   
-  def getTermByPersistentId(self, persistent_id): 
+  def getTermByConceptId(self, concept_id): 
     """ Get term by ID. 
 
-    :param persistent_id: Persistent Id.
+    :param concept_id: Concept Id.
     :type id: str
     :rtype: dict or None
     """ 
@@ -445,7 +445,7 @@ class SeaIceConnector:
                definition, examples, up, down, consensus, class,
                U_sum, D_sum, T_last, T_stable, tsv, persistent_id
             from SI.Terms where persistent_id=%s;
-        """ % persistent_id)
+        """ % ('http://n2t.net/ark:/99152/' + concept_id) )
     return cur.fetchone()
   
   def getTermString(self, id): 

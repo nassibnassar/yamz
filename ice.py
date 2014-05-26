@@ -353,12 +353,12 @@ def getTerm(term_id = None, message = ""):
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_id))
 
-@app.route("/term_persistent_id=<term_persistent_id>")
-def getTermByPersistentId(term_persistent_id = None, message = ""):
+@app.route("/term_persistent_id=<term_concept_id>")
+def getTermByPersistentId(term_concept_id = None, message = ""):
   
   g.db = app.dbPool.getScoped()
   try: 
-    term = g.db.getTermByPersistentId(str(term_persistent_id))
+    term = g.db.getTermByConceptId(str(term_concept_id))
     if term:
       result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
       result = message + "<hr>" + result + "<hr>"
@@ -377,7 +377,7 @@ def getTermByPersistentId(term_persistent_id = None, message = ""):
         </form>""".format(term['id'])
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "Term - %s" %
-                                                        term_persistent_id, 
+                                                        term_concept_id, 
                                                 headline = "Term", 
                                                 content = Markup(result.decode('utf-8')))
   except ValueError: pass
@@ -385,7 +385,7 @@ def getTermByPersistentId(term_persistent_id = None, message = ""):
   return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Term not found",
                                             headline = "Term", 
-                                            content = Markup("Term <strong>#%s</strong> not found!" % term_persistent_id))
+                                            content = Markup("Term <strong>#%s</strong> not found!" % term_concept_id))
 
 @app.route("/browse")
 @app.route("/browse/<listing>")
