@@ -165,8 +165,7 @@ impossible to set up DB roles. Also, we can't assume persistent
 access to the filesystem. 
 
 Heroku requires a couple additional configuration files and some small
-code changes. For ease of deployment, these changes are available in 
-the "deploy" branch of this repository. The additional files are:
+code changes. The additional files are:
 
   Procfile . . . . . . . specifies the commands that start web server, as 
                          well as periodic jobs. 
@@ -198,35 +197,26 @@ ignored and the default will be used. As an example, here's how to reset
 the datbase: 
 
   $ heroku login
-  $ heroku run python sea.py --init-db --drop-db -q --config=heroku
+  $ heroku run python sea.py --init-db
 
 
-2.2 Making changes
-==================
+2.2 Deploying and making changes
+================================
 
-Deploying changes to heroku is made very easy with Git. Say you want to
-push some commits on the master branch online. To update "deploy", do 
+Deploying changes to heroku is made very easy with Git. For heroku, create a 
+branch off 'master' called 'deploy_keys'. Edit `.seaice_auth` to include
+the appropriate Google API credentials. Commit this change, but make sure 
+not to push to the public GitHub head. Instead, use the head created in the
+previous step: 
 
-  $ git checkout deploy
-  $ git rebase mater
-  $ git pull origin deploy
-  $ git push deploy
+ $ git push heroku deploy_keys:master
 
-Because "deploy" is published on Github, it doesn't contain any keys 
-that are used on the online dictionary; in particular, app.secret_key
-in 'ice' and some secret values in 'seaice/Auth.py'. These variables 
-are simply set to 'MISSING'. To make deployment easy, I maintain a 
-branch on my local machine called 'deploy_keys' with the actual keys. 
-
+This creates a "slug" with the packages we need and starts the web service. 
+Say you want to deploy some changes to master on the 
+  
  $ git checkout deploy_keys
- $ git rebase deploy
-
-Now to actually deploy the changes:
-
- $ git push -f heroku deploy_keys:master
-
-This creates a "slug" with the packages we need and starts the 
-web service. 
+ $ git merge master
+ $ git push heroku deploy_keys:master
 
 
 2.3 Importing/exporting the remote DB
