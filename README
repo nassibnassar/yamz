@@ -89,7 +89,7 @@ Set the correct file permissions with:
 This file is used by the SeaIce DB connector to grant access to the database.
 To initialize the DB schema and tables, type:
   
-  $ ./sea --init-db
+  $ ./sea.py --init-db --config=$HOME/.seaice
 
 
 1.3 Create a role for standard queries
@@ -101,6 +101,7 @@ database queries. Note that this isn't applicable in Heroku-Postgres.
   
   
   postgres=# create user contributor with encrypted password 'PASS';
+  postgres=# \c seaice;
   postgres=# grant select, insert, update, delete on all tables in 
              schema SI, SI_Notify to contributor;
 
@@ -114,7 +115,7 @@ Add the configuuration to ~/.seaice:
 The web user interface creates a database connection pool with the 
 same role. You can specify this on the command line: 
 
-  $ ./ice --role=contributor
+  $ ./ice.py --role=contributor --config=$HOME/.seaice
 
 '--role' defaults to 'default'. 
 
@@ -123,7 +124,7 @@ same role. You can specify this on the command line:
 2. Deploying to Heroku
 ======================
 
-The SeaIce prototype is currently hosted at http://seaice.herokuapp.com. 
+The YAMZ prototype is currently hosted at http://yamz.herokuapp.com. 
 Heroku is a cloud-computing service which allows users to host web-based
 software projects. Heroku is scalable for a price; however, we can 
 still achieve quite a bit without spending money. We have access to a 

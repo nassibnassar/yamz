@@ -41,7 +41,7 @@ def accessible_by_group_or_world(file):
   st = os.stat(file)
   return bool( st.st_mode & (stat.S_IRWXG | stat.S_IRWXO) )
 
-def get_config(config_file = os.environ['HOME'] + '/.seaice'):
+def get_config(config_file = '.seaice'):
   """ Get local db configuration. *Contributed by Nassib Nassar*.
             
     Structure with DB connection parameters for particular 
@@ -73,23 +73,26 @@ oauth = OAuth()
 #: (also on code.google.com/apis/console).
 REDIRECT_URI = '/authorized' 
 
-#: Google OAuth credentials, client ID. These values are generated
-#: from code.google.com/apis. Note that the actual values for the 
-#: online deployment of SeaIce aren't published. 
-GOOGLE_CLIENT_ID = '173499658661-c34gpqvto958fejiepdqqqehlj9qohhu.apps.googleusercontent.com'
+#: Get Google authentication. Client ID and secrets are drawn from a 
+#: config file which may contain multiple values for various 
+#: deplo9yments. NOTE The client ID **should** never be published
+#: and the secret **must** never be published.o 
+def get_google_auth(config_file = '.seaice_oauth', deployment = 'dev'):
+  config = get_config(config_file)
+  google = oauth.remote_app('google',
+        base_url='https://www.google.com/accounts/',
+        authorize_url='https://accounts.google.com/o/oauth2/auth',
+        request_token_url=None,
+        request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email',
+                              'response_type': 'code'},
+        access_token_url='https://accounts.google.com/o/oauth2/token',
+        access_token_method='POST',
+        access_token_params={'grant_type': 'authorization_code'},
+        consumer_key=config.get(deployment, 'google_client_id'), 
+        consumer_secret=config.get(deployment, 'google_client_secret'))
+  return google
 
-#: Google OAuth credentials, client secret. 
-GOOGLE_CLIENT_SECRET = 'rCYygo4YLrA3EGgT-NsdS_hv'
+#: Google authentication. 
+google = get_google_auth()
 
-#: Google authentication.
-google = oauth.remote_app('google',
-                          base_url='https://www.google.com/accounts/',
-                          authorize_url='https://accounts.google.com/o/oauth2/auth',
-                          request_token_url=None,
-                          request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email',
-                                                'response_type': 'code'},
-                          access_token_url='https://accounts.google.com/o/oauth2/token',
-                          access_token_method='POST',
-                          access_token_params={'grant_type': 'authorization_code'},
-                          consumer_key=GOOGLE_CLIENT_ID,
-                          consumer_secret=GOOGLE_CLIENT_SECRET)
+

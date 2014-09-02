@@ -7,3 +7,5 @@ venv
 *.aux
 *.out
 _build
+.seaice
+.seaice_oauth

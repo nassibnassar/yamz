@@ -718,6 +718,6 @@ def trackTerm(term_id):
   return redirect("/term=%d" % term_id)
 
 ## Start HTTP server. (Not relevant on Heroku.) ##
-#if __name__ == '__main__':
-#    app.debug = True
-#    app.run('0.0.0.0', 5000, use_reloader = False)
+if __name__ == '__main__':
+  app.debug = True
+  app.run('0.0.0.0', 5000, use_reloader = False)
