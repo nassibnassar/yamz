@@ -77,7 +77,7 @@ REDIRECT_URI = '/authorized'
 #: config file which may contain multiple values for various 
 #: deplo9yments. NOTE The client ID **should** never be published
 #: and the secret **must** never be published.o 
-def get_google_auth(config_file = '.seaice_oauth', deployment = 'dev'):
+def get_google_auth(config_file = '.seaice_auth', deployment = 'dev'):
   config = get_config(config_file)
   google = oauth.remote_app('google',
         base_url='https://www.google.com/accounts/',
