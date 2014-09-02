@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from flask_oauth import OAuth
-import os, stat, configparser
+import os, stat, configparser, sys
 
   ## Local PostgreSQL server configuration ## 
 

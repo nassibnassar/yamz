@@ -75,21 +75,23 @@ Finally, log back into postgres to create the database:
   
 (Using unique, completely random passwords is a good idea here.) Next, 
 create a configuration file for the database and user account you set up. 
-Create a file called ~/.seaice like: 
+Create a file called `.seaice` like: 
 
   [default]
   dbname = seaice
   user = postgres
   password = PASS
 
+IMPORTANT NOTE: A template of this file is provided in the github
+repository. This file should remain secret and must not be published. 
 Set the correct file permissions with: 
 
-  $ chmod 600 ~/.seaice
+  $ chmod 600 `.seaice`
 
 This file is used by the SeaIce DB connector to grant access to the database.
 To initialize the DB schema and tables, type:
   
-  $ ./sea.py --init-db --config=$HOME/.seaice
+  $ ./sea.py --init-db --config=.seaice
 
 
 1.3 Create a role for standard queries
@@ -105,7 +107,7 @@ database queries. Note that this isn't applicable in Heroku-Postgres.
   postgres=# grant select, insert, update, delete on all tables in 
              schema SI, SI_Notify to contributor;
 
-Add the configuuration to ~/.seaice: 
+Add the configuuration to `.seaice`: 
 
   [contributor]
   dbname = seaice
@@ -115,10 +117,34 @@ Add the configuuration to ~/.seaice:
 The web user interface creates a database connection pool with the 
 same role. You can specify this on the command line: 
 
-  $ ./ice.py --role=contributor --config=$HOME/.seaice
+  $ ./ice.py --role=contributor --config=.seaice
 
 '--role' defaults to 'default'. 
 
+
+1.4 Oauth Credentials 
+=====================
+
+YAMZ uses Google for third party authentication (OAuth-2.0) for managin
+logins. Visit console.developers.google.com to set this servide up for 
+your instance. Next, create a configuration file called `.seaice_auth`
+with the appropriate client ID's and secret keys. For instance, you 
+may have credentials for 'localhost', as well as a dpeloyment on 
+heroku: 
+
+  [dev]
+  google_client_id = 000-fella.apps.googleusercontent.com
+  google_client_secret = fella
+  [heroku]
+  google_client_id = 000-guy.apps.googleusercontent.com
+  google_client_secret = guy
+
+IMPORTANT NOTE: A template of this file is provided in the github
+repository. This file should remain secret and must not be published. 
+We provide the template, since heroku requires a commited file. Set 
+the correct file permissions with: 
+
+  $ chmod 600 `.seaice_auth`
 
 
 2. Deploying to Heroku
