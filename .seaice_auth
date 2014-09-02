@@ -1,6 +1,8 @@
 [dev]
 google_client_id = 000-fella.apps.googleusercontent.com
-google_client_secret = fella
+google_client_secret = SECRET1
+app_secret = SECRET2
 [heroku]
 google_client_id = 000-guy.apps.googleusercontent.com
-google_client_secret = guy
+google_client_secret = SECRET3
+app_secret = SECRET4

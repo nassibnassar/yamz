@@ -52,9 +52,17 @@ http://opensource.org/licenses/BSD-3-Clause.
 """
 
 parser.add_option("--config", dest="config_file", metavar="FILE", 
-                  help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice'). " + 
+                  help="User credentials for local PostgreSQL database. " + 
                        "If 'heroku' is given, then a connection to a foreign host specified by " + 
                        "DATABASE_URL is established.",
+                  default='heroku')
+
+parser.add_option('--credentials', dest='credentials_file',  metavar='FILE',
+                  help='File with OAuth-2.0 credentials. (Defaults to `.seaice_auth`.)',
+                  default='.seaice_auth')
+
+parser.add_option('--deploy', dest='deployment_mode', 
+                  help='Deployment mode, used to choose OAuth paramaters in credentials file.',
                   default='heroku')
 
 parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
@@ -64,6 +72,8 @@ parser.add_option("--role", dest="db_role", metavar="USER",
                   help="Specify the database role to use for the DB connector pool. These roles " +
                        "are specified in the configuration file (see --config).",
                   default="default")
+
+
 
 (options, args) = parser.parse_args()
 
@@ -88,9 +98,21 @@ except pgdb.DatabaseError, e:
   print >>sys.stderr, "error: %s" % e 
   sys.exit(1)
 
+
+try: 
+  credentials = seaice.auth.get_config(options.credentials_file)
+
+  google = seaice.auth.get_google_auth(credentials.get(options.deployment_mode, 'google_client_id'), 
+                                       credentials.get(options.deployment_mode, 'google_client_secret'))
+
+except OSError: 
+  print >>sys.stderr, "error: config file '%s' not found" % options.config_file
+  sys.exit(1)
+
+
 app.debug = True
 app.use_reloader = True
-app.secret_key = '\xfbRc\x0c\xd1>\xbc\x08"\x15\xf1\x87\xba\x13_\xad\x0f\x889\xad'
+app.secret_key = credentials.get(options.deployment_mode, 'app_secret')
 
   ## Session logins ##
 
@@ -107,6 +129,8 @@ login_manager.anonymous_user = seaice.user.AnonymousUser
 #  if not db_con.checkTermConsistency(term['id']):
 #    print "warning: corrected inconsistent consensus score for term %d" % term['id']
 #  db_con.commit()
+
+
 
 print "ice: setup complete."
 
@@ -188,10 +212,10 @@ def login():
 @app.route("/login/google")
 def login_google():
   callback=url_for('authorized', _external=True)
-  return seaice.auth.google.authorize(callback=callback)
+  return google.authorize(callback=callback)
 
 @app.route(seaice.auth.REDIRECT_URI)
-@seaice.auth.google.authorized_handler
+@google.authorized_handler
 def authorized(resp):
   access_token = resp['access_token']
   session['access_token'] = access_token, ''
@@ -232,7 +256,7 @@ def authorized(resp):
   return redirect(url_for('index'))
 
 
-@seaice.auth.google.tokengetter
+@google.tokengetter
 def get_access_token():
   return session.get('access_token')
 
