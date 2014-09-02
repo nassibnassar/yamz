@@ -122,8 +122,8 @@ same role. You can specify this on the command line:
 '--role' defaults to 'default'. 
 
 
-1.4 Oauth Credentials 
-=====================
+1.4 Oauth Credentials and app key
+=================================
 
 YAMZ uses Google for third party authentication (OAuth-2.0) for managin
 logins. Visit console.developers.google.com to set this servide up for 
@@ -134,15 +134,20 @@ heroku:
 
   [dev]
   google_client_id = 000-fella.apps.googleusercontent.com
-  google_client_secret = fella
+  google_client_secret = SECRET1
+  app_secret = SECRET2
+
   [heroku]
   google_client_id = 000-guy.apps.googleusercontent.com
-  google_client_secret = guy
+  google_client_secret = SECRET3
+  app_secret = SECRET4
 
 IMPORTANT NOTE: A template of this file is provided in the github
 repository. This file should remain secret and must not be published. 
-We provide the template, since heroku requires a commited file. Set 
-the correct file permissions with: 
+We provide the template, since heroku requires a commited file. 
+
+For conveniance, this file will also keep the Flask app's secret key.
+Set the correct file permissions with: 
 
   $ chmod 600 `.seaice_auth`
 
