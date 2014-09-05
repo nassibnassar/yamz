@@ -76,7 +76,7 @@ REDIRECT_URI = '/authorized'
 #: Get Google authentication. Client ID and secrets are drawn from a 
 #: config file which may contain multiple values for various 
 #: deplo9yments. NOTE The client ID **should** never be published
-#: and the secret **must** never be published.o 
+#: and the secret **must** never be published. 
 def get_google_auth(client_id, client_secret):
   google = oauth.remote_app('google',
         base_url='https://www.google.com/accounts/',

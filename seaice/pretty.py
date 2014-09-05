@@ -24,7 +24,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys, json, time, re, datetime
+import sys, time, datetime
+import json, re, string
 from dateutil import tz
 
   ## Some JavaScripts that are embedded into some of the outputs. ##
@@ -99,8 +100,8 @@ monthOf = [ 'January', 'February', 'March',
             'October', 'November', 'December' ]
 
 #: Regular expression for string matches.
-tag_regex = re.compile("#\{([^\{\}]*):([^\{\}]*)\}")
-
+tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_-]*)")
+term_tag_regex = re.compile("#\{([^\{\}]*):([^\{\}]*)\}")
 
 
   ## Processing tags in text areas. ##
@@ -108,7 +109,20 @@ tag_regex = re.compile("#\{([^\{\}]*):([^\{\}]*)\}")
 def _printTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
   
-  A DB connector is required to resolve the term tring by ID. 
+  A DB connector is required to resolve the tag string by ID. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
+  (tag,) = m.groups()
+  return '<a href=/tag/{0} >{1}</a>'.format(string.lower(tag), tag)
+
+def _printTermTagAsHTML(db_con, m): 
+  """ Input a regular expression match and output the tag as HTML.
+  
+  A DB connector is required to resolve the term string by ID. 
   If there are syntax errors, simply return the raw tag. 
 
   :param db_con: DB connection.
@@ -127,6 +141,7 @@ def _printTagAsHTML(db_con, m):
   except: pass
   return m.group(0)
 
+
 def processTags(db_con, string): 
   """  Process tags in DB text entries into HTML. 
 
@@ -135,7 +150,9 @@ def processTags(db_con, string):
   :param string: The input string. 
   :returns: HTML-formatted string.
   """
-  return tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
+  return string
     
   
 
