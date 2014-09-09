@@ -491,7 +491,7 @@ def getTag(tag = None):
                                           term_string = tag)
   else:
     result = seaice.pretty.printTermsAsHTML(g.db, terms, l.current_user.id)
-    return render_template("search.html", user_name = l.current_user.name, 
+    return render_template("tag.html", user_name = l.current_user.name, 
       term_string = tag, result = Markup(result.decode('utf-8')))
 
 
