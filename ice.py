@@ -487,7 +487,7 @@ def getTag(tag = None):
   g.db = app.dbPool.getScoped()
   terms = g.db.search(tag)
   if len(terms) == 0: 
-    return render_template("search.html", user_name = l.current_user.name, 
+    return render_template("tag.html", user_name = l.current_user.name, 
                                           term_string = tag)
   else:
     result = seaice.pretty.printTermsAsHTML(g.db, terms, l.current_user.id)

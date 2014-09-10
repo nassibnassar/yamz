@@ -98,9 +98,19 @@ monthOf = [ 'January', 'February', 'March',
             'April', 'May', 'June', 
             'July', 'August', 'September', 
             'October', 'November', 'December' ]
+  
+tag_style = '''
+style="font-size: 95%;
+    font-family: 'Sans-Serif', Arial, serif;
+    color:white; background-color:#A5C6D6; 
+    border-radius:5px; text-decoration:none"
+'''
+
+tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp<b>#</b>&nbsp{1}&nbsp</a>'
+term_tag_string = '<a href=/term={0} title="{1}" ' + tag_style + '>&nbsp{2}&nbsp</a>'
 
 #: Regular expression for string matches.
-tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_-]*)")
+tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 term_tag_regex = re.compile("#\{([^\{\}]*):([^\{\}]*)\}")
 
 
@@ -117,7 +127,7 @@ def _printTagAsHTML(db_con, m):
   :type m: re.MatchObject
   """
   (tag,) = m.groups()
-  return '<a href=/tag/{0} >{1}</a>'.format(string.lower(tag), tag)
+  return tag_string.format(string.lower(tag), tag)
 
 def _printTermTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
@@ -136,8 +146,7 @@ def _printTermTagAsHTML(db_con, m):
     desc = desc.strip().replace('"', '&#34;')
     term_string = db_con.getTermString(term_id)
     if term_string:
-      return '<a href=/term={0} title="{1}">{2}</a>'.format(  
-        term_id, desc, term_string)
+      return term_tag_string.format(term_id, desc, term_string)
   except: pass
   return m.group(0)
 
