@@ -181,6 +181,7 @@ class SeaIceConnector:
           last_name    VARCHAR(64) NOT NULL,
           first_name   VARCHAR(64) NOT NULL,
           reputation   INTEGER default 1 NOT NULL,
+          enotify      BOOLEAN default true, 
           UNIQUE (email)
         );
       ALTER SEQUENCE SI.Users_id_seq RESTART WITH 1001;"""
@@ -229,7 +230,6 @@ class SeaIceConnector:
           created   TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
           modified  TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
           comment_string TEXT NOT NULL,
-
           FOREIGN kEY (owner_id) REFERENCES SI.Users(id),
           FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE
         );
@@ -270,7 +270,8 @@ class SeaIceConnector:
           T            TIMESTAMP WITH TIME ZONE not null, 
           term_id      INTEGER, 
           from_user_id INTEGER, 
-          term_string  TEXT, 
+          term_string  TEXT,
+          enotified    BOOLEAN default false, 
           FOREIGN KEY (user_id) REFERENCES SI.Users(id) on DELETE CASCADE, 
           FOREIGN KEY (from_user_id) REFERENCES SI.Users(id) on DELETE CASCADE, 
           FOREIGN KEY (term_id) REFERENCES SI.Terms(id) on DELETE CASCADE
@@ -670,7 +671,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
         select id, authority, auth_id, email, last_name, first_name,
-               reputation
+               reputation, enotify
             from SI.Users where id=%d;
         """ % id)
     return cur.fetchone()
@@ -738,7 +739,7 @@ class SeaIceConnector:
     finally:
       cur.close()
   
-  def updateUser(self, id, first, last): 
+  def updateUser(self, id, first, last, enotify): 
     """ Update user's name. 
 
     :param id: User ID.  
@@ -749,8 +750,8 @@ class SeaIceConnector:
     :type last: str
     """ 
     cur = self.con.cursor()
-    cur.execute("UPDATE SI.Users SET first_name='%s', last_name='%s' WHERE id=%d" % (
-      first, last, id))
+    cur.execute("UPDATE SI.Users SET first_name=%s, last_name=%s, enotify='%s' WHERE id=%s",
+      (first, last, enotify, id))
 
   def updateUserReputation(self, id, rep): 
     """ Set reputation of user. This triggers an update of the consensus score

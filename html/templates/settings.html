@@ -101,8 +101,19 @@
           <tr>
             <td valign=top>Reputation:</td>
             <td>{{ reputation }}</td>
-          </td>
+          </tr>
           {% endif %}
+          <tr>
+            <td valign=top>Receive email notifications:</td>
+            <td>
+              {% if enotify == "yes" %} 
+                <input type="checkbox" name="enotify" value="yes" checked>
+              {% else %} 
+                <input type="checkbox" name="enotify" value="yes">
+              {% endif %} 
+            </td> 
+          </tr>
+
           <tr><td></td>
             <td align=right>
               <input type="submit" value="Apply changes" action="/">

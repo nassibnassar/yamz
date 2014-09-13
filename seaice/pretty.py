@@ -103,7 +103,7 @@ tag_style = '''
 style="font-size: 95%;
     font-family: 'Sans-Serif', Arial, serif;
     color:white; background-color:#A5C6D6; 
-    border-radius:5px; text-decoration:none"
+    border-radius:4px; text-decoration:none"
 '''
 
 tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp<b>#</b>&nbsp{1}&nbsp</a>'

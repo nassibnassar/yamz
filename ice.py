@@ -280,7 +280,8 @@ def settings():
   if request.method == "POST": 
     g.db.updateUser(l.current_user.id, 
                    request.form['first_name'],
-                   request.form['last_name'])
+                   request.form['last_name'],
+                   True if request.form.get('enotify') else False)
     g.db.commit()
     app.dbPool.enqueue(g.db)
     l.current_user.name = request.form['first_name']
@@ -293,6 +294,7 @@ def settings():
                                           last_name_edit = user['last_name'].decode('utf-8'),
                                           first_name_edit = user['first_name'].decode('utf-8'),
                                           reputation = user['reputation'],
+                                          enotify = 'yes' if user['enotify'] else 'no',
                                           message = """
                     Here you can change how your name will appear to other users. 
                     Navigating away from this page will safely discard any changes.""")
@@ -310,7 +312,9 @@ def getUser(user_id = None):
           <tr><td valign=top>Last name:</td><td>{1}</td></tr>
           <tr><td valign=top>Email:</td><td>{2}</td></td>
           <tr><td valign=top>Reputation:</td><td>{3}</td></td>
-        </table> """.format(user['first_name'], user['last_name'], user['email'], user['reputation'])
+          <tr><td valign=top>Receive email notifications:</td><td>{4}</td>
+        </table> """.format(user['first_name'], user['last_name'], user['email'], user['reputation'], 
+                            user['enotify'])
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "User - %s" % user_id, 
                                                 headline = "User", 
