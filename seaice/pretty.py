@@ -99,10 +99,11 @@ monthOf = [ 'January', 'February', 'March',
             'July', 'August', 'September', 
             'October', 'November', 'December' ]
   
+# A nice color: A5C6D6
 tag_style = '''
 style="font-size: 95%;
     font-family: 'Sans-Serif', Arial, serif;
-    color:white; background-color:#A5C6D6; 
+    color:white; background-color:#0082C3;
     border-radius:4px; text-decoration:none"
 '''
 

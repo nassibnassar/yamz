@@ -151,3 +151,18 @@ class User(BaseUser):
     self.L_notify.release()
     return result
 
+  def getNotificationsAsPlaintext(self, db_con):
+    """ Get notifications in plaintext form. 
+      
+    :param db_con: DB connection.
+    :type db_con: seaice.SeaIceConnector.SeaIceConnector
+    :returns: Plaintext string.
+    """
+    self.L_notify.acquire()
+    result = ''
+    for i in reversed(range(len(self.notifications))):
+      notify = self.notifications[i].getAsPlaintext(db_con)
+      if notify:
+        result += notify + '\n'
+    self.L_notify.release()
+    return result.strip()

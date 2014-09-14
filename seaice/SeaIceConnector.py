@@ -684,7 +684,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
         select id, authority, auth_id, email, last_name, first_name,
-               reputation
+               reputation, enotify
             from SI.Users;
         """)
     for row in cur.fetchall():
@@ -1145,6 +1145,19 @@ class SeaIceConnector:
 
     ## Notification queries ##
 
+  def getUserNotifications(self, user_id):
+    """ Return an iterator over ``SI_Notify.Notify``. 
+
+    :rtype: dict iterator
+    """
+    cur = self.con.cursor()
+    cur.execute("""SELECT user_id, class, T, term_id, 
+                          from_user_id, term_string, enotified
+                     FROM SI_Notify.Notify
+                    WHERE user_id = %s""", (user_id,))
+    for row in cur.fetchall():
+      yield row
+
   def getAllNotifications(self):
     """ Return an iterator over ``SI_Notify.Notify``. 
 
@@ -1152,7 +1165,7 @@ class SeaIceConnector:
     """
     cur = self.con.cursor()
     cur.execute("""
-        select user_id, class, T, term_id, from_user_id, term_string
+        select user_id, class, T, term_id, from_user_id, term_string, enotified
             from SI_Notify.Notify;
         """)
     for row in cur.fetchall():

@@ -60,6 +60,22 @@ class BaseNotification:
 
     return 'Term <a href="/term=%d">%s</a> <font color="#8B8B8B"><i>%s</i></font>' % (
                         self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
+
+  def getAsPlaintext(self, db_con): 
+    """ Return a notification string. To avoid dereferencing
+        something that has been deleted (term, comment, user, etc.), return 
+        None if the database has no results. 
+
+        :param db_con: Connection to database. 
+        :type db_con: seaice.SeaIceConnector.SeaIceConnector
+        :rtype: str or None
+    """
+    term = db_con.getTerm(self.term_id)
+    if not term: 
+      return None
+
+    return '%s: term "%s".' % (
+               pretty.printPrettyDate(self.T_notify), term['term_string'])
   
 
 class Comment(BaseNotification):
@@ -89,6 +105,15 @@ class Comment(BaseNotification):
     return '''<font color="#4D6C82">%s</font> commented on <a href="/term=%d">%s</a>. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
+  
+  def getAsPlaintext(self, db_con): 
+    term = db_con.getTerm(self.term_id)
+    user = db_con.getUserNameById(self.user_id, full=True)
+    if not term or not user:
+      return None
+
+    return "%s: %s commonted on \"%s\"." % (
+             pretty.printPrettyDate(self.T_notify), user, term['term_string'])
 
 
 class TermUpdate(BaseNotification):
@@ -119,6 +144,14 @@ class TermUpdate(BaseNotification):
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
 
+  def getAsPlaintext(self, db_con): 
+    term = db_con.getTerm(self.term_id)
+    user = db_con.getUserNameById(self.user_id, full=True)
+    if not term or not user:
+      return None
+    
+    return '%s: %s modified "%s".' % (
+              pretty.printPrettyDate(self.T_notify), user, term['term_string'])
 
 class TermRemoved(BaseNotification):
   """ Notification object for term removals. 
@@ -149,3 +182,11 @@ class TermRemoved(BaseNotification):
               <font color="#0088CC"><strong>%s</strong></font> from the metadictionary. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
             user, self.term_string, pretty.printPrettyDate(self.T_notify))
+
+  def getAsPlaintext(self, db_con): 
+    user = db_con.getUserNameById(self.user_id, full=True)
+    if not user: 
+      return None
+
+    return "%s: %s has removed \"%s\" from the metadictionary." % (
+              pretty.printPrettyDate(self.T_notify), user, self.term_string)
