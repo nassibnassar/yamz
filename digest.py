@@ -28,6 +28,7 @@
 import os, sys, optparse
 import json, psycopg2 as pqdb
 import seaice
+from postmark import PPMail # Available as a heroku add-on. 
 
 ## Parse command line options. ##
 
@@ -97,11 +98,19 @@ try:
 
           user.notify(notif)
     
-      # TODO Send notification!
+
       text = "Hello %s, these are your YAMZ updates.\n\n" % name
       text += user.getNotificationsAsPlaintext(sea)
       text += "\n\n\nIf you wish to unsubscribe from this service, visit http://yamz.net/settings."
-      print text
+      
+      message = PMMail(api_key = os.environ.get('POSTMARK_API_KEY'),
+                       subject = "YAMZ digest",
+                       sender = "leonard@bigbangtheory.com",
+                       to = "sheldon@bigbangtheory.com",
+                       text_body = text,
+                       tag = "yamz")
+
+      message.send()
       # TODO Mark these notifications as processed. 
 
   ## Commit database mutations. ##
