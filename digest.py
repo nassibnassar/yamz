@@ -28,7 +28,7 @@
 import os, sys, optparse
 import json, psycopg2 as pqdb
 import seaice
-from postmark import PPMail # Available as a heroku add-on. 
+from postmark import  PMMail # Available as a heroku add-on. 
 
 ## Parse command line options. ##
 
