@@ -75,9 +75,9 @@ try:
                                  config.get(options.db_role, 'password'),
                                  config.get(options.db_role, 'dbname'))
 
-  for (id, name, notify) in map(lambda(u) : (u['id'], 
+  for (id, name, notify, email_addr) in map(lambda(u) : (u['id'], 
                              u['first_name'] + ' ' + u['last_name'], 
-                             u['enotify']), sea.getAllUsers()):
+                             u['enotify'], u['email']), sea.getAllUsers()):
     user = seaice.user.User(id, name)
     
     if notify: 
@@ -105,8 +105,8 @@ try:
       
       message = PMMail(api_key = os.environ.get('POSTMARK_API_KEY'),
                        subject = "YAMZ digest",
-                       sender = "leonard@bigbangtheory.com",
-                       to = "sheldon@bigbangtheory.com",
+                       sender = "digest-noreply@yamz-dev.herokuapp.com",
+                       to = email_addr,
                        text_body = text,
                        tag = "yamz")
 
