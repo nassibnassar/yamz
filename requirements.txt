@@ -13,3 +13,4 @@ oauth2==1.5.211
 psycopg2==2.5.1
 wsgiref==0.1.2
 python-dateutil==1.5
+python-postmark>=0.4.3
