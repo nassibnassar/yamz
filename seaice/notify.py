@@ -74,7 +74,7 @@ class BaseNotification:
     if not term: 
       return None
 
-    return '%s: term "%s".' % (
+    return ' -- %s, term "%s".' % (
                pretty.printPrettyDate(self.T_notify), term['term_string'])
   
 
@@ -89,9 +89,10 @@ class Comment(BaseNotification):
       :type T_notify: datetime.datetime
   """
  
-  def __init__(self, term_id, user_id, T_notify):
+  def __init__(self, term_id, user_id, comment_string, T_notify):
     BaseNotification.__init__(self, term_id, T_notify)
     self.user_id = user_id
+    self.comment_string = comment_string
 
   def __str__(self):
     return 'UserId=%d commented on TermId=%d at %s' % (self.user_id, self.term_id, self.T_notify)
@@ -112,8 +113,11 @@ class Comment(BaseNotification):
     if not term or not user:
       return None
 
-    return "%s: %s commonted on \"%s\"." % (
+    text = " -- %s, %s commented on \"%s\".\n\n" % (
              pretty.printPrettyDate(self.T_notify), user, term['term_string'])
+    text += '     TERM URI: %s\n' % term['persistent_id']
+    text += pretty.getPrettyParagraph(db_con, "COMMENT: " + self.comment_string, 6)
+    return text
 
 
 class TermUpdate(BaseNotification):
@@ -150,8 +154,10 @@ class TermUpdate(BaseNotification):
     if not term or not user:
       return None
     
-    return '%s: %s modified "%s".' % (
+    text = ' -- %s, %s modified "%s".\n' % (
               pretty.printPrettyDate(self.T_notify), user, term['term_string'])
+    text += '\n' + pretty.getPrettyTerm(db_con, term) + '\n'
+    return text
 
 class TermRemoved(BaseNotification):
   """ Notification object for term removals. 
@@ -188,5 +194,7 @@ class TermRemoved(BaseNotification):
     if not user: 
       return None
 
-    return "%s: %s has removed \"%s\" from the metadictionary." % (
+    return " -- %s, %s has removed \"%s\" from the metadictionary." % (
               pretty.printPrettyDate(self.T_notify), user, self.term_string)
+
+

@@ -75,14 +75,18 @@ class SeaIceFlask (Flask):
 
     # Load notifcations 
     for (user_id, notif_class, T_notify, 
-         term_id, from_user_id, term_string) in db_con.getAllNotifications():
+         term_id, from_user_id, term_string,
+         enotified) in db_con.getAllNotifications():
 
-      notif = { "Base" : notify.BaseNotification(term_id, T_notify),
-                "Comment" : notify.Comment(term_id, from_user_id, T_notify),
-                "TermUpdate" : notify.TermUpdate(term_id, from_user_id, T_notify),
-                "TermRemoved" : notify.TermRemoved(from_user_id, term_string, T_notify) 
-              }[notif_class]
-
+      if notif_class == 'Base': 
+        notif = notify.BaseNotification(term_id, T_notify)
+      elif notif_class == 'Comment': 
+        notif = notify.Comment(term_id, from_user_id, term_string, T_notify)
+      elif notif_class == 'TermUpdate': 
+        notif = notify.TermUpdate(term_id, from_user_id, T_notify)
+      elif notif_class == 'TermRemoved': 
+        notif = notify.TermRemoved(from_user_id, term_string, T_notify) 
+        
       self.SeaIceUsers[user_id].notify(notif)
       
     

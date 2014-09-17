@@ -635,7 +635,7 @@ def addComment(term_id):
     comment_id = g.db.insertComment(comment) 
 
     # Notify owner and tracking users
-    notify_comment = seaice.notify.Comment(term_id, l.current_user.id, 
+    notify_comment = seaice.notify.Comment(term_id, l.current_user.id, comment['comment_string'], 
                                 g.db.getComment(comment_id)['created'])
 
     tracking_users = [ user_id for user_id in g.db.getTrackingByTerm(term_id) ]

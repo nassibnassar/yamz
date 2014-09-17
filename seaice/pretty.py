@@ -210,7 +210,7 @@ def printAsJSObject(rows, fd = sys.stdout):
         row[col] = str(value)
   print >>fd, json.dumps(rows, sort_keys=True, indent=2, separators=(',', ': '))
 
-def printParagraph(db_con, text, leftMargin=8, width=60): 
+def getPrettyParagraph(db_con, text, leftMargin=8, width=60): 
   """ Format some text into a nice paragraph for displaying in the terminal. 
       Output the result directly to sys.stdout. 
 
@@ -224,16 +224,50 @@ def printParagraph(db_con, text, leftMargin=8, width=60):
   :type wdith: int
   """
   lineLength = 0
-  print " " * (leftMargin-1), 
+  fella = " " * (leftMargin-1)
   for word in text.split(" "):
     if lineLength < width:
-      print word, 
+      fella += word + " " 
       lineLength += len(word) + 1
     else:
-      print "\n" + (" " * (leftMargin-1)),
+      fella += "\n" + (" " * (leftMargin-1))
       lineLength = 0
-  print
-    
+  return fella
+
+def getPrettyTerm(db_con, row, leftMargin=5):
+  """ Return a term string. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param rows: Table rows. 
+  :type rows: dict iterator
+  """
+  text = ' ' * leftMargin + "TERM: %-26s ID: %-7d created: %s\n" % (
+     "%s (%d)" % (row['term_string'], row["up"] - row["down"]), row['id'],
+     row['created'].strftime('%Y-%m-%d %H:%M:%S'))
+
+  text += ' ' * leftMargin + 'URI: %-40s' % row['persistent_id'] + "Last modified: %s" % (
+          row['modified'].strftime('%Y-%m-%d %H:%M:%S'))
+
+  text += "\n\n"
+  text += getPrettyParagraph(db_con, "DEFINITION: " + row['definition'])
+  
+  text += "\n\n"
+  text += getPrettyParagraph(db_con, "EXAMPLES: " + row['examples'])
+            
+  #text += "\n    Ownership: %s" % db_con.getUserNameById(row['owner_id'])
+  return text
+
+def getPrettyComment(db_con, row, leftMargin=5): 
+  """ Return a comment string.
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param rows: Table rows. 
+  :type rows: dict iterator
+  """
+  return 'yeah'
+
 def printTermsPretty(db_con, rows):
   """ Print term rows to terminal. 
 
@@ -243,18 +277,9 @@ def printTermsPretty(db_con, rows):
   :type rows: dict iterator
   """
   for row in rows:
-    print "Term: %-26s id No. %-7d created: %s" % ("%s (%d)" % (row['term_string'], 
-                                                                row["up"] - row["down"]),
-                                                   row['id'],
-                                                   row['created']) 
+    print getPrettyTerm(db_con, row) 
 
-    print " " * 42 + "Last modified: %s" % row['modified']
 
-    print "\n    definition:\n"    
-    printParagraph(db_con, row['definition'])
-    
-    print "\n    Ownership: %s" % db_con.getUserNameById(row['owner_id'])
-    print
 
 def printTermsAsLinks(rows):
   """ Print terms as a link list (pun intended). 
@@ -449,7 +474,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
       printPrettyDate(row['modified']))
   string += "</table>"
   return string
-  
+
 def printCommentsAsHTML(db_con, rows, user_id=0): 
   """ Format comments for display on the term page. 
 

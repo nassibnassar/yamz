@@ -163,6 +163,6 @@ class User(BaseUser):
     for i in reversed(range(len(self.notifications))):
       notify = self.notifications[i].getAsPlaintext(db_con)
       if notify:
-        result += notify + '\n'
+        result += notify + '\n\n'
     self.L_notify.release()
     return result.strip()

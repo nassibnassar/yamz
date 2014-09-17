@@ -474,13 +474,13 @@ class SeaIceConnector:
     if sortBy:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
                             modified, created, up, down, consensus, class,
-                            T_stable, T_last
+                            T_stable, T_last, persistent_id
                        FROM SI.Terms 
                       ORDER BY %s""" % sortBy)
     else:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
                             modified, created, up, down, consensus, class,
-                            T_stable, T_last
+                            T_stable, T_last, persistent_id
                        FROM SI.Terms""")
     for row in cur.fetchall():
       yield row
@@ -829,9 +829,11 @@ class SeaIceConnector:
                                         defComment['term_id'], 
                                         defComment['comment_string']))
       res = cur.fetchone()
+          
       if res: return res[0]
       else:   return None
-    
+
+   
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': #: Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defComment['id']
@@ -1178,10 +1180,14 @@ class SeaIceConnector:
     :type notif: seaice.notify.BaseNotification
     """
     cur = self.con.cursor()
+
+    # Overloading 'term_string' for comment string. 
     if isinstance(notif, notify.Comment):
-      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
-                     VALUES( 'Comment', %d, %d, %d, %s ); """ % (
-                user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
+      cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, 
+                                                   T, term_string ) 
+                     VALUES( 'Comment', %s, %s, %s, %s, %s ); """, (
+                user_id, notif.term_id, notif.user_id, 
+                repr(str(notif.T_notify)), notif.comment_string))
 
     elif isinstance(notif, notify.TermUpdate):
       cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 

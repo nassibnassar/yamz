@@ -47,6 +47,11 @@ parser.add_option("--config", dest="config_file", metavar="FILE",
                        "DATABASE_URL is established.",
                   default='heroku')
 
+parser.add_option("--role", dest="db_role", metavar="USER", 
+                  help="Specify the database role to use for the DB connector pool. These roles " +
+                       "are specified in the configuration file (see --config).",
+                  default="default")
+
 (options, args) = parser.parse_args()
 
 
@@ -80,16 +85,23 @@ try:
            term_id, from_user_id, term_string, notified) in sea.getUserNotifications(id):
        
         if not notified: 
-          notif = { "Base" : seaice.notify.BaseNotification(term_id, T_notify),
-                    "Comment" : seaice.notify.Comment(term_id, from_user_id, T_notify),
-                    "TermUpdate" : seaice.notify.TermUpdate(term_id, from_user_id, T_notify),
-                    "TermRemoved" : seaice.notify.TermRemoved(from_user_id, term_string, T_notify) 
-                  }[notif_class]
         
+          if notif_class == 'Base': 
+            notif = seaice.notify.BaseNotification(term_id, T_notify)
+          elif notif_class == 'Comment': 
+            notif = seaice.notify.Comment(term_id, from_user_id, term_string, T_notify)
+          elif notif_class == 'TermUpdate': 
+            notif = seaice.notify.TermUpdate(term_id, from_user_id, T_notify)
+          elif notif_class == 'TermRemoved': 
+            notif = seaice.notify.TermRemoved(from_user_id, term_string, T_notify) 
+
           user.notify(notif)
     
-      # TODO Send notification! 
-      print user.getNotificationsAsPlaintext(sea)
+      # TODO Send notification!
+      text = "Hello %s, these are your YAMZ updates.\n\n" % name
+      text += user.getNotificationsAsPlaintext(sea)
+      text += "\n\n\nIf you wish to unsubscribe from this service, visit http://yamz.net/settings."
+      print text
       # TODO Mark these notifications as processed. 
 
   ## Commit database mutations. ##
