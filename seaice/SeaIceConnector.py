@@ -26,7 +26,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, sys, configparser, urlparse
+import os, sys, re
+import configparser, urlparse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
 import pretty
@@ -108,6 +109,9 @@ def calculateStability(S, p_S, T_now, T_last, T_stable):
 
 orderOfClass = { 'deprecated' : 2, 'vernacular' : 1, 'canonical' : 0 }
 
+concept_id_regex = re.compile('/([a-zA-Z0-9]+)$')
+
+
 class SeaIceConnector: 
   """ Connection to the PostgreSQL database. 
       
@@ -188,6 +192,9 @@ class SeaIceConnector:
     )
 
     #: Create Terms table if it doesn't exist.
+    #: `concept_id` is a token provided by a third party service 
+    #: to redirect permanently to a YAMZ term. `persistent_id` is
+    #: its URI. 
     cur.execute("""
       CREATE TYPE SI.Class AS ENUM ('vernacular', 'canonical', 'deprecated');
       CREATE TABLE IF NOT EXISTS SI.Terms
@@ -198,10 +205,12 @@ class SeaIceConnector:
           modified    TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
           term_string TEXT NOT NULL, 
           definition  TEXT NOT NULL,
+          examples    TEXT NOT NULL, 
+          concept_id  VARCHAR(64) DEFAULT NULL, 
+                  UNIQUE (concept_id), 
           persistent_id  TEXT,
                   UNIQUE (persistent_id),
 		  CHECK (persistent_id <> ''),
-          examples    TEXT NOT NULL, 
          
           up         INTEGER DEFAULT 0 NOT NULL,
           down       INTEGER DEFAULT 0 NOT NULL,
@@ -214,7 +223,6 @@ class SeaIceConnector:
           T_stable  TIMESTAMP WITH TIME ZONE DEFAULT now(), 
           
           tsv tsvector, 
-          
           FOREIGN KEY (owner_id) REFERENCES SI.Users(id)
         ); 
       ALTER SEQUENCE SI.Terms_id_seq RESTART WITH 1001;"""
@@ -347,18 +355,18 @@ class SeaIceConnector:
 
     #: Default values for table entries.  
     defTerm = { 
-      "id" : "default",
+      "id" : None,
       "term_string" : "nil", 
       "definition" : "nil", 
       "examples" : "nil", 
-      "down" : "default", 
-      "up" : "default", 
+      "down" : 0, 
+      "up" : 0, 
       "created" : "now()", 
       "modified" : "now()",
-      "T_stable" : "NULL", 
+      "T_stable" : None, 
       "T_last" : "now()", 
-      "owner_id" : "default",
-      "persistent_id" : "NULL"
+      "owner_id" : None,
+      "persistent_id" : None
     }
 
     #: Format entries for db query
@@ -380,18 +388,19 @@ class SeaIceConnector:
                               modified,
                               owner_id,
                               persistent_id ) 
-            VALUES(%s, '%s', '%s', '%s', %s, %s, %s, %s, %s, %s) 
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
             RETURNING id
-        """ % (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['examples'], 
-               defTerm['up'], defTerm['down'], defTerm['created'], defTerm['modified'], defTerm['owner_id'], defTerm['persistent_id']))
+        """, (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['examples'], 
+              defTerm['up'], defTerm['down'], defTerm['created'], defTerm['modified'], defTerm['owner_id'], defTerm['persistent_id']))
     
       res = cur.fetchone()
       id = None if res is None else res[0]
 
       # Mint persistent ID for term
       persistent_id = mint.mint_persistent_id()
-      sql = "update si.terms set persistent_id = %s where id = %s;"
-      data = (persistent_id, id)
+      concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
+      sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
+      data = (persistent_id, concept_id, id)
       cur.execute(sql, data)
 
       return id
