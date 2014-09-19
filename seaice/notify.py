@@ -58,8 +58,8 @@ class BaseNotification:
     if not term: 
       return None
 
-    return 'Term <a href="/term=%d">%s</a> <font color="#8B8B8B"><i>%s</i></font>' % (
-                        self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
+    return 'Term <a href="/term=%s">%s</a> <font color="#8B8B8B"><i>%s</i></font>' % (
+                        term['concept_id'], term['term_string'], pretty.printPrettyDate(self.T_notify))
 
   def getAsPlaintext(self, db_con): 
     """ Return a notification string. To avoid dereferencing
@@ -103,9 +103,9 @@ class Comment(BaseNotification):
     if not term or not user:
       return None
 
-    return '''<font color="#4D6C82">%s</font> commented on <a href="/term=%d">%s</a>. 
+    return '''<font color="#4D6C82">%s</font> commented on <a href="/term=%s">%s</a>. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
-            user, self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
+            user, term['concept_id'], term['term_string'], pretty.printPrettyDate(self.T_notify))
   
   def getAsPlaintext(self, db_con): 
     term = db_con.getTerm(self.term_id)
@@ -144,9 +144,9 @@ class TermUpdate(BaseNotification):
     if not term or not user:
       return None
 
-    return '''<font color="#4D6C82">%s</font> modified <a href="/term=%d">%s</a>. 
+    return '''<font color="#4D6C82">%s</font> modified <a href="/term=%s">%s</a>. 
               <font color="#B8B8B8"><i>%s</i></font>''' % (
-            user, self.term_id, term['term_string'], pretty.printPrettyDate(self.T_notify))
+            user, term['concept_id'], term['term_string'], pretty.printPrettyDate(self.T_notify))
 
   def getAsPlaintext(self, db_con): 
     term = db_con.getTerm(self.term_id)
