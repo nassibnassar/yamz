@@ -403,7 +403,7 @@ class SeaIceConnector:
       data = (persistent_id, concept_id, id)
       cur.execute(sql, data)
 
-      return id
+      return (id, concept_id)
 
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': #: Duplicate primary key
@@ -438,7 +438,7 @@ class SeaIceConnector:
     cur.execute("""
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
-               U_sum, D_sum, T_last, T_stable, tsv, persistent_id
+               U_sum, D_sum, T_last, T_stable, tsv, concept_id, persistent_id
             from SI.Terms where id=%d;
         """ % id)
     return cur.fetchone()
@@ -454,9 +454,9 @@ class SeaIceConnector:
     cur.execute("""
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
-               U_sum, D_sum, T_last, T_stable, tsv, persistent_id
-            from SI.Terms where persistent_id='%s';
-        """ % ('http://n2t.net/ark:/99152/' + concept_id) )
+               U_sum, D_sum, T_last, T_stable, tsv, concept_id, persistent_id
+            from SI.Terms where concept_id=%s;
+        """, (concept_id,))
     return cur.fetchone()
   
   def getTermString(self, id): 
@@ -468,6 +468,32 @@ class SeaIceConnector:
     """
     cur = self.con.cursor()
     cur.execute("SELECT term_string FROM SI.Terms WHERE id=%d" % id)
+    res = cur.fetchone()
+    if res: return res[0]
+    else:   return None
+    
+  def getTermConceptId(self, id): 
+    """ Get term string by ID.
+
+    :param id: Term ID.
+    :type id: int
+    :rtype: str or None
+    """
+    cur = self.con.cursor()
+    cur.execute("SELECT concept_id FROM SI.Terms WHERE id=%d" % id)
+    res = cur.fetchone()
+    if res: return res[0]
+    else:   return None
+  
+  def getTermStringByConceptId(self, concept_id): 
+    """ Get term string by concept ID.
+
+    :param id: Term concept ID.
+    :type id: int
+    :rtype: str or None
+    """
+    cur = self.con.cursor()
+    cur.execute("SELECT term_string FROM SI.Terms WHERE concept_id=%s", (concept_id,))
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
@@ -483,13 +509,13 @@ class SeaIceConnector:
     if sortBy:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
                             modified, created, up, down, consensus, class,
-                            T_stable, T_last, persistent_id
+                            T_stable, T_last, concept_id, persistent_id, concept_id
                        FROM SI.Terms 
                       ORDER BY %s""" % sortBy)
     else:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
                             modified, created, up, down, consensus, class,
-                            T_stable, T_last, persistent_id
+                            T_stable, T_last, concept_id, persistent_id, concept_id
                        FROM SI.Terms""")
     for row in cur.fetchall():
       yield row
@@ -536,7 +562,7 @@ class SeaIceConnector:
     cur.execute("""
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
-               U_sum, D_sum, T_last, T_stable, tsv
+               U_sum, D_sum, T_last, T_stable, tsv, concept_id
             from SI.Terms where owner_id=%d;
         """ % user_id) 
     for row in cur.fetchall():
@@ -555,7 +581,7 @@ class SeaIceConnector:
         select term.id, term.owner_id, term.created, term.modified,
                term.term_string, term.definition, term.examples, term.up,
                term.down, term.consensus, term.class, term.U_sum, term.D_sum,
-               term.T_last, term.T_stable, term.tsv,
+               term.T_last, term.T_stable, term.tsv, term.concept_id,
                track.user_id, track.term_id, track.vote, track.star
             from SI.Terms as term, 
                  SI.Tracking as track
@@ -594,7 +620,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
       SELECT id, owner_id, term_string, definition, examples,  
-             up, down, created, modified, consensus, class,
+             up, down, created, modified, consensus, class, concept_id,
              ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank
         FROM SI.Terms, to_tsquery('english', '%s') query 
         WHERE query @@ tsv 
@@ -618,8 +644,8 @@ class SeaIceConnector:
     cur = self.con.cursor()
     for (key, value) in term.iteritems():
       term[key] = unicode(value).replace("'", "''")
-    cur.execute("UPDATE SI.Terms SET term_string='%s', definition='%s', examples='%s' WHERE id=%d" % (
-      term['term_string'], term['definition'], term['examples'], id))
+    cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
+        (term['term_string'], term['definition'], term['examples'], id))
  
 
     ## User queries ##
@@ -633,11 +659,11 @@ class SeaIceConnector:
     """
     
     defUser = { 
-      "id" : "default",
+      "id" : None,
       "email" : "nil", 
       "last_name" : "nil", 
       "first_name" : "nil", 
-      "reputation" : "default", 
+      "reputation" : None, 
       "authority" : "nil",
       "auth_id" : "nil"
     }
@@ -649,8 +675,8 @@ class SeaIceConnector:
     try:
       cur = self.con.cursor()
       cur.execute("""INSERT INTO SI.Users(id, email, last_name, first_name, reputation, authority, auth_id) 
-                     VALUES (%s, '%s', '%s', '%s', %s, '%s', '%s')
-                     RETURNING id""" % (defUser['id'],
+                     VALUES (%s, %s, %s, %s, %s, %s, %s)
+                     RETURNING id""",  (defUser['id'],
                                          defUser['email'], 
                                          defUser['last_name'], 
                                          defUser['first_name'], 
@@ -817,9 +843,9 @@ class SeaIceConnector:
     :rtype: int
     """
     defComment = { 
-      "id" : "default",
-      "owner_id" : "default", 
-      "term_id" : "default", 
+      "id" : None,
+      "owner_id" : None, 
+      "term_id" : None, 
       "comment_string" : "nil"
     }
   
@@ -832,11 +858,11 @@ class SeaIceConnector:
     try:
       cur = self.con.cursor()
       cur.execute("""INSERT INTO SI.Comments (id, owner_id, term_id, comment_string) 
-                     VALUES (%s, %s, %s, '%s')
-                     RETURNING id""" % (defComment['id'],
-                                        defComment['owner_id'], 
-                                        defComment['term_id'], 
-                                        defComment['comment_string']))
+                     VALUES (%s, %s, %s, %s)
+                     RETURNING id""", (defComment['id'],
+                                       defComment['owner_id'], 
+                                       defComment['term_id'], 
+                                       defComment['comment_string']))
       res = cur.fetchone()
           
       if res: return res[0]
@@ -874,8 +900,8 @@ class SeaIceConnector:
     cur = self.con.cursor()
     for (key, value) in comment.iteritems():
       comment[key] = unicode(value).replace("'", "''")
-    cur.execute("UPDATE SI.Comments SET comment_string='%s' WHERE id=%d" % (
-      comment['comment_string'], id))
+    cur.execute("UPDATE SI.Comments SET comment_string=%s WHERE id=%s", 
+                 (comment['comment_string'], id))
 
   def getComment(self, id):
     """  Get comment by ID.

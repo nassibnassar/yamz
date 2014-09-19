@@ -348,41 +348,9 @@ def remNotification(user_id, notif_index):
 
   ## Look up terms ##
 
-@app.route("/term=<term_id>")
-def getTerm(term_id = None, message = ""):
-  
-  g.db = app.dbPool.getScoped()
-  try: 
-    term = g.db.getTerm(int(term_id))
-    if term:
-      result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
-      result = message + "<hr>" + result + "<hr>"
-      result += seaice.pretty.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
-                                                 l.current_user.id)
-      if l.current_user.id:
-        result += """ 
-        <form action="/term={0}/comment" method="post">
-          <table cellpadding=16 width=60%>
-            <tr><td><textarea type="text" name="comment_string" rows=3
-              style="width:100%; height:100%"
-              placeholder="Add comment"></textarea></td></tr>
-            <tr><td align=right><input type="submit" value="Comment"><td>
-            </td>
-          </table>
-        </form>""".format(term['id'])
-      return render_template("basic_page.html", user_name = l.current_user.name, 
-                                                title = "Term - %s" % term_id, 
-                                                headline = "Term", 
-                                                content = Markup(result.decode('utf-8')))
-  except ValueError: pass
-
-  return render_template("basic_page.html", user_name = l.current_user.name, 
-                                            title = "Term not found",
-                                            headline = "Term", 
-                                            content = Markup("Term <strong>#%s</strong> not found!" % term_id))
-
 @app.route("/term/concept=<term_concept_id>")
-def getTermByPersistentId(term_concept_id = None, message = ""):
+@app.route("/term=<term_concept_id>")
+def getTerm(term_concept_id = None, message = ""):
   
   g.db = app.dbPool.getScoped()
   try: 
@@ -513,24 +481,23 @@ def addTerm():
              'owner_id' : l.current_user.id,
              'id' : app.termIdPool.ConsumeId() }
 
-    id = g.db.insertTerm(term)
+    (id, concept_id) = g.db.insertTerm(term)
     g.db.commit()
     app.dbPool.enqueue(g.db)
-    return getTerm(str(id), message = "Your term has been added to the metadictionary!")
+    return getTerm(concept_id, message = "Your term has been added to the metadictionary!")
   
   else: return render_template("contribute.html", user_name = l.current_user.name, 
                                                   title = "Contribute", 
                                                   headline = "Add a dictionary term")
 
 
-@app.route("/term=<int:term_id>/edit", methods = ['POST', 'GET'])
+@app.route("/term=<term_concept_id>/edit", methods = ['POST', 'GET'])
 @l.login_required
-def editTerm(term_id = None): 
+def editTerm(term_concept_id = None): 
 
   try: 
     g.db = app.dbPool.dequeue()
-    term_id = int(term_id)
-    term = g.db.getTerm(term_id)
+    term = g.db.getTermByConceptId(term_concept_id)
     assert l.current_user.id and term['owner_id'] == l.current_user.id
     
     if request.method == "POST":
@@ -541,27 +508,27 @@ def editTerm(term_id = None):
                       'examples' : request.form['examples'],
                       'owner_id' : l.current_user.id } 
 
-      g.db.updateTerm(term_id, updatedTerm)
+      g.db.updateTerm(term['id'], updatedTerm)
 
       # Notify tracking users
-      notify_update = seaice.notify.TermUpdate(term_id, l.current_user.id, 
+      notify_update = seaice.notify.TermUpdate(term['id'], l.current_user.id, 
                                                term['modified'])
                                                
-      for user_id in g.db.getTrackingByTerm(term_id):
+      for user_id in g.db.getTrackingByTerm(term['id']):
         app.SeaIceUsers[user_id].notify(notify_update, g.db)        
       
       g.db.commit()
       app.dbPool.enqueue(g.db)
 
-      return getTerm(term_id, message = "Your term has been updated in the metadictionary.")
+      return getTerm(term_concept_id, message = "Your term has been updated in the metadictionary.")
   
     else: # GET 
       app.dbPool.enqueue(g.db)
       if term: 
         return render_template("contribute.html", user_name = l.current_user.name, 
-                                                  title = "Edit - %s" % term_id,
+                                                  title = "Edit - %s" % term_concept_id,
                                                   headline = "Edit term",
-                                                  edit_id = term_id,
+                                                  edit_id = term_concept_id,
                                                   term_string_edit = term['term_string'].decode('utf-8'),
                                                   definition_edit = term['definition'].decode('utf-8'),
                                                   examples_edit = term['examples'].decode('utf-8'))
@@ -569,11 +536,11 @@ def editTerm(term_id = None):
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                               title = "Term not found",
                                               headline = "Term", 
-                                              content = Markup("Term <strong>#%s</strong> not found!" % term_id))
+                                              content = Markup("Term <strong>#%s</strong> not found!" % term_concept_id))
 
   except AssertionError:
     return render_template("basic_page.html", user_name = l.current_user.name, 
-                                              title = "Term - %s" % term_id, 
+                                              title = "Term - %s" % term_concept_id, 
                                               content = 
               """Error! You may only edit or remove terms and definitions which 
                  you've contributed. However, you may comment or vote on this term. """)
@@ -646,7 +613,7 @@ def addComment(term_id):
     
     g.db.commit()
 
-    return redirect("term=%d" % term_id)
+    return redirect("/term=%s" % g.db.getTermConceptId(term_id))
 
   except AssertionError:
     return redirect(url_for('login'))
@@ -667,7 +634,7 @@ def editComment(comment_id = None):
       g.db.updateComment(int(comment_id), updatedComment)
       g.db.commit()
       app.dbPool.enqueue(g.db)
-      return getTerm(comment['term_id'], message = "Your comment has been updated.")
+      return getTerm(g.db.getTermConceptId(comment['term_id']), message = "Your comment has been updated.")
   
     else: # GET 
       app.dbPool.enqueue(g.db)
@@ -713,7 +680,7 @@ def remComment(comment_id):
     g.db.removeComment(int(request.form['id']))
     g.db.commit()
   
-    return redirect('/term=%d' % comment['term_id'])
+    return redirect("/term=%s" % g.db.getTermConceptId(comment['term_id']))
   
   except AssertionError:
     return render_template("basic_page.html", user_name = l.current_user.name, 
@@ -743,7 +710,7 @@ def voteOnTerm(term_id):
     g.db.castVote(l.current_user.id, term_id, 0)
   g.db.commit()
   print "User #%d voted %s term #%d" % (l.current_user.id, request.form['action'], term_id)
-  return redirect("/term=%d" % term_id)
+  return redirect("/term=%s" % g.db.getTermConceptId(term_id))
 
 @app.route("/term=<int:term_id>/track", methods=['POST'])
 @l.login_required
@@ -755,7 +722,7 @@ def trackTerm(term_id):
     g.db.untrackTerm(l.current_user.id, term_id)
   g.db.commit()
   print "User #%d %sed term #%d" % (l.current_user.id, request.form['action'], term_id)
-  return redirect("/term=%d" % term_id)
+  return redirect("/term=%s" % g.db.getTermConceptId(term_id))
 
 ## Start HTTP server. (Not relevant on Heroku.) ##
 if __name__ == '__main__':

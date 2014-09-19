@@ -112,8 +112,8 @@ term_tag_string = '<a href=/term={0} title="{1}" ' + tag_style + '>&nbsp{2}&nbsp
 
 #: Regular expression for string matches.
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
-term_tag_regex = re.compile("#\{([^\{\}]*):([^\{\}]*)\}")
-
+term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
+permalink_regex = re.compile("^http://(.*)$")
 
   ## Processing tags in text areas. ##
 
@@ -141,13 +141,12 @@ def _printTermTagAsHTML(db_con, m):
   :param m: Regular expression match. 
   :type m: re.MatchObject
   """
-  (term_id, desc) = m.groups()
+  (term_concept_id, desc) = m.groups()
   try:
-    term_id = int(term_id.strip())
     desc = desc.strip().replace('"', '&#34;')
-    term_string = db_con.getTermString(term_id)
+    term_string = db_con.getTermStringByConceptId(term_concept_id)
     if term_string:
-      return term_tag_string.format(term_id, desc, term_string)
+      return term_tag_string.format(term_concept_id, desc, term_string)
   except: pass
   return m.group(0)
 
@@ -290,7 +289,7 @@ def printTermsAsLinks(rows):
   """
   string = ""
   for row in rows: 
-    string += '<li><a href="/term=%d">%s</a></li>' % (row['id'], row['term_string'])
+    string += '<li><a href="/term=%s">%s</a></li>' % (row['concept_id'], row['term_string'])
   return string
 
 def printTermAsHTML(db_con, row, user_id=0):
@@ -351,12 +350,10 @@ def printTermAsHTML(db_con, row, user_id=0):
   term_persistent_id = row['persistent_id']
   if term_persistent_id is None:
       persistent_id = ''
-      concept_id = ''
       permalink = ''
   else:
       persistent_id = term_persistent_id
-      concept_id = persistent_id.split('/')[-1]
-      permalink = '<a href="%s">Permalink</a>' % persistent_id
+      permalink = permalink_regex.search(persistent_id).groups(0)[0]
 
   # Created/modified/Owner 
   string += "    <td valign=top width=20% rowspan=3>"
@@ -365,16 +362,15 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
   if persistent_id != '':
       string += "      <br>"
-      string += "      <nobr><i>Concept Id:</i> %s</nobr><br>" % concept_id
       string += '      <nobr><i>' + permalink + '</i></nobr><br>'
   if user_id == row['owner_id']:
-    string += "    <br><a href=\"/term=%d/edit\">[edit]</a>" % row['id']
+    string += "    <br><a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>""" % row['id']
  
   # Copy reference tag
   string += '''    <hr><a id="copyLink" title="Click here to get a reference tag." href="#"
-                        onclick="CopyToClipboard('#{%d : related to}');">Get tag</a>''' % row['id']
+                        onclick="CopyToClipboard('#{%s : related to}');">Get tag</a>''' % row['concept_id']
 
   string += "    </td>"
   string += "  </tr>"
@@ -409,9 +405,9 @@ def printTermsAsHTML(db_con, rows, user_id=0):
     string += "  <tr>"
     string += "    <td valign=top width=75%><i>Term:</i>"
     string += "     <font size=\"3\"><strong>{0}</strong></font>".format(row['term_string'])
-    string += "      <a href=\"/term=%d\">[view]</a>" % row['id']
+    string += "      <a href=\"/term=%s\">[view]</a>" % row['concept_id']
     if user_id == row['owner_id']:
-      string += "    <a href=\"/term=%d/edit\">[edit]</a>" % row['id']
+      string += "    <a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
       string += """  <a id="removeTerm" title="Click to delete term" href="#"
                      onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
     string += '      &nbsp<i>Class:</i>&nbsp<font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i>'.format(
@@ -470,7 +466,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
       row['term_string'], row['up'] - row['down'],
       summarizeConsensus(row['consensus']),
       row['class'], 
-      db_con.getUserNameById(row['owner_id'], full=True), row['id'], colorOf[row['class']],
+      db_con.getUserNameById(row['owner_id'], full=True), row['concept_id'], colorOf[row['class']],
       printPrettyDate(row['modified']))
   string += "</table>"
   return string
