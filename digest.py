@@ -112,7 +112,7 @@ try:
 
       res = requests.post("https://api.mailgun.net/v2/samples.mailgun.org/messages",
           auth=("api", os.environ['MAILGUN_API_KEY']),
-          data={"from": 'no-reploy@yamz.net',
+          data={"from": 'YAMZ-dev <no-reploy@yamz.net>',
                 "to": [email_addr],
                 "subject": "YAMZ digest",
                 "text": text})
