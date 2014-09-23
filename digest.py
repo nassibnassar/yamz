@@ -112,8 +112,8 @@ try:
 
       requests.post("https://api.mailgun.net/v2/samples.mailgun.org/messages",
           auth=("api", os.environ['MAILGUN_API_KEY']),
-          data={"from": os.environ['MAILGUN_SMTP_LOGIN'],
-                "to": [email_addr, email_addr],
+          data={"from": 'no-reploy@yamz.net',
+                "to": [email_addr],
                 "subject": "YAMZ digest",
                 "text": text})
 
