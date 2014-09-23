@@ -108,7 +108,7 @@ try:
           data={"from": "yamz-dev <no-reply@yamz-dev.herokuapp.net>",
                 "to": [email_addr, email_addr],
                 "subject": "YAMZ digest",
-                "text", text})
+                "text": text})
 
       # TODO Mark these notifications as processed. 
 
