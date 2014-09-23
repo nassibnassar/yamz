@@ -342,7 +342,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>"
   string += "    <td valign=top width=16% rowspan=2>"
-  string += '      <nobr><font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i></nobr><br>'.format(
+  string += '      <nobr><font style="background-color:{2};border-radius:4px;">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i></nobr><br>'.format(
               row['class'], int(100 * row['consensus']), colorOf[row['class']])
   string += "    </td>"
 
@@ -362,7 +362,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
   if persistent_id != '':
       string += "      <br>"
-      string += '      <nobr><i>' + permalink + '</i></nobr><br>'
+      string += '      <nobr><i>Permalink:</i><br>' + permalink + '</nobr><br>'
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
@@ -370,7 +370,7 @@ def printTermAsHTML(db_con, row, user_id=0):
  
   # Copy reference tag
   string += '''    <hr><a id="copyLink" title="Click here to get a reference tag." href="#"
-                        onclick="CopyToClipboard('#{%s : related to}');">Get tag</a>''' % row['concept_id']
+                        onclick="CopyToClipboard('#{%s : related to}');">Get term link</a>''' % row['concept_id']
 
   string += "    </td>"
   string += "  </tr>"
