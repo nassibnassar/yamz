@@ -28,7 +28,7 @@
 import os, sys, optparse
 import json, psycopg2 as pqdb
 import seaice
-from postmark import  PMMail # Available as a heroku add-on. 
+import requests
 
 ## Parse command line options. ##
 
@@ -103,14 +103,13 @@ try:
       text += user.getNotificationsAsPlaintext(sea)
       text += "\n\n\nIf you wish to unsubscribe from this service, visit http://yamz.net/settings."
       
-      message = PMMail(api_key = os.environ.get('POSTMARK_API_KEY'),
-                       subject = "YAMZ digest",
-                       sender = "digest-noreply@yamz-dev.herokuapp.com",
-                       to = email_addr,
-                       text_body = text,
-                       tag = "yamz")
+      requests.post("https://api.mailgun.net/v2/samples.mailgun.org/messages",
+          auth=("api", os.environ.get()),
+          data={"from": "yamz-dev <no-reply@yamz-dev.herokuapp.net>",
+                "to": [email_addr, email_addr],
+                "subject": "YAMZ digest",
+                "text", text})
 
-      message.send()
       # TODO Mark these notifications as processed. 
 
   ## Commit database mutations. ##
