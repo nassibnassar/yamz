@@ -101,7 +101,7 @@ try:
 
       text = "Hello %s, these are your YAMZ updates.\n\n" % name
       text += user.getNotificationsAsPlaintext(sea)
-      text += "\n\n\nIf you wish to unsubscribe from this service, visit http://yamz.net/settings."
+      text += "\n\n\nIf you wish to unsubscribe from this service, visit http://yamz.net/account."
       text += "\n\n - YAMZ development team"
       
       print "Sending the following message to `%s`:" % email_addr
@@ -111,7 +111,7 @@ try:
 
 
       requests.post("https://api.mailgun.net/v2/samples.mailgun.org/messages",
-          auth=("api", os.environ.get('MAILGUN_API_KEY')),
+          auth=("api", os.environ['MAILGUN_API_KEY']),
           data={"from": "yamz-dev <no-reply@yamz-dev.herokuapp.net>",
                 "to": [email_addr, email_addr],
                 "subject": "YAMZ digest",
