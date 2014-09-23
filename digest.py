@@ -104,7 +104,7 @@ try:
       text += "\n\n\nIf you wish to unsubscribe from this service, visit http://yamz.net/settings."
       
       requests.post("https://api.mailgun.net/v2/samples.mailgun.org/messages",
-          auth=("api", os.environ.get()),
+          auth=("api", os.environ.get('MAILGUN_API_KEY')),
           data={"from": "yamz-dev <no-reply@yamz-dev.herokuapp.net>",
                 "to": [email_addr, email_addr],
                 "subject": "YAMZ digest",
