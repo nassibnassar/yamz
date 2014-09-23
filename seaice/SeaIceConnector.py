@@ -47,10 +47,33 @@ stabilityFactor = 3600 #: Convert seconds (datetime.timedelta.seconds) to hours.
 
 #: Interval (in hours) for which a term must
 #: be stable in order to be classified. 
-stabilityInterval = 1 
+stabilityInterval = 0
         
 stabilityConsensusIntervalHigh = 0.75 #: Classify stable term as canonical.
 stabilityConsensusIntervalLow =  0.25 #: Classify stable term as deprecated.
+
+#: The percentage of the community that most vote on a term 
+#: in order for the term to be classified. If not enough folks
+#: have voted, the term will remain vernacular. The key is 
+#: the minumum number of users in the bracket. 
+classifyCommunityBrackets = {
+  
+  1  : 1.0, 
+  3  : 0.6,
+  10 : 0.4, 
+  20 : 0.25,
+  50 : 0.10 
+
+}
+
+_brackets = sorted(classifyCommunityBrackets.keys()) 
+
+def getBracket(num_users): 
+  ''' Get the percentage of users who must vote in order to classify. ''' 
+  for i in range(len(_brackets)-1): 
+    if _brackets[i] <= num_users < _brackets[i+1]: 
+      return classifyCommunityBrackets[_brackets[i]]
+  return classifyCommunityBrackets[_brackets[-1]]
 
 
 def calculateConsensus(u, d, t, U_sum, D_sum):
@@ -1138,10 +1161,6 @@ class SeaIceConnector:
     :rtype: class
     """ 
 
-    # Temporary modification: force all terms to remain at the default
-    # classification, which is vernacular.
-    return "vernacular"
-
     cur = self.con.cursor()  
 
     cur.execute("SELECT now()")
@@ -1150,11 +1169,23 @@ class SeaIceConnector:
     cur.execute("SELECT consensus, T_stable, T_last, modified, class FROM SI.Terms where id=%d" % term_id)
     (S, T_stable, T_last, T_modified, term_class) = cur.fetchone()
 
-    if ((T_stable and ((T_now - T_stable).seconds / stabilityFactor) > stabilityInterval) \
-        or ((T_now - T_last).seconds / stabilityFactor) > stabilityInterval) \
-        and ((T_now - T_modified).seconds / stabilityFactor) > stabilityInterval: 
+    if ((T_stable and ((T_now - T_stable).seconds / float(stabilityFactor)) >= stabilityInterval) \
+        or ((T_now - T_last).seconds / float(stabilityFactor)) >= stabilityInterval) \
+        and ((T_now - T_modified).seconds / float(stabilityFactor)) >= stabilityInterval: 
       
-      if S > stabilityConsensusIntervalHigh:
+      cur.execute('''SELECT count(*) 
+                       FROM SI.Tracking 
+                      WHERE term_id = %s 
+                        AND vote IN (-1, 1)''', (term_id,)) 
+      (votes,) = cur.fetchone()
+      
+      cur.execute("SELECT count(*) FROM SI.Users") 
+      (users,) = cur.fetchone()
+
+      if float(votes) / users < getBracket(users):
+        term_class = "vernacular"
+
+      elif S > stabilityConsensusIntervalHigh:
         term_class = "canonical"
       
       elif S < stabilityConsensusIntervalLow: 
