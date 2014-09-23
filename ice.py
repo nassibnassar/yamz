@@ -244,9 +244,9 @@ def authorized(resp):
     user = g.db.getUserByAuth('google', g_user['auth_id'])
     app.SeaIceUsers[user['id']] = seaice.user.User(user['id'], user['first_name'])
     l.login_user(app.SeaIceUsers.get(user['id']))
-    return render_template("settings.html", user_name = l.current_user.name,
-                                            email = g_user['email'],
-                                            message = """
+    return render_template("account.html", user_name = l.current_user.name,
+                                           email = g_user['email'],
+                                           message = """
         According to our records, this is the first time you've logged onto 
         SeaIce with this account. Please provide your first and last name as 
         you would like it to appear with your contributions. Thank you!""")
@@ -273,7 +273,7 @@ def unauthorized():
 
   ## Users ##
 
-@app.route("/settings", methods = ['POST', 'GET'])
+@app.route("/account", methods = ['POST', 'GET'])
 @l.login_required
 def settings():
   g.db = app.dbPool.dequeue()
@@ -289,7 +289,7 @@ def settings():
   
   user = g.db.getUser(l.current_user.id)
   app.dbPool.enqueue(g.db)
-  return render_template("settings.html", user_name = l.current_user.name,
+  return render_template("account.html", user_name = l.current_user.name,
                                           email = user['email'].decode('utf-8'),
                                           last_name_edit = user['last_name'].decode('utf-8'),
                                           first_name_edit = user['first_name'].decode('utf-8'),
