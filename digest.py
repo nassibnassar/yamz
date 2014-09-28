@@ -28,7 +28,9 @@
 import os, sys, optparse
 import json, psycopg2 as pqdb
 import seaice
-import requests
+
+import smtplib
+from email.mime.text import MIMEText
 
 ## Parse command line options. ##
 
@@ -75,6 +77,10 @@ try:
                                  config.get(options.db_role, 'password'),
                                  config.get(options.db_role, 'dbname'))
 
+  # Set up SMTP server. 
+  s = smtplib.SMTP('smtp.mailgun.org', 587)
+  s.login(os.environ['MAILGUN_SMTP_LOGIN'], os.environ['MAILGUN_SMTP_PASSWORD'])
+  
   for (id, name, notify, email_addr) in map(lambda(u) : (u['id'], 
                              u['first_name'] + ' ' + u['last_name'], 
                              u['enotify'], u['email']), sea.getAllUsers()):
@@ -109,17 +115,16 @@ try:
       print text
       print "-----------------------------------------------------------\n"
 
+      msg = MIMEText(text)
+      msg['Subject'] = "YAMZ-digest"
+      msg['From']    = "digest-noreply@yamz.net"
+      msg['To']      = email_addr
 
-      res = requests.post("https://api.mailgun.net/v2/samples.mailgun.org/messages",
-          auth=("api", os.environ['MAILGUN_API_KEY']),
-          data={"from": 'YAMZ-dev <%s>' % os.environ['MAILGUN_SMTP_LOGIN'],
-                "to": [email_addr],
-                "subject": "YAMZ digest",
-                "text": text})
+      s.sendmail(msg['From'], msg['To'], msg.as_string())
 
-      print res
       # TODO Mark these notifications as processed. 
 
+  s.quit()
   ## Commit database mutations. ##
   #=sea.commit() FIXME
 
