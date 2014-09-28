@@ -58,8 +58,6 @@ parser.add_option("--role", dest="db_role", metavar="USER",
 (options, args) = parser.parse_args()
 
 
-## Establish connection to PostgreSQL db ##
-
 try:
 
   if options.config_file == "heroku": 
@@ -81,7 +79,7 @@ try:
   s = smtplib.SMTP('smtp.mailgun.org', 587)
   s.login(os.environ['MAILGUN_SMTP_LOGIN'], os.environ['MAILGUN_SMTP_PASSWORD'])
   
-  # sender address
+  # Sender address
   from_addr = 'yamz-noreply@yamz.net'
 
   # Message subject
@@ -116,34 +114,42 @@ try:
     
       
       text = user.getNotificationsAsPlaintext(sea)
+  
+      if len(text) == 0: 
       
-      # Message 
-      msg =  "%s,\n\n" % name
-      msg += "These are your YAMZ updates.\n\n\n"
-      msg += text
-      msg += "\n\n\nYou are receiving this email because you have elected to receive notifications "
-      msg += "from YAMZ. You can turn this off by changing your account settings at "
-      msg += "http://yamz.net/account."
-      msg += "\n\n - YAMZ development team\n\n"
-      
-      print "Sending the following message to `%s`:" % to_addr
-      print "-----------------------------------------------------------"
-      print msg
-      print "-----------------------------------------------------------\n"
+        print "No notifications for `%s`." % to_addr
+       
 
-      # Send message
-      msg = MIMEText(msg)
-      msg['Subject'] = msg_subject
-      msg['From']    = from_addr
-      msg['To']      = to_addr
+      else: 
+        
+        # Message 
+        msg =  "%s,\n\n" % name
+        msg += "These are your YAMZ updates.\n\n\n"
+        msg += text
+        msg += "\n\n\nYou are receiving this email because you have elected to receive notifications "
+        msg += "from YAMZ. You can turn this off by changing your account settings at "
+        msg += "http://yamz.net/account."
+        msg += "\n\n - YAMZ development team\n\n"
+        
+        print "Sending the following message to `%s`:" % to_addr
+        print "-----------------------------------------------------------"
+        print msg
+        print "-----------------------------------------------------------\n"
 
-      s.sendmail(msg['From'], msg['To'], msg.as_string())
+        # Send message
+        msg = MIMEText(msg)
+        msg['Subject'] = msg_subject
+        msg['From']    = from_addr
+        msg['To']      = to_addr
 
-      # TODO Mark these notifications as processed. 
+        s.sendmail(msg['From'], msg['To'], msg.as_string())
+
+        cur.execute('''UPDATE SI_Notify.Notify 
+                          SET enotified=True 
+                        WHERE user_id=%s''', (user_id,))
 
   s.quit()
-  ## Commit database mutations. ##
-  #=sea.commit() FIXME
+  sea.commit()
 
 except pqdb.DatabaseError, e:
   print 'error: %s' % e    
