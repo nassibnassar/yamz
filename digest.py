@@ -107,7 +107,10 @@ try:
 
       text = "Hello %s, these are your YAMZ updates.\n\n" % name
       text += user.getNotificationsAsPlaintext(sea)
-      text += "\n\n\nIf you wish to unsubscribe from this service, visit http://yamz.net/account."
+      text += "\n\n\nYou are receiving this email because you have elected to receive notifications "
+              "from YAMZ. You can turn this off by changing your accoutn settings at "
+              "http://yamz.net/account."
+
       text += "\n\n - YAMZ development team"
       
       print "Sending the following message to `%s`:" % email_addr
@@ -116,7 +119,7 @@ try:
       print "-----------------------------------------------------------\n"
 
       msg = MIMEText(text)
-      msg['Subject'] = "YAMZ-digest"
+      msg['Subject'] = "YAMZ digest"
       msg['From']    = "digest-noreply@yamz.net"
       msg['To']      = email_addr
 
