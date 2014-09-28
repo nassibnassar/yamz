@@ -2,9 +2,7 @@
 dbname = seaice
 user = reader
 password = PASSWORD1
-minter_password = PASSWORD2
 [contributor]
 dbname = seaice
 user = contributor
 password = PASSWORD3
-minter_password = PASSWORD4

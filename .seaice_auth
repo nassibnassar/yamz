@@ -2,7 +2,9 @@
 google_client_id = 000-fella.apps.googleusercontent.com
 google_client_secret = SECRET1
 app_secret = SECRET2
+minter_password = SECRET3
 [heroku]
 google_client_id = 000-guy.apps.googleusercontent.com
-google_client_secret = SECRET3
-app_secret = SECRET4
+google_client_secret = SECRET4
+app_secret = SECRET5
+minter_password = SECRET6

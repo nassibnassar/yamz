@@ -12,7 +12,7 @@ BINDER_URL = "https://n2t-pre.cdlib.org/a/yamz/b"
 REALM = "yamz"
 USERNAME = "yamz"
 
-CONFIG = auth.get_config()
+CONFIG = auth.get_config('.seaice_auth')
 if CONFIG.has_option('default', 'minter_password'):
     PASSWORD = CONFIG.get('default', 'minter_password')
 else:
