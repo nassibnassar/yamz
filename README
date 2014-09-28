@@ -414,7 +414,7 @@ redirect URLS in the Google Oauth API. Edit the authorized javascript origins
 and redirect URI by replacing "fella.herokuapp.com" with "fella.org" and 
 save. 
 
-It can a couple hours to a day for your DNS settings to propogate. Once it's 
+It can take a couple hours to a day for your DNS settings to propogate. Once it's 
 done, you can navigate to YAMZ by typing "fella.org" into your browser. Try 
 logging in to verify that the Oauth settings are also correct. 
 
