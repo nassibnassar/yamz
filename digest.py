@@ -107,8 +107,8 @@ try:
 
       text = "Hello %s, these are your YAMZ updates.\n\n" % name
       text += user.getNotificationsAsPlaintext(sea)
-      text += "\n\n\nYou are receiving this email because you have elected to receive notifications "
-              "from YAMZ. You can turn this off by changing your accoutn settings at "
+      text += "\n\n\nYou are receiving this email because you have elected to receive notifications "\
+              "from YAMZ. You can turn this off by changing your accoutn settings at "\
               "http://yamz.net/account."
 
       text += "\n\n - YAMZ development team"
