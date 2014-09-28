@@ -43,11 +43,10 @@ try:
                                  config.get(options.db_role, 'dbname'))
   
   cur = sea.con.cursor()
+  cur.execute('SELECT NOW();') 
 
-  cur.execute('SELECT id, persistent_id FROM SI.Terms')
-  for (id, fella) in cur.fetchall(): 
-    concept_id = re.compile('/([a-zA-Z0-9]+)$').search(fella).groups(0)[0]
-    cur.execute('UPDATE SI.Terms SET concept_id=%s WHERE id=%s', (concept_id, id))
+  (t,) = cur.fetchone()
+  print '%s %s %s' % (t.day, seaice.pretty.monthOf[t.month - 1], t.year)
     
   ## Commit database mutations. ##
   sea.commit()

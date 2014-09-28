@@ -81,6 +81,13 @@ try:
   s = smtplib.SMTP('smtp.mailgun.org', 587)
   s.login(os.environ['MAILGUN_SMTP_LOGIN'], os.environ['MAILGUN_SMTP_PASSWORD'])
   
+  # Message subject
+  cur = sea.con.cursor()
+  cur.execute('SELECT NOW();') 
+  (t,) = cur.fetchone()
+  msg_subject = 'YAMZ digest (%s %s %s)' % (
+              t.day, seaice.pretty.monthOf[t.month - 1], t.year)
+
   for (id, name, notify, email_addr) in map(lambda(u) : (u['id'], 
                              u['first_name'] + ' ' + u['last_name'], 
                              u['enotify'], u['email']), sea.getAllUsers()):
@@ -104,13 +111,13 @@ try:
 
           user.notify(notif)
     
-
+      
+      # Message 
       text = "Hello %s, these are your YAMZ updates.\n\n" % name
       text += user.getNotificationsAsPlaintext(sea)
-      text += "\n\n\nYou are receiving this email because you have elected to receive notifications "\
-              "from YAMZ. You can turn this off by changing your accoutn settings at "\
-              "http://yamz.net/account."
-
+      text += "\n\n\nYou are receiving this email because you have elected to receive notifications "
+      text += "from YAMZ. You can turn this off by changing your accoutn settings at "
+      text += "http://yamz.net/account."
       text += "\n\n - YAMZ development team"
       
       print "Sending the following message to `%s`:" % email_addr
@@ -118,8 +125,9 @@ try:
       print text
       print "-----------------------------------------------------------\n"
 
+      # Send message
       msg = MIMEText(text)
-      msg['Subject'] = "YAMZ digest"
+      msg['Subject'] = msg_subject
       msg['From']    = "digest-noreply@yamz.net"
       msg['To']      = email_addr
 
