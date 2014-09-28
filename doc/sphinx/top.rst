@@ -1,25 +1,28 @@
 .. SeaIce API documentation master file, created by
    sphinx-quickstart on Tue Jul 23 14:37:11 2013.
 
-Top level programs ``sea`` and ``ice``
-======================================
+Top level programs ``sea``, ``ice``, and ``digest``
+===================================================
 
 Two top-level Python programs that make use of the *SeaIce* API (which
 implements the *YAMZ* metadictionary) are available in the root directory
 of the source distribution. Both share two parameters in common: 
 
 * ``--config`` -- File that specifies the postgres role for a local database, 
-  typically ``$HOME/.seaice``. (Syntax of this file given below.) If ``heroku``
+  typically ``.seaice``. (Syntax of this file given below.) If ``heroku``
   is given instead of a filename, then a remote database specified by the 
   environment variable ``DATABSE_URL`` will be used. See 
   :class:`seaice.SeaIceConnector <seaice.SeaIceConnector.SeaIceConnector>`
   for details.
 
+* ``--deploy`` -- Specifies which deployment scenario to use for credentials. 
+  Here, the existence of a file called ``.seaice_auth`` is implicit. 
+
 * ``--role`` -- Role to use for connection to a local database. The parameter
   value must appear in the DB config file. 
 
 =======
-``sea``
+``sea.py``
 =======
 
 ``sea`` is the command line UI for *SeaIce* and provides administrative 
@@ -98,7 +101,7 @@ it useful for verifying the more complex functions
 in development. 
 
 =======
-``ice``
+``ice.py``
 =======
 
 This program utilizes the entire *SeaIce* API functionality to implement a Flask-based 
@@ -111,11 +114,21 @@ anonymous users. Finally, Flask provides a simple way to run the framework for l
 In deployment, the run code is ommitted and ``ice`` is run with a standalone web server. 
 (``gunicorn ice.py`` on Heroku.) 
 
-=====================
-DB configuration file
-=====================
-Three parameters are specified for each view: **user**, **password**, and **dbname**. Views 
-are given in squar brackets. E.g.: 
+
+=======
+``digest.py``
+=======
+
+This program is used to send an email digest to users who opt in. The database keeps track of
+whether users have received an email about a notification. ``digest`` collects all of these 
+into a MIME-text, sends htem to the user's email address, and marks them as sent. 
+
+================
+Credential files
+================
+There are two important configuration files for YAMZ. The first, ``.seaice``, is comprised of
+datbase credentials for a local PostgreSQL server. Three parameters are specified for each 
+view: **user**, **password**, and **dbname**. Views are given in squar brackets. E.g.: 
 
 .. code-block:: text
 
@@ -127,3 +140,23 @@ are given in squar brackets. E.g.:
   dbname = seaice
   user = contributor
   password = SECRET
+
+The second, ``.seaice_auth``, contains API keys for Google's Oauth-2.0 service, the application's
+secret key, and a password for the N2T API (a minuter password). The format is similar, but we 
+think of the view as a deployment scenario. For example, one may provide credentials for a local
+dev deployment, as well as a deployment on heroku: 
+
+.. code-block:: text
+
+  [dev]
+  google_client_id = 000-fella.apps.googleusercontent.com
+  google_client_secret = SECRET1
+  app_secret = SECRET2
+  minter_password = SECRET3
+  [heroku]
+  google_client_id = 000-guy.apps.googleusercontent.com
+  google_client_secret = SECRET4
+  app_secret = SECRET5
+  minter_password = SECRET6
+
+

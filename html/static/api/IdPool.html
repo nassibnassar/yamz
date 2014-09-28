@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>class IdPool &mdash; YAMZ/SeaIce 0.1 documentation</title>
+    <title>class IdPool &mdash; yamz 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="YAMZ/SeaIce 0.1 documentation" href="index.html" />
+    <link rel="top" title="yamz 0.2.1 documentation" href="index.html" />
     <link rel="up" title="The seaice package" href="seaice.html" />
     <link rel="next" title="the user module" href="user.html" />
     <link rel="prev" title="class ConnectorPool" href="ConnectorPool.html" /> 
@@ -36,13 +36,16 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="user.html" title="the user module"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="ConnectorPool.html" title="class ConnectorPool"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li>
-          <li><a href="seaice.html" accesskey="U">The <tt class="docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" accesskey="U">The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -59,6 +62,76 @@ for the DB tables <tt class="docutils literal"><span class="pre">SI.Terms</span>
 <ul class="simple">
 </ul>
 </div>
+<span class="target" id="module-seaice"></span><span class="target" id="module-seaice.IdPool"></span><dl class="class">
+<dt id="seaice.IdPool.IdPool">
+<em class="property">class </em><tt class="descclassname">seaice.IdPool.</tt><tt class="descname">IdPool</tt><big>(</big><em>db_con</em>, <em>table</em><big>)</big><a class="reference internal" href="_modules/seaice/IdPool.html#IdPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.IdPool.IdPool" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>A thread-safe object for producing and consuming table row IDs within 
+a particluar context, i.e. <tt class="docutils literal"><span class="pre">SI.Terms</span></tt>, <tt class="docutils literal"><span class="pre">SI.Users</span></tt>, and <tt class="docutils literal"><span class="pre">SI.Comments</span></tt>. 
+When initialized, an instance queries the table for all assigned IDs in 
+ascending order. Continuous regions of unassigned IDs are found and added 
+to the pool. The highest assigned ID is noticed so that when the pool is 
+empty, the producer function returns the next highest avaialble.</p>
+<p><strong>TODO</strong> This could be made more space-efficient by combining contiguous 
+free IDs into ranges.</p>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; Connection to the SeaIce database.</li>
+<li><strong>table</strong> (<em>str</em>) &#8211; Name of the table for which a pool will be created. The table
+should have a column of surrogate ID scalled &#8220;id&#8221;.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="seaice.IdPool.IdPool.ConsumeId">
+<tt class="descname">ConsumeId</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seaice/IdPool.html#IdPool.ConsumeId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.IdPool.IdPool.ConsumeId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consume the next available ID.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.IdPool.IdPool.GetNextId">
+<tt class="descname">GetNextId</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seaice/IdPool.html#IdPool.GetNextId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.IdPool.IdPool.GetNextId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next ID without consuming it (look ahead).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.IdPool.IdPool.ReleaseId">
+<tt class="descname">ReleaseId</tt><big>(</big><em>id</em><big>)</big><a class="reference internal" href="_modules/seaice/IdPool.html#IdPool.ReleaseId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.IdPool.IdPool.ReleaseId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Release and ID back into the pool (produce)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>id</strong> (<em>int</em>) &#8211; Surrogate ID.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -69,7 +142,7 @@ for the DB tables <tt class="docutils literal"><span class="pre">SI.Terms</span>
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="ConnectorPool.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">class</span> <span class="pre">ConnectorPool</span></tt></a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">ConnectorPool</span></tt></a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="user.html"
                         title="next chapter">the <tt class="docutils literal"><span class="pre">user</span></tt> module</a></p>
@@ -102,17 +175,20 @@ for the DB tables <tt class="docutils literal"><span class="pre">SI.Terms</span>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="user.html" title="the user module"
              >next</a> |</li>
         <li class="right" >
           <a href="ConnectorPool.html" title="class ConnectorPool"
              >previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li>
-          <li><a href="seaice.html" >The <tt class="docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

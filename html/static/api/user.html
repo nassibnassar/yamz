@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>the user module &mdash; YAMZ/SeaIce 0.1 documentation</title>
+    <title>the user module &mdash; yamz 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="YAMZ/SeaIce 0.1 documentation" href="index.html" />
+    <link rel="top" title="yamz 0.2.1 documentation" href="index.html" />
     <link rel="up" title="The seaice package" href="seaice.html" />
     <link rel="next" title="The auth module" href="auth.html" />
     <link rel="prev" title="class IdPool" href="IdPool.html" /> 
@@ -36,13 +36,16 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="auth.html" title="The auth module"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="IdPool.html" title="class IdPool"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li>
-          <li><a href="seaice.html" accesskey="U">The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" accesskey="U">The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -60,6 +63,181 @@ notifications. See related topic:</p>
 <li class="toctree-l1"><a class="reference internal" href="auth.html">The <tt class="docutils literal"><span class="pre">auth</span></tt> module</a></li>
 </ul>
 </div>
+<span class="target" id="module-seaice.user"></span><p class="graphviz">
+digraph inheritance9dc66ea023 {
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;seaice.user.AnonymousUser&quot; [style=&quot;setlinewidth(0.5)&quot;,URL=&quot;#seaice.user.AnonymousUser&quot;,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,tooltip=&quot;Handler for non-authenticated sessions.&quot;,height=0.25,shape=box,fontsize=10];
+  &quot;seaice.user.BaseUser&quot; -&gt; &quot;seaice.user.AnonymousUser&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;seaice.user.BaseUser&quot; [style=&quot;setlinewidth(0.5)&quot;,URL=&quot;#seaice.user.BaseUser&quot;,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,tooltip=&quot;Base class for users. Users are used in Flask fo storing &quot;,height=0.25,shape=box,fontsize=10];
+  &quot;seaice.user.User&quot; [style=&quot;setlinewidth(0.5)&quot;,URL=&quot;#seaice.user.User&quot;,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,tooltip=&quot;Handler for authenticated sessions.&quot;,height=0.25,shape=box,fontsize=10];
+  &quot;seaice.user.BaseUser&quot; -&gt; &quot;seaice.user.User&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+}
+</p>
+<dl class="class">
+<dt id="seaice.user.BaseUser">
+<em class="property">class </em><tt class="descclassname">seaice.user.</tt><tt class="descname">BaseUser</tt><big>(</big><em>id</em>, <em>name</em><big>)</big><a class="reference internal" href="_modules/seaice/user.html#BaseUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.BaseUser" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>Base class for users. Users are used in Flask fo storing 
+information about active and authenticated user sessions. 
+This implements. BaseUser implements the basic routines needed 
+for the Flask login manager. See the 
+<a class="reference external" href="https://flask-login.readthedocs.org/en/latest/">Flask-Login</a>
+documenttation for details.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>int</em>) &#8211; User&#8217;s surrogate ID in the database.</li>
+<li><strong>name</strong> (<em>str</em>) &#8211; First name of user (for display purposes).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="seaice.user.BaseUser.get_id">
+<tt class="descname">get_id</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seaice/user.html#BaseUser.get_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.BaseUser.get_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required by <a class="reference external" href="https://flask-login.readthedocs.org/en/latest/">Flask-Login</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">unicode str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.user.BaseUser.is_active">
+<tt class="descname">is_active</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seaice/user.html#BaseUser.is_active"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.BaseUser.is_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required by <a class="reference external" href="https://flask-login.readthedocs.org/en/latest/">Flask-Login</a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.user.BaseUser.is_anonymous">
+<tt class="descname">is_anonymous</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seaice/user.html#BaseUser.is_anonymous"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.BaseUser.is_anonymous" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required by <a class="reference external" href="https://flask-login.readthedocs.org/en/latest/">Flask-Login</a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.user.BaseUser.is_authenticated">
+<tt class="descname">is_authenticated</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/seaice/user.html#BaseUser.is_authenticated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.BaseUser.is_authenticated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required by <a class="reference external" href="https://flask-login.readthedocs.org/en/latest/">Flask-Login</a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="seaice.user.User">
+<em class="property">class </em><tt class="descclassname">seaice.user.</tt><tt class="descname">User</tt><big>(</big><em>id</em>, <em>name</em><big>)</big><a class="reference internal" href="_modules/seaice/user.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seaice.user.BaseUser" title="seaice.user.BaseUser"><tt class="xref py py-class docutils literal"><span class="pre">seaice.user.BaseUser</span></tt></a></p>
+<p>Handler for authenticated sessions.</p>
+<dl class="method">
+<dt id="seaice.user.User.getNotificationsAsHTML">
+<tt class="descname">getNotificationsAsHTML</tt><big>(</big><em>db_con</em><big>)</big><a class="reference internal" href="_modules/seaice/user.html#User.getNotificationsAsHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.User.getNotificationsAsHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get notifications as HTML.</p>
+<blockquote>
+<div>Create a link next each one which, when clicked, calls 
+<a class="reference internal" href="#seaice.user.User.remove" title="seaice.user.User.remove"><tt class="xref py py-func docutils literal"><span class="pre">User.remove()</span></tt></a>.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">HTML-formatted string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.user.User.getNotificationsAsPlaintext">
+<tt class="descname">getNotificationsAsPlaintext</tt><big>(</big><em>db_con</em><big>)</big><a class="reference internal" href="_modules/seaice/user.html#User.getNotificationsAsPlaintext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.User.getNotificationsAsPlaintext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get notifications in plaintext form.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Plaintext string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.user.User.notify">
+<tt class="descname">notify</tt><big>(</big><em>notif</em>, <em>db_con=None</em><big>)</big><a class="reference internal" href="_modules/seaice/user.html#User.notify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.User.notify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive notification from another user.</p>
+<blockquote>
+<div>If <em>db_con</em> is specified, 
+insert the notifiation into the databse. The reason for having this 
+option is that not all deployments of SeaIce will need to have 
+persistent notifications. This method is thread-safe, as it&#8217;s 
+possible to receive many notifications simultaneously.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>notif</strong> (<a class="reference internal" href="notify.html#seaice.notify.BaseNotification" title="seaice.notify.BaseNotification"><em>seaice.notify.BaseNotification</em></a>) &#8211; Notification instance.</li>
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.user.User.remove">
+<tt class="descname">remove</tt><big>(</big><em>i</em>, <em>db_con=None</em><big>)</big><a class="reference internal" href="_modules/seaice/user.html#User.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.User.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove notification at index <em>i</em> from the list.</p>
+<blockquote>
+<div>If <em>db_con</em> is specified, then remove notification from the database. 
+This method is thread-safe. <strong>NOTE:</strong> If the order of notifications 
+changed sometime between this point and the last time the HTML page was 
+generated, the wrong notification will be removed.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>i</strong> (<em>int</em>) &#8211; Index of notification.</li>
+<li><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; DB connection.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="seaice.user.AnonymousUser">
+<em class="property">class </em><tt class="descclassname">seaice.user.</tt><tt class="descname">AnonymousUser</tt><a class="reference internal" href="_modules/seaice/user.html#AnonymousUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.user.AnonymousUser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seaice.user.BaseUser" title="seaice.user.BaseUser"><tt class="xref py py-class docutils literal"><span class="pre">seaice.user.BaseUser</span></tt></a></p>
+<p>Handler for non-authenticated sessions.</p>
+<dl class="attribute">
+<dt id="seaice.user.AnonymousUser.id">
+<tt class="descname">id</tt><em class="property"> = None</em><a class="headerlink" href="#seaice.user.AnonymousUser.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>When polled, return None for ID, as prescribed by Flask-Login.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="seaice.user.AnonymousUser.logged_in">
+<tt class="descname">logged_in</tt><em class="property"> = None</em><a class="headerlink" href="#seaice.user.AnonymousUser.logged_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>When asked if you are logged in, always respond with <strong>no</strong>.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -70,10 +248,10 @@ notifications. See related topic:</p>
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="IdPool.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal docutils literal"><span class="pre">class</span> <span class="pre">IdPool</span></tt></a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">IdPool</span></tt></a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="auth.html"
-                        title="next chapter">The <tt class="docutils literal docutils literal docutils literal docutils literal"><span class="pre">auth</span></tt> module</a></p>
+                        title="next chapter">The <tt class="docutils literal"><span class="pre">auth</span></tt> module</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/user.txt"
@@ -103,17 +281,20 @@ notifications. See related topic:</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="auth.html" title="The auth module"
              >next</a> |</li>
         <li class="right" >
           <a href="IdPool.html" title="class IdPool"
              >previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li>
-          <li><a href="seaice.html" >The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

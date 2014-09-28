@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to the YAMZ/SeaIce documentation! &mdash; YAMZ/SeaIce 0.1 documentation</title>
+    <title>Welcome to the YAMZ documentation! &mdash; yamz 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="YAMZ/SeaIce 0.1 documentation" href="#" />
+    <link rel="top" title="yamz 0.2.1 documentation" href="#" />
     <link rel="next" title="The seaice package" href="seaice.html" /> 
   </head>
   <body>
@@ -34,9 +34,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="seaice.html" title="The seaice package"
              accesskey="N">next</a> |</li>
-        <li><a href="#">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">yamz 0.2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -45,8 +48,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="welcome-to-the-yamz-seaice-documentation">
-<h1>Welcome to the <em>YAMZ/SeaIce</em> documentation!<a class="headerlink" href="#welcome-to-the-yamz-seaice-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="welcome-to-the-yamz-documentation">
+<h1>Welcome to the <em>YAMZ</em> documentation!<a class="headerlink" href="#welcome-to-the-yamz-documentation" title="Permalink to this headline">¶</a></h1>
 <p><em>YAMZ</em> is an online, crowd-sourced dictionary for metadata terms, and
 <em>SeaIce</em> (frozen sea water) is an open-source implementation of it using
 Python, PostgreSQL, and Flask.</p>
@@ -57,12 +60,12 @@ used in combination with a <strong>term stability</strong> metric to classify te
 being <strong>vernacular</strong>, <strong>canonical</strong>, or <strong>deprecated</strong>. The hope is that
 <em>YAMZ</em> will facilitate the evolution of a set of stable, canonical
 metadata terms, verified in social a ecosystem. We&#8217;re calling the service
-a <em>metadictionary</em>. Check out the prototype at <a class="reference external" href="http://yamz.herokuapp.com">yamz.herokuapp.com</a>.</p>
+a <em>metadictionary</em>. Check out the prototype at <a class="reference external" href="http://yamz.net">yamz.net</a>.</p>
 <p>Here you can find the complete documentation of the <em>SeaIce</em> API.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="seaice.html">The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="seaice.html#class-seaiceflask"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceFlask</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="seaice.html#module-seaice"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceFlask</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="seaice.html#classes-and-modules">Classes and modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SeaIceConnector.html"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">SeaIceConnector</span></tt> &#8211; interface for PostgreSQL DB</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SeaIceConnector.html#class-scopedseaiceconnector"><tt class="docutils literal"><span class="pre">class</span> <span class="pre">ScopedSeaIceConnector</span></tt></a></li>
@@ -91,10 +94,11 @@ a <em>metadictionary</em>. Check out the prototype at <a class="reference extern
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="scoring.html">Term scoring and classification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="top.html">Top level programs <tt class="docutils literal"><span class="pre">sea</span></tt> and <tt class="docutils literal"><span class="pre">ice</span></tt></a><ul>
-<li class="toctree-l2"><a class="reference internal" href="top.html#sea"><tt class="docutils literal"><span class="pre">sea</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="top.html#ice"><tt class="docutils literal"><span class="pre">ice</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="top.html#db-configuration-file">DB configuration file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="top.html">Top level programs <tt class="docutils literal"><span class="pre">sea</span></tt>, <tt class="docutils literal"><span class="pre">ice</span></tt>, and <tt class="docutils literal"><span class="pre">digest</span></tt></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="top.html#sea-py"><tt class="docutils literal"><span class="pre">sea.py</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="top.html#ice-py"><tt class="docutils literal"><span class="pre">ice.py</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="top.html#digest-py"><tt class="docutils literal"><span class="pre">digest.py</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="top.html#credential-files">Credential files</a></li>
 </ul>
 </li>
 </ul>
@@ -132,15 +136,13 @@ were contributed by Karthik Ram.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to the <em>YAMZ/SeaIce</em> documentation!</a><ul>
-</ul>
-</li>
+<li><a class="reference internal" href="#">Welcome to the <em>YAMZ</em> documentation!</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
   <h4>Next topic</h4>
   <p class="topless"><a href="seaice.html"
-                        title="next chapter">The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a></p>
+                        title="next chapter">The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
@@ -170,13 +172,16 @@ were contributed by Karthik Ram.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="seaice.html" title="The seaice package"
              >next</a> |</li>
-        <li><a href="#">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">yamz 0.2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

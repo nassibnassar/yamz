@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to the *YAMZ/SeaIce* documentation!
+Welcome to the *YAMZ* documentation!
 ======================================
 
 *YAMZ* is an online, crowd-sourced dictionary for metadata terms, and
@@ -17,8 +17,7 @@ used in combination with a **term stability** metric to classify terms as
 being **vernacular**, **canonical**, or **deprecated**. The hope is that
 *YAMZ* will facilitate the evolution of a set of stable, canonical
 metadata terms, verified in social a ecosystem. We're calling the service
-a *metadictionary*. Check out the prototype at `yamz.herokuapp.com
-<http://yamz.herokuapp.com>`_. 
+a *metadictionary*. Check out the prototype at `yamz.net <http://yamz.net>`_. 
 
 Here you can find the complete documentation of the *SeaIce* API.
 

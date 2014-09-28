@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The auth module &mdash; YAMZ/SeaIce 0.1 documentation</title>
+    <title>The auth module &mdash; yamz 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="YAMZ/SeaIce 0.1 documentation" href="index.html" />
+    <link rel="top" title="yamz 0.2.1 documentation" href="index.html" />
     <link rel="up" title="the user module" href="user.html" />
     <link rel="next" title="The notify module" href="notify.html" />
     <link rel="prev" title="the user module" href="user.html" /> 
@@ -36,14 +36,17 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="notify.html" title="The notify module"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="user.html" title="the user module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li>
-          <li><a href="seaice.html" >The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li>
-          <li><a href="user.html" accesskey="U">the <tt class="docutils literal docutils literal docutils literal"><span class="pre">user</span></tt> module</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li>
+          <li><a href="user.html" accesskey="U">the <tt class="docutils literal"><span class="pre">user</span></tt> module</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -62,6 +65,53 @@ is implemented. To add other authenticator services &#8211; Facebook, OpenID,
 and StackOverflow to name a few &#8211; it will be necessary to restructure
 this code a bit (noted below). In addition, this will require changing
 <tt class="docutils literal"><span class="pre">ice</span></tt> a fair amount.</p>
+<span class="target" id="module-seaice.auth"></span><dl class="function">
+<dt id="seaice.auth.accessible_by_group_or_world">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">accessible_by_group_or_world</tt><big>(</big><em>file</em><big>)</big><a class="reference internal" href="_modules/seaice/auth.html#accessible_by_group_or_world"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.auth.accessible_by_group_or_world" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Verify the permissions of configuration file. </dt>
+<dd><em>Contributed by Nassib Nassar</em>.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>str</em>) &#8211; File name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="seaice.auth.get_config">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">get_config</tt><big>(</big><em>config_file='.seaice'</em><big>)</big><a class="reference internal" href="_modules/seaice/auth.html#get_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.auth.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get local db configuration. <em>Contributed by Nassib Nassar</em>.</p>
+<blockquote>
+<div>Structure with DB connection parameters for particular 
+roles. See the top-level program <em>ice</em> for example usage.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config_file</strong> (<em>str</em>) &#8211; File Name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="seaice.auth.REDIRECT_URI">
+<tt class="descclassname">seaice.auth.</tt><tt class="descname">REDIRECT_URI</tt><em class="property"> = '/authorized'</em><a class="headerlink" href="#seaice.auth.REDIRECT_URI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Variable prescribed by the Google OAuth API.
+<strong>TODO:</strong> To accomadate other authentication
+services, change this to &#8216;/authorized/google&#8217;
+(also on code.google.com/apis/console).</p>
+</dd></dl>
+
 </div>
 
 
@@ -72,7 +122,7 @@ this code a bit (noted below). In addition, this will require changing
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="user.html"
-                        title="previous chapter">the <tt class="docutils literal docutils literal"><span class="pre">user</span></tt> module</a></p>
+                        title="previous chapter">the <tt class="docutils literal"><span class="pre">user</span></tt> module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="notify.html"
                         title="next chapter">The <tt class="docutils literal"><span class="pre">notify</span></tt> module</a></p>
@@ -105,18 +155,21 @@ this code a bit (noted below). In addition, this will require changing
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="notify.html" title="The notify module"
              >next</a> |</li>
         <li class="right" >
           <a href="user.html" title="the user module"
              >previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li>
-          <li><a href="seaice.html" >The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li>
-          <li><a href="user.html" >the <tt class="docutils literal docutils literal docutils literal"><span class="pre">user</span></tt> module</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li>
+          <li><a href="user.html" >the <tt class="docutils literal"><span class="pre">user</span></tt> module</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

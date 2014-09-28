@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The notify module &mdash; YAMZ/SeaIce 0.1 documentation</title>
+    <title>The notify module &mdash; yamz 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="YAMZ/SeaIce 0.1 documentation" href="index.html" />
+    <link rel="top" title="yamz 0.2.1 documentation" href="index.html" />
     <link rel="up" title="The seaice package" href="seaice.html" />
     <link rel="next" title="The pretty module" href="pretty.html" />
     <link rel="prev" title="The auth module" href="auth.html" /> 
@@ -36,13 +36,16 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="pretty.html" title="The pretty module"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="auth.html" title="The auth module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li>
-          <li><a href="seaice.html" accesskey="U">The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" accesskey="U">The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -61,17 +64,149 @@ application of notifications is when users comment on your term. <tt class="docu
 comprises the basis and requires at a minimum the time when the event occured
 and the surrogate ID of the term it pertains to. A few basic notifications are
 implemented here; undoubtedly more will prove to be useful.</p>
-<p>Notifications are handled by the function <tt class="xref py py-func docutils literal"><span class="pre">seaice.user.User.notify()</span></tt>.
+<p>Notifications are handled by the function <a class="reference internal" href="user.html#seaice.user.User.notify" title="seaice.user.User.notify"><tt class="xref py py-func docutils literal"><span class="pre">seaice.user.User.notify()</span></tt></a>.
 There is a table and schema (<tt class="docutils literal"><span class="pre">SI_Notify.Notfiy</span></tt>) in the <em>SeaIce</em> database
 for persistent storage of notifications.
-<tt class="xref py py-func docutils literal"><span class="pre">insertNotifciation()</span></tt>
-and <tt class="xref py py-func docutils literal"><span class="pre">removeNotification()</span></tt> are called in
-<tt class="xref py py-func docutils literal"><span class="pre">seaice.user.User.notify()</span></tt> for handling insertion and deletion respectively. Note that
+<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.insertNotification" title="seaice.SeaIceConnector.SeaIceConnector.insertNotification"><tt class="xref py py-func docutils literal"><span class="pre">insertNotifciation()</span></tt></a>
+and <a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.removeNotification" title="seaice.SeaIceConnector.SeaIceConnector.removeNotification"><tt class="xref py py-func docutils literal"><span class="pre">removeNotification()</span></tt></a> are called in
+<a class="reference internal" href="user.html#seaice.user.User.notify" title="seaice.user.User.notify"><tt class="xref py py-func docutils literal"><span class="pre">seaice.user.User.notify()</span></tt></a> for handling insertion and deletion respectively. Note that
 this is meant to be optional, however; omitting the <em>db_con</em> parameter will skip this.</p>
 <div class="toctree-wrapper compound">
 <ul class="simple">
 </ul>
 </div>
+<p class="graphviz">
+digraph inheritanced6000f55ea {
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;seaice.notify.BaseNotification&quot; [style=&quot;setlinewidth(0.5)&quot;,URL=&quot;#seaice.notify.BaseNotification&quot;,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,tooltip=&quot;Base class for notifications in the SeaIce web interface Each sub class &quot;,height=0.25,shape=box,fontsize=10];
+  &quot;seaice.notify.Comment&quot; [style=&quot;setlinewidth(0.5)&quot;,URL=&quot;#seaice.notify.Comment&quot;,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,tooltip=&quot;Notification object for comments. &quot;,height=0.25,shape=box,fontsize=10];
+  &quot;seaice.notify.BaseNotification&quot; -&gt; &quot;seaice.notify.Comment&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;seaice.notify.TermRemoved&quot; [style=&quot;setlinewidth(0.5)&quot;,URL=&quot;#seaice.notify.TermRemoved&quot;,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,tooltip=&quot;Notification object for term removals. &quot;,height=0.25,shape=box,fontsize=10];
+  &quot;seaice.notify.BaseNotification&quot; -&gt; &quot;seaice.notify.TermRemoved&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;seaice.notify.TermUpdate&quot; [style=&quot;setlinewidth(0.5)&quot;,URL=&quot;#seaice.notify.TermUpdate&quot;,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,tooltip=&quot;Notification object for term updates. &quot;,height=0.25,shape=box,fontsize=10];
+  &quot;seaice.notify.BaseNotification&quot; -&gt; &quot;seaice.notify.TermUpdate&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+}
+</p>
+<span class="target" id="module-seaice.notify"></span><dl class="class">
+<dt id="seaice.notify.BaseNotification">
+<em class="property">class </em><tt class="descclassname">seaice.notify.</tt><tt class="descname">BaseNotification</tt><big>(</big><em>term_id</em>, <em>T_notify</em><big>)</big><a class="reference internal" href="_modules/seaice/notify.html#BaseNotification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.notify.BaseNotification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for notifications in the SeaIce web interface Each sub class 
+should implement __init__(), __str__(), and getAsHTML(db_con) This data
+structure only stores surrogate keys for users, terms, and comments. so 
+that a notification is never inconsistent. As a result, getAsHTML causes
+a query to the DB.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>term_id</strong> (<em>int</em>) &#8211; Term ID.</li>
+<li><strong>T_notify</strong> (<em>datetime.datetime</em>) &#8211; The time at which the notification was produced.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="seaice.notify.BaseNotification.getAsHTML">
+<tt class="descname">getAsHTML</tt><big>(</big><em>db_con</em><big>)</big><a class="reference internal" href="_modules/seaice/notify.html#BaseNotification.getAsHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.notify.BaseNotification.getAsHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an HTML-formatted notification string. To avoid dereferencing
+something that has been deleted (term, comment, user, etc.), return 
+None if the database has no results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; Connection to database.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="seaice.notify.BaseNotification.getAsPlaintext">
+<tt class="descname">getAsPlaintext</tt><big>(</big><em>db_con</em><big>)</big><a class="reference internal" href="_modules/seaice/notify.html#BaseNotification.getAsPlaintext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.notify.BaseNotification.getAsPlaintext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a notification string. To avoid dereferencing
+something that has been deleted (term, comment, user, etc.), return 
+None if the database has no results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>db_con</strong> (<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><em>seaice.SeaIceConnector.SeaIceConnector</em></a>) &#8211; Connection to database.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="seaice.notify.Comment">
+<em class="property">class </em><tt class="descclassname">seaice.notify.</tt><tt class="descname">Comment</tt><big>(</big><em>term_id</em>, <em>user_id</em>, <em>comment_string</em>, <em>T_notify</em><big>)</big><a class="reference internal" href="_modules/seaice/notify.html#Comment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.notify.Comment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seaice.notify.BaseNotification" title="seaice.notify.BaseNotification"><tt class="xref py py-class docutils literal"><span class="pre">seaice.notify.BaseNotification</span></tt></a></p>
+<p>Notification object for comments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>term_id</strong> (<em>int</em>) &#8211; Term ID.</li>
+<li><strong>user_id</strong> (<em>int</em>) &#8211; ID of the user has commented on a term.</li>
+<li><strong>T_notify</strong> (<em>datetime.datetime</em>) &#8211; The time at which the notification was produced.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="seaice.notify.TermUpdate">
+<em class="property">class </em><tt class="descclassname">seaice.notify.</tt><tt class="descname">TermUpdate</tt><big>(</big><em>term_id</em>, <em>user_id</em>, <em>T_notify</em><big>)</big><a class="reference internal" href="_modules/seaice/notify.html#TermUpdate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.notify.TermUpdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seaice.notify.BaseNotification" title="seaice.notify.BaseNotification"><tt class="xref py py-class docutils literal"><span class="pre">seaice.notify.BaseNotification</span></tt></a></p>
+<p>Notification object for term updates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>term_id</strong> (<em>int</em>) &#8211; Term ID.</li>
+<li><strong>user_id</strong> (<em>int</em>) &#8211; ID of the user who has updated the term.</li>
+<li><strong>T_notify</strong> (<em>datetime.datetime</em>) &#8211; The time at which the notification was produced.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="seaice.notify.TermRemoved">
+<em class="property">class </em><tt class="descclassname">seaice.notify.</tt><tt class="descname">TermRemoved</tt><big>(</big><em>user_id</em>, <em>term_string</em>, <em>T_notify</em><big>)</big><a class="reference internal" href="_modules/seaice/notify.html#TermRemoved"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#seaice.notify.TermRemoved" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seaice.notify.BaseNotification" title="seaice.notify.BaseNotification"><tt class="xref py py-class docutils literal"><span class="pre">seaice.notify.BaseNotification</span></tt></a></p>
+<p>Notification object for term removals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>user_id</strong> (<em>int</em>) &#8211; ID of the user who has updated the term.</li>
+<li><strong>term_string</strong> (<em>str</em>) &#8211; Term string before the term was deleted. We can&#8217;t use the ID 
+since it has been removed from the database.</li>
+<li><strong>T_notify</strong> (<em>datetime.datetime</em>) &#8211; The time at which the notification was produced.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
@@ -82,7 +217,7 @@ this is meant to be optional, however; omitting the <em>db_con</em> parameter wi
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="auth.html"
-                        title="previous chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">auth</span></tt> module</a></p>
+                        title="previous chapter">The <tt class="docutils literal"><span class="pre">auth</span></tt> module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pretty.html"
                         title="next chapter">The <tt class="docutils literal"><span class="pre">pretty</span></tt> module</a></p>
@@ -115,17 +250,20 @@ this is meant to be optional, however; omitting the <em>db_con</em> parameter wi
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="pretty.html" title="The pretty module"
              >next</a> |</li>
         <li class="right" >
           <a href="auth.html" title="The auth module"
              >previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li>
-          <li><a href="seaice.html" >The <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li>
+          <li><a href="seaice.html" >The <tt class="docutils literal"><span class="pre">seaice</span></tt> package</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

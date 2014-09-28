@@ -423,9 +423,12 @@ Try logging in to verify that the Oauth settings are also correct.
 4. Building the docs 
 ====================
 
-The seaice package is autodoc'ed using python-sphinx. The directory 
-doc/sphinx includes a Makefile for exporting the docs to various 
-media. For example, 
+The seaice package is autodoc'ed using python-sphinx. To install on Ubuntu:
+
+  $ sudo apt-get install python-sphinx
+
+The directory doc/sphinx includes a Makefile for exporting the docs to 
+various media. For example, 
 
   make html
   make latex

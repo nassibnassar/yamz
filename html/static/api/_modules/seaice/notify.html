@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>seaice.notify &mdash; SeaIce 0.1 documentation</title>
+    <title>seaice.notify &mdash; yamz 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -16,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +23,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="SeaIce 0.1 documentation" href="../../index.html" />
+    <link rel="top" title="yamz 0.2.1 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
@@ -38,7 +36,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">yamz 0.2.1 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -109,8 +107,24 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span><span class="p">:</span> 
       <span class="k">return</span> <span class="bp">None</span>
 
-    <span class="k">return</span> <span class="s">&#39;Term &lt;a href=&quot;/term=</span><span class="si">%d</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt; &lt;font color=&quot;#8B8B8B&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;Term &lt;a href=&quot;/term=</span><span class="si">%s</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt; &lt;font color=&quot;#8B8B8B&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">term</span><span class="p">[</span><span class="s">&#39;concept_id&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="BaseNotification.getAsPlaintext"><a class="viewcode-back" href="../../notify.html#seaice.notify.BaseNotification.getAsPlaintext">[docs]</a>  <span class="k">def</span> <span class="nf">getAsPlaintext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Return a notification string. To avoid dereferencing</span>
+<span class="sd">        something that has been deleted (term, comment, user, etc.), return </span>
+<span class="sd">        None if the database has no results. </span>
+
+<span class="sd">        :param db_con: Connection to database. </span>
+<span class="sd">        :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">        :rtype: str or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getTerm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="s">&#39; -- </span><span class="si">%s</span><span class="s">, term &quot;</span><span class="si">%s</span><span class="s">&quot;.&#39;</span> <span class="o">%</span> <span class="p">(</span>
+               <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">),</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">])</span>
   
 </div></div>
 <div class="viewcode-block" id="Comment"><a class="viewcode-back" href="../../notify.html#seaice.notify.Comment">[docs]</a><span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="n">BaseNotification</span><span class="p">):</span>
@@ -124,9 +138,10 @@
 <span class="sd">      :type T_notify: datetime.datetime</span>
 <span class="sd">  &quot;&quot;&quot;</span>
  
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">comment_string</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">):</span>
     <span class="n">BaseNotification</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term_id</span><span class="p">,</span> <span class="n">T_notify</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">user_id</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">comment_string</span> <span class="o">=</span> <span class="n">comment_string</span>
 
   <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="s">&#39;UserId=</span><span class="si">%d</span><span class="s"> commented on TermId=</span><span class="si">%d</span><span class="s"> at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">)</span>
@@ -137,9 +152,21 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
       <span class="k">return</span> <span class="bp">None</span>
 
-    <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;font color=&quot;#4D6C82&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt; commented on &lt;a href=&quot;/term=</span><span class="si">%d</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt;. </span>
+    <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;font color=&quot;#4D6C82&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt; commented on &lt;a href=&quot;/term=</span><span class="si">%s</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt;. </span>
 <span class="s">              &lt;font color=&quot;#B8B8B8&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+            <span class="n">user</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;concept_id&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+  
+  <span class="k">def</span> <span class="nf">getAsPlaintext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span> 
+    <span class="n">term</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getTerm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="s">&quot; -- </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s"> commented on </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+             <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">),</span> <span class="n">user</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">])</span>
+    <span class="n">text</span> <span class="o">+=</span> <span class="s">&#39;     TERM URI: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;persistent_id&#39;</span><span class="p">]</span>
+    <span class="n">text</span> <span class="o">+=</span> <span class="n">pretty</span><span class="o">.</span><span class="n">getPrettyParagraph</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="s">&quot;COMMENT: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment_string</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span>
 
 </div>
 <div class="viewcode-block" id="TermUpdate"><a class="viewcode-back" href="../../notify.html#seaice.notify.TermUpdate">[docs]</a><span class="k">class</span> <span class="nc">TermUpdate</span><span class="p">(</span><span class="n">BaseNotification</span><span class="p">):</span>
@@ -166,10 +193,20 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
       <span class="k">return</span> <span class="bp">None</span>
 
-    <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;font color=&quot;#4D6C82&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt; modified &lt;a href=&quot;/term=</span><span class="si">%d</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt;. </span>
+    <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;font color=&quot;#4D6C82&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt; modified &lt;a href=&quot;/term=</span><span class="si">%s</span><span class="s">&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/a&gt;. </span>
 <span class="s">              &lt;font color=&quot;#B8B8B8&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+            <span class="n">user</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;concept_id&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">],</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
 
+  <span class="k">def</span> <span class="nf">getAsPlaintext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span> 
+    <span class="n">term</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getTerm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_id</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">None</span>
+    
+    <span class="n">text</span> <span class="o">=</span> <span class="s">&#39; -- </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s"> modified &quot;</span><span class="si">%s</span><span class="s">&quot;.</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+              <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">),</span> <span class="n">user</span><span class="p">,</span> <span class="n">term</span><span class="p">[</span><span class="s">&#39;term_string&#39;</span><span class="p">])</span>
+    <span class="n">text</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">pretty</span><span class="o">.</span><span class="n">getPrettyTerm</span><span class="p">(</span><span class="n">db_con</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">return</span> <span class="n">text</span>
 </div>
 <div class="viewcode-block" id="TermRemoved"><a class="viewcode-back" href="../../notify.html#seaice.notify.TermRemoved">[docs]</a><span class="k">class</span> <span class="nc">TermRemoved</span><span class="p">(</span><span class="n">BaseNotification</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot; Notification object for term removals. </span>
@@ -199,8 +236,16 @@
     <span class="k">return</span> <span class="s">&#39;&#39;&#39;&lt;font color=&quot;#4D6C82&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt; has removed </span>
 <span class="s">              &lt;font color=&quot;#0088CC&quot;&gt;&lt;strong&gt;</span><span class="si">%s</span><span class="s">&lt;/strong&gt;&lt;/font&gt; from the metadictionary. </span>
 <span class="s">              &lt;font color=&quot;#B8B8B8&quot;&gt;&lt;i&gt;</span><span class="si">%s</span><span class="s">&lt;/i&gt;&lt;/font&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_string</span><span class="p">,</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span></div>
-</pre></div>
+            <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_string</span><span class="p">,</span> <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">))</span>
+
+  <span class="k">def</span> <span class="nf">getAsPlaintext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span> 
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db_con</span><span class="o">.</span><span class="n">getUserNameById</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="s">&quot; -- </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s"> has removed </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s"> from the metadictionary.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+              <span class="n">pretty</span><span class="o">.</span><span class="n">printPrettyDate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_notify</span><span class="p">),</span> <span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_string</span><span class="p">)</span>
+</pre></div></div>
 
           </div>
         </div>
@@ -233,13 +278,12 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">yamz 0.2.1 documentation</a> &raquo;</li>
           <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Christopher Patton.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

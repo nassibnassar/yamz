@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>seaice.user &mdash; SeaIce 0.1 documentation</title>
+    <title>seaice.user &mdash; yamz 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -16,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +23,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="SeaIce 0.1 documentation" href="../../index.html" />
+    <link rel="top" title="yamz 0.2.1 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
@@ -38,7 +36,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">yamz 0.2.1 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -201,7 +199,23 @@
 <span class="s">                         &amp;nbsp;&amp;nbsp;</span><span class="si">%s</span><span class="s">&lt;/p&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">notify</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">L_notify</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">result</span>
-</pre></div></div></div>
+</div>
+<div class="viewcode-block" id="User.getNotificationsAsPlaintext"><a class="viewcode-back" href="../../user.html#seaice.user.User.getNotificationsAsPlaintext">[docs]</a>  <span class="k">def</span> <span class="nf">getNotificationsAsPlaintext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_con</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Get notifications in plaintext form. </span>
+<span class="sd">      </span>
+<span class="sd">    :param db_con: DB connection.</span>
+<span class="sd">    :type db_con: seaice.SeaIceConnector.SeaIceConnector</span>
+<span class="sd">    :returns: Plaintext string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">L_notify</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">notifications</span><span class="p">))):</span>
+      <span class="n">notify</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">notifications</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">getAsPlaintext</span><span class="p">(</span><span class="n">db_con</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">notify</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">notify</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">L_notify</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div></div>
+</pre></div>
 
           </div>
         </div>
@@ -234,13 +248,12 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">SeaIce 0.1 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">yamz 0.2.1 documentation</a> &raquo;</li>
           <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Christopher Patton.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

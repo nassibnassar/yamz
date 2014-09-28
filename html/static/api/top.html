@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Top level programs sea and ice &mdash; YAMZ/SeaIce 0.1 documentation</title>
+    <title>Top level programs sea, ice, and digest &mdash; yamz 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="YAMZ/SeaIce 0.1 documentation" href="index.html" />
+    <link rel="top" title="yamz 0.2.1 documentation" href="index.html" />
     <link rel="prev" title="Term scoring and classification" href="scoring.html" /> 
   </head>
   <body>
@@ -34,9 +34,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="scoring.html" title="Term scoring and classification"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -45,23 +48,25 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="top-level-programs-sea-and-ice">
-<h1>Top level programs <tt class="docutils literal"><span class="pre">sea</span></tt> and <tt class="docutils literal"><span class="pre">ice</span></tt><a class="headerlink" href="#top-level-programs-sea-and-ice" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="top-level-programs-sea-ice-and-digest">
+<h1>Top level programs <tt class="docutils literal"><span class="pre">sea</span></tt>, <tt class="docutils literal"><span class="pre">ice</span></tt>, and <tt class="docutils literal"><span class="pre">digest</span></tt><a class="headerlink" href="#top-level-programs-sea-ice-and-digest" title="Permalink to this headline">¶</a></h1>
 <p>Two top-level Python programs that make use of the <em>SeaIce</em> API (which
 implements the <em>YAMZ</em> metadictionary) are available in the root directory
 of the source distribution. Both share two parameters in common:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">--config</span></tt> &#8211; File that specifies the postgres role for a local database,
-typically <tt class="docutils literal"><span class="pre">$HOME/.seaice</span></tt>. (Syntax of this file given below.) If <tt class="docutils literal"><span class="pre">heroku</span></tt>
+typically <tt class="docutils literal"><span class="pre">.seaice</span></tt>. (Syntax of this file given below.) If <tt class="docutils literal"><span class="pre">heroku</span></tt>
 is given instead of a filename, then a remote database specified by the
 environment variable <tt class="docutils literal"><span class="pre">DATABSE_URL</span></tt> will be used. See
-<tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceConnector</span></tt>
+<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector" title="seaice.SeaIceConnector.SeaIceConnector"><tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceConnector</span></tt></a>
 for details.</li>
+<li><tt class="docutils literal"><span class="pre">--deploy</span></tt> &#8211; Specifies which deployment scenario to use for credentials.
+Here, the existence of a file called <tt class="docutils literal"><span class="pre">.seaice_auth</span></tt> is implicit.</li>
 <li><tt class="docutils literal"><span class="pre">--role</span></tt> &#8211; Role to use for connection to a local database. The parameter
 value must appear in the DB config file.</li>
 </ul>
-<div class="section" id="sea">
-<h2><tt class="docutils literal"><span class="pre">sea</span></tt><a class="headerlink" href="#sea" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="sea-py">
+<h2><tt class="docutils literal"><span class="pre">sea.py</span></tt><a class="headerlink" href="#sea-py" title="Permalink to this headline">¶</a></h2>
 <p><tt class="docutils literal"><span class="pre">sea</span></tt> is the command line UI for <em>SeaIce</em> and provides administrative
 functionality. It allows you to initialize and drop the database schema,
 import and export individual tables, score and classify terms in the database,
@@ -122,14 +127,14 @@ for all up voters and down voters of each term are collected and used to compute
 the score. This is quite inefficient, roughly <em>O(mn)</em> for <em>m</em> users and <em>n</em> votes. In
 addition, it causes a join on the <em>User</em> and <em>Tracking</em> tables. In spite of this, I found
 it useful for verifying the more complex functions
-<tt class="xref py py-func docutils literal"><span class="pre">SeaIceConnector.castVote</span></tt> and
-<tt class="xref py py-func docutils literal"><span class="pre">SeaIceConnector.updateUserReputaiton</span></tt>
+<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.castVote" title="seaice.SeaIceConnector.SeaIceConnector.castVote"><tt class="xref py py-func docutils literal"><span class="pre">SeaIceConnector.castVote</span></tt></a> and
+<a class="reference internal" href="SeaIceConnector.html#seaice.SeaIceConnector.SeaIceConnector.updateUserReputation" title="seaice.SeaIceConnector.SeaIceConnector.updateUserReputation"><tt class="xref py py-func docutils literal"><span class="pre">SeaIceConnector.updateUserReputaiton</span></tt></a>
 in development.</p>
 </div>
-<div class="section" id="ice">
-<h2><tt class="docutils literal"><span class="pre">ice</span></tt><a class="headerlink" href="#ice" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="ice-py">
+<h2><tt class="docutils literal"><span class="pre">ice.py</span></tt><a class="headerlink" href="#ice-py" title="Permalink to this headline">¶</a></h2>
 <p>This program utilizes the entire <em>SeaIce</em> API functionality to implement a Flask-based
-web framework. The main object, <tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceFlask</span></tt>
+web framework. The main object, <a class="reference internal" href="seaice.html#seaice.SeaIceFlask.SeaIceFlask" title="seaice.SeaIceFlask.SeaIceFlask"><tt class="xref py py-class docutils literal"><span class="pre">seaice.SeaIceFlask</span></tt></a>
 creates a DB connection pool (all inherit the <tt class="docutils literal"><span class="pre">--config</span></tt> configuration), surrogate ID pools for
 tables, and data structures for authenticated user sessions and notifications. The code in
 <tt class="docutils literal"><span class="pre">ice</span></tt> defines the various <em>GET</em> and <em>POST</em> requests that are served. In addition,
@@ -138,10 +143,17 @@ anonymous users. Finally, Flask provides a simple way to run the framework for l
 In deployment, the run code is ommitted and <tt class="docutils literal"><span class="pre">ice</span></tt> is run with a standalone web server.
 (<tt class="docutils literal"><span class="pre">gunicorn</span> <span class="pre">ice.py</span></tt> on Heroku.)</p>
 </div>
-<div class="section" id="db-configuration-file">
-<h2>DB configuration file<a class="headerlink" href="#db-configuration-file" title="Permalink to this headline">¶</a></h2>
-<p>Three parameters are specified for each view: <strong>user</strong>, <strong>password</strong>, and <strong>dbname</strong>. Views
-are given in squar brackets. E.g.:</p>
+<div class="section" id="digest-py">
+<h2><tt class="docutils literal"><span class="pre">digest.py</span></tt><a class="headerlink" href="#digest-py" title="Permalink to this headline">¶</a></h2>
+<p>This program is used to send an email digest to users who opt in. The database keeps track of
+whether users have received an email about a notification. <tt class="docutils literal"><span class="pre">digest</span></tt> collects all of these
+into a MIME-text, sends htem to the user&#8217;s email address, and marks them as sent.</p>
+</div>
+<div class="section" id="credential-files">
+<h2>Credential files<a class="headerlink" href="#credential-files" title="Permalink to this headline">¶</a></h2>
+<p>There are two important configuration files for YAMZ. The first, <tt class="docutils literal"><span class="pre">.seaice</span></tt>, is comprised of
+datbase credentials for a local PostgreSQL server. Three parameters are specified for each
+view: <strong>user</strong>, <strong>password</strong>, and <strong>dbname</strong>. Views are given in squar brackets. E.g.:</p>
 <div class="highlight-text"><div class="highlight"><pre>[default]
 dbname = seaice
 user = postgres
@@ -150,6 +162,22 @@ password = SECRET
 dbname = seaice
 user = contributor
 password = SECRET
+</pre></div>
+</div>
+<p>The second, <tt class="docutils literal"><span class="pre">.seaice_auth</span></tt>, contains API keys for Google&#8217;s Oauth-2.0 service, the application&#8217;s
+secret key, and a password for the N2T API (a minuter password). The format is similar, but we
+think of the view as a deployment scenario. For example, one may provide credentials for a local
+dev deployment, as well as a deployment on heroku:</p>
+<div class="highlight-text"><div class="highlight"><pre>[dev]
+google_client_id = 000-fella.apps.googleusercontent.com
+google_client_secret = SECRET1
+app_secret = SECRET2
+minter_password = SECRET3
+[heroku]
+google_client_id = 000-guy.apps.googleusercontent.com
+google_client_secret = SECRET4
+app_secret = SECRET5
+minter_password = SECRET6
 </pre></div>
 </div>
 </div>
@@ -163,10 +191,11 @@ password = SECRET
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Top level programs <tt class="docutils literal"><span class="pre">sea</span></tt> and <tt class="docutils literal"><span class="pre">ice</span></tt></a><ul>
-<li><a class="reference internal" href="#sea"><tt class="docutils literal"><span class="pre">sea</span></tt></a></li>
-<li><a class="reference internal" href="#ice"><tt class="docutils literal"><span class="pre">ice</span></tt></a></li>
-<li><a class="reference internal" href="#db-configuration-file">DB configuration file</a></li>
+<li><a class="reference internal" href="#">Top level programs <tt class="docutils literal"><span class="pre">sea</span></tt>, <tt class="docutils literal"><span class="pre">ice</span></tt>, and <tt class="docutils literal"><span class="pre">digest</span></tt></a><ul>
+<li><a class="reference internal" href="#sea-py"><tt class="docutils literal"><span class="pre">sea.py</span></tt></a></li>
+<li><a class="reference internal" href="#ice-py"><tt class="docutils literal"><span class="pre">ice.py</span></tt></a></li>
+<li><a class="reference internal" href="#digest-py"><tt class="docutils literal"><span class="pre">digest.py</span></tt></a></li>
+<li><a class="reference internal" href="#credential-files">Credential files</a></li>
 </ul>
 </li>
 </ul>
@@ -203,13 +232,16 @@ password = SECRET
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="scoring.html" title="Term scoring and classification"
              >previous</a> |</li>
-        <li><a href="index.html">YAMZ/SeaIce 0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">yamz 0.2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>
