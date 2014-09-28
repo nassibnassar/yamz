@@ -402,10 +402,10 @@ domain (let's call it "fella.org"), add the following settings:
 Next, under "Manage DNS", remove all entries except for 'A (Host)' and 'NS 
 (Nameserver)', and add the following under 'CName (Alias)': 
 
- Record type  . . . . . . . . . . . . . . . . . . . CNAME (Alias)
- Host . . . . . . . . . . . . . . . . . . . . . . . www
- Points to  . . . . . . . . . . . . . . . . . . . . fella.herokuapp.com
- TTL  . . . . . . . . . . . . . . . . . . . . . . . 1 Hour
+ Record type  . . . . . . . . . . . . . . . . . CNAME (Alias)
+ Host . . . . . . . . . . . . . . . . . . . . . www
+ Points to  . . . . . . . . . . . . . . . . . . http://fella.herokuapp.com
+ TTL  . . . . . . . . . . . . . . . . . . . . . 1 Hour
 
 Next, change the IP address for entry '@' under 'A (Host)' to 50.63.202.31. 
 
