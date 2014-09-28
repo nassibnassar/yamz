@@ -1,5 +1,7 @@
 # Contributed by Greg Janee
+
 # TODO Delete persistent identifier on removal of term. 
+
 
 import re
 import os
@@ -12,9 +14,11 @@ BINDER_URL = "https://n2t-pre.cdlib.org/a/yamz/b"
 REALM = "yamz"
 USERNAME = "yamz"
 
+# FIXME Location for `minter_password` is needlessly hardcoded. 
+deploy = 'heroku' 
 CONFIG = auth.get_config('.seaice_auth')
-if CONFIG.has_option('default', 'minter_password'):
-    PASSWORD = CONFIG.get('default', 'minter_password')
+if CONFIG.has_option(deploy, 'minter_password'):
+    PASSWORD = CONFIG.get(deploy, 'minter_password')
 else:
     PASSWORD = os.environ.get('MINTER_PASSWORD')
 
