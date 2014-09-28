@@ -52,6 +52,10 @@ stabilityInterval = 1
 stabilityConsensusIntervalHigh = 0.75 #: Classify stable term as canonical.
 stabilityConsensusIntervalLow =  0.25 #: Classify stable term as deprecated.
 
+#: Amount of reputation gained by a user when her term becomes 
+#: canonical. 
+reputationGain = 30 
+
 #: The percentage of the community that most vote on a term 
 #: in order for the term to be classified. If not enough folks
 #: have voted, the term will remain vernacular. The key is 
@@ -1166,8 +1170,8 @@ class SeaIceConnector:
     cur.execute("SELECT now()")
     T_now = cur.fetchone()[0]
 
-    cur.execute("SELECT consensus, T_stable, T_last, modified, class FROM SI.Terms where id=%s", (term_id,))
-    (S, T_stable, T_last, T_modified, term_class) = cur.fetchone()
+    cur.execute("SELECT owner_id, consensus, T_stable, T_last, modified, class FROM SI.Terms where id=%s", (term_id,))
+    (owner_id, S, T_stable, T_last, T_modified, term_class) = cur.fetchone()
 
     if ((T_stable and ((T_now - T_stable).seconds / float(stabilityFactor)) >= stabilityInterval) \
         or ((T_now - T_last).seconds / float(stabilityFactor)) >= stabilityInterval) \
@@ -1186,6 +1190,12 @@ class SeaIceConnector:
         term_class = "vernacular"
 
       elif S > stabilityConsensusIntervalHigh:
+        if term_class != 'canonical':
+          # Trigger a reputation gain
+          cur.execute('''SELECT reputation
+                           FROM SI.Users
+                          WHERE id=%s''', (owner_id,))
+          self.updateUserReputation(owner_id, cur.fetchone()[0] + reputationGain)
         term_class = "canonical"
       
       elif S < stabilityConsensusIntervalLow: 
