@@ -444,7 +444,7 @@ class SeaIceConnector:
     :rtype: int or None
     """
     cur = self.con.cursor()
-    cur.execute("DELETE FROM SI.Terms WHERE id=%d RETURNING id" % id)
+    cur.execute("DELETE FROM SI.Terms WHERE id=%s RETURNING id", (id,))
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
@@ -462,8 +462,8 @@ class SeaIceConnector:
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
                U_sum, D_sum, T_last, T_stable, tsv, concept_id, persistent_id
-            from SI.Terms where id=%d;
-        """ % id)
+            from SI.Terms where id=%s;
+        """, (id,))
     return cur.fetchone()
   
   def getTermByConceptId(self, concept_id): 
@@ -490,7 +490,7 @@ class SeaIceConnector:
     :rtype: str or None
     """
     cur = self.con.cursor()
-    cur.execute("SELECT term_string FROM SI.Terms WHERE id=%d" % id)
+    cur.execute("SELECT term_string FROM SI.Terms WHERE id=%s", (id,))
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
@@ -503,7 +503,7 @@ class SeaIceConnector:
     :rtype: str or None
     """
     cur = self.con.cursor()
-    cur.execute("SELECT concept_id FROM SI.Terms WHERE id=%d" % id)
+    cur.execute("SELECT concept_id FROM SI.Terms WHERE id=%s", (id,))
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
@@ -569,8 +569,8 @@ class SeaIceConnector:
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
                U_sum, D_sum, T_last, T_stable, tsv
-            from SI.Terms where term_string='%s';
-        """ % term_string)
+            from SI.Terms where term_string=%s;
+        """, (term_string,))
     for row in cur.fetchall():
       yield row
 
@@ -586,8 +586,8 @@ class SeaIceConnector:
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
                U_sum, D_sum, T_last, T_stable, tsv, concept_id
-            from SI.Terms where owner_id=%d;
-        """ % user_id) 
+            from SI.Terms where owner_id=%s;
+        """, (user_id,)) 
     for row in cur.fetchall():
       yield row
 
@@ -608,11 +608,11 @@ class SeaIceConnector:
                track.user_id, track.term_id, track.vote, track.star
             from SI.Terms as term, 
                  SI.Tracking as track
-            where track.user_id={0} 
+            where track.user_id=%s 
                       and track.term_id=term.id 
-                      and term.owner_id!={0}
+                      and term.owner_id!=%s
                       and track.star=true;
-        """.format(user_id))
+        """, (user_id, user_id))
     for row in cur.fetchall():
       yield row
 
@@ -626,7 +626,7 @@ class SeaIceConnector:
     """ 
     cur = self.con.cursor()
     cur.execute("""SELECT user_id FROM SI.Tracking 
-                    WHERE term_id={0} """.format(term_id))
+                    WHERE term_id=%s """, (term_id,))
     for row in cur.fetchall():
       yield row[0]
 
@@ -645,10 +645,10 @@ class SeaIceConnector:
       SELECT id, owner_id, term_string, definition, examples,  
              up, down, created, modified, consensus, class, concept_id,
              ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank
-        FROM SI.Terms, to_tsquery('english', '%s') query 
+        FROM SI.Terms, to_tsquery('english', %s) query 
         WHERE query @@ tsv 
         ORDER BY rank DESC
-     """ % string)
+     """, (string,))
 
     rows = sorted(cur.fetchall(), key=lambda row: orderOfClass[row['class']])
     rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
@@ -730,8 +730,8 @@ class SeaIceConnector:
     cur.execute("""
         select id, authority, auth_id, email, last_name, first_name,
                reputation, enotify
-            from SI.Users where id=%d;
-        """ % id)
+            from SI.Users where id=%s;
+        """ % (id,))
     return cur.fetchone()
   
   def getAllUsers(self): 
@@ -768,8 +768,8 @@ class SeaIceConnector:
     cur.execute("""
         select id, authority, auth_id, email, last_name, first_name,
                reputation
-            from SI.Users where auth_id = '%s' and authority = '%s';
-        """ % (auth_id, authority))
+            from SI.Users where auth_id=%s and authority=%s;
+        """, (auth_id, authority))
     res = cur.fetchone()
     return res
 
@@ -786,7 +786,7 @@ class SeaIceConnector:
     """
     cur = self.con.cursor()
     try:
-      cur.execute("SELECT first_name, last_name FROM SI.Users WHERE id=%d" % id)
+      cur.execute("SELECT first_name, last_name FROM SI.Users WHERE id=%s", (id,))
       res = cur.fetchone()
       if res and full: 
         return res[0] + " " + res[1]
@@ -823,7 +823,7 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("SELECT now(), count(*) FROM SI.Users")
     (T_now, t) = cur.fetchone() 
-    cur.execute("SELECT reputation FROM SI.Users WHERE id=%d" % id) 
+    cur.execute("SELECT reputation FROM SI.Users WHERE id=%s", (id,)) 
     p_rep = cur.fetchone()
     if not p_rep:
       return None
@@ -833,9 +833,9 @@ class SeaIceConnector:
                           t.T_last, t.T_stable, t.consensus
                    FROM SI.Tracking as v, 
                         SI.Terms as t
-                   WHERE v.user_id = %d 
+                   WHERE v.user_id = %s
                      AND v.term_id = t.id
-                     AND v.vote != 0""" % id)
+                     AND v.vote != 0""" % (id,))
     
     for (vote, term_id, u, d, U_sum, D_sum, T_last, T_stable, p_S) in cur.fetchall():
       
@@ -907,7 +907,7 @@ class SeaIceConnector:
     :rtype: int or None
     """ 
     cur = self.con.cursor()
-    cur.execute("DELETE FROM SI.Comments WHERE id=%d RETURNING id" % id)
+    cur.execute("DELETE FROM SI.Comments WHERE id=%s RETURNING id", (id,))
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
@@ -936,8 +936,8 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
         select id, owner_id, term_id, created, modified, comment_string
-            from SI.Comments where id=%d;
-        """ % id)
+            from SI.Comments where id=%s;
+        """, (id,))
     return cur.fetchone()
 
   def getCommentHistory(self, term_id):
@@ -950,8 +950,8 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
         select id, owner_id, term_id, created, modified, comment_string
-            from SI.Comments where term_id=%d order by created;
-        """ % term_id)
+            from SI.Comments where term_id=%s order by created;
+        """, (term_id,))
     for row in cur.fetchall():
       yield row
 
@@ -976,9 +976,9 @@ class SeaIceConnector:
       cur = self.con.cursor()
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote) 
                      VALUES (%s, %s, %s)
-                     RETURNING user_id, term_id""" % (defTracking['user_id'], 
-                                                      defTracking['term_id'], 
-                                                      defTracking['vote']))
+                     RETURNING user_id, term_id""", (defTracking['user_id'], 
+                                                     defTracking['term_id'], 
+                                                     defTracking['vote']))
       return cur.fetchone()
     
     except pgdb.DatabaseError, e:
@@ -1001,7 +1001,7 @@ class SeaIceConnector:
     """
     cur = self.con.cursor()
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
-                   user_id={0} AND term_id={1}""".format(user_id, term_id))
+                   user_id=%s AND term_id=%s""", (user_id, term_id))
     res = cur.fetchone()
     if res: return res[0]
     else:   return None 
@@ -1014,22 +1014,22 @@ class SeaIceConnector:
     """
     cur = self.con.cursor()
     cur.execute("""SELECT vote FROM SI.Tracking 
-                   WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
+                   WHERE user_id=%s AND term_id=%s""", (user_id, term_id))
     if not cur.fetchone(): 
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote) 
-                     VALUES ({0}, {1}, 0)""".format(user_id, term_id))
+                     VALUES (%s, %s, %s)""", (user_id, term_id, user_id))
       return True
     else: 
       cur.execute("""UPDATE SI.Tracking SET star=True
-                     WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
+                     WHERE user_id=%s AND term_id=%s""", (user_id, term_id))
       return False
 
   def untrackTerm(self, user_id, term_id):
     """ Untrack term. """
     cur = self.con.cursor()
     cur.execute("""UPDATE SI.Tracking SET star=False
-                   WHERE user_id={0} AND term_id={1} 
-                   RETURNING vote""".format(user_id, term_id))
+                   WHERE user_id=%s AND term_id=%s
+                   RETURNING vote""", (user_id, term_id))
     vote = cur.fetchone()
     if vote: 
       return 1
@@ -1042,7 +1042,7 @@ class SeaIceConnector:
     """
     cur = self.con.cursor()
     cur.execute("""SELECT star FROM SI.Tracking 
-                   WHERE user_id={0} AND term_id={1}""".format(user_id, term_id))
+                   WHERE user_id=%s AND term_id=%s""", (user_id, term_id))
     star = cur.fetchone()
     if star:
       return star[0]
@@ -1060,7 +1060,7 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("""SELECT v.user_id, v.vote, u.reputation
                    FROM SI.Users as u, SI.Tracking as v
-                   WHERE v.term_id = %d AND v.user_id = u.id""" % term_id)
+                   WHERE v.term_id = %s AND v.user_id = u.id""", (term_id,))
     U = {}; D = {}
     for (user_id, vote, rep) in cur.fetchall():
       if vote == 1: 
@@ -1092,8 +1092,8 @@ class SeaIceConnector:
 
     S = calculateConsensus(u, d, t, float(U_sum), float(D_sum)) 
 
-    cur.execute("""UPDATE SI.Terms SET up={1}, down={2}, U_sum={3}, D_sum={4}, consensus={5}
-                   WHERE id={0}""".format(term_id, u, d, U_sum, D_sum, S))
+    cur.execute("""UPDATE SI.Terms SET up=%s, down=%s, U_sum=%s, D_sum=%s, consensus=%s
+                   WHERE id=%s""", (u, d, U_sum, D_sum, S, term_id))
     return S
 
 
@@ -1112,27 +1112,27 @@ class SeaIceConnector:
     
     cur.execute("SELECT now(), count(*) FROM SI.Users")
     (T_now, t) = cur.fetchone() 
-    cur.execute("SELECT reputation FROM SI.Users WHERE id=%d" % user_id) 
+    cur.execute("SELECT reputation FROM SI.Users WHERE id=%s", (user_id,)) 
     rep = cur.fetchone()[0]
   
     #: Get current state
     cur.execute("""SELECT vote FROM SI.Tracking WHERE
-                   user_id={0} AND term_id={1}""".format(user_id, term_id))
+                   user_id=%s AND term_id=%s""", (user_id, term_id))
     p_vote = cur.fetchone()
 
     cur.execute("""SELECT up, down, U_sum, D_sum, t_last, t_stable, consensus FROM SI.Terms
-                   WHERE id={0}""".format(term_id))
+                   WHERE id=%s""", (term_id,))
     (u, d, U_sum, D_sum, T_last, T_stable, p_S) = cur.fetchone()
 
     #: Cast vote
     if not p_vote:
       cur.execute("""INSERT INTO SI.Tracking (user_id, term_id, vote)
-                     VALUES ({0}, {1}, {2})""".format(user_id, term_id, vote))
+                     VALUES (%s, %s, %s)""", (user_id, term_id, vote))
       p_vote = 0
       
     elif p_vote[0] != vote:
-      cur.execute("""UPDATE SI.Tracking SET vote={2}
-                     WHERE user_id={0} AND term_id={1}""".format(user_id, term_id, vote))
+      cur.execute("""UPDATE SI.Tracking SET vote=%s
+                     WHERE user_id=%s AND term_id=%s""", (vote, user_id, term_id))
       p_vote = p_vote[0]
 
     #: Calculate new consensus score
@@ -1166,7 +1166,7 @@ class SeaIceConnector:
     cur.execute("SELECT now()")
     T_now = cur.fetchone()[0]
 
-    cur.execute("SELECT consensus, T_stable, T_last, modified, class FROM SI.Terms where id=%d" % term_id)
+    cur.execute("SELECT consensus, T_stable, T_last, modified, class FROM SI.Terms where id=%s", (term_id,))
     (S, T_stable, T_last, T_modified, term_class) = cur.fetchone()
 
     if ((T_stable and ((T_now - T_stable).seconds / float(stabilityFactor)) >= stabilityInterval) \
@@ -1193,7 +1193,7 @@ class SeaIceConnector:
 
       else: term_class = "vernacular"
 
-    cur.execute("UPDATE SI.Terms SET class={0} WHERE id={1}".format(repr(term_class), term_id))
+    cur.execute("UPDATE SI.Terms SET class=%s WHERE id=%s", (term_class, term_id))
     return term_class 
 
   def checkTermConsistency(self, term_id):
@@ -1203,7 +1203,7 @@ class SeaIceConnector:
     :rtype: bool
     """
     cur = self.con.cursor()
-    cur.execute("SELECT consensus FROM SI.Terms where id=%d" % term_id)
+    cur.execute("SELECT consensus FROM SI.Terms where id=%s" % (term_id,))
     p_S = cur.fetchone()[0]
     (U, V) = self.preScore(term_id)
     S = self.postScore(term_id, U, V) 
@@ -1257,18 +1257,18 @@ class SeaIceConnector:
 
     elif isinstance(notif, notify.TermUpdate):
       cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, from_user_id, T ) 
-                     VALUES( 'TermUpdate', %d, %d, %d, %s ); """ % (
+                     VALUES( 'TermUpdate', %s, %s, %s, %s ); """, (
                 user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
 
     elif isinstance(notif, notify.TermRemoved):
       notif.term_string = notif.term_string.replace("'", "''")
       cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_string, from_user_id, T ) 
-                     VALUES( 'TermRemoved', %d, '%s', %d, %s ); """ % (
+                     VALUES( 'TermRemoved', %s, %s, %s, %s ); """, (
                 user_id, notif.term_string, notif.user_id, repr(str(notif.T_notify)))) 
 
     else:
       cur.execute("""INSERT INTO SI_Notify.Notify( class, user_id, term_id, T )   
-                     VALUES( 'Base', %d, %d, %s ); """ % (
+                     VALUES( 'Base', %s, %s, %s ); """, (
                 user_id, notif.term_id, repr(str(notif.T_notify))))
   
   def removeNotification(self, user_id, notif):
@@ -1281,28 +1281,28 @@ class SeaIceConnector:
     print "Lonestar!"
     if isinstance(notif, notify.Comment):
       cur.execute("""DELETE FROM SI_Notify.Notify
-                      WHERE class='Comment' AND user_id=%d AND term_id=%d 
-                        AND from_user_id=%d AND T=%s ; """ % (
+                      WHERE class='Comment' AND user_id=%s AND term_id=%s
+                        AND from_user_id=%s AND T=%s ; """, (
                 user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
 
     elif isinstance(notif, notify.TermUpdate):
       cur.execute("""DELETE FROM SI_Notify.Notify
-                      WHERE class='TermUpdate' AND user_id=%d AND term_id=%d
-                        AND from_user_id=%d AND T=%s ; """ % (
+                      WHERE class='TermUpdate' AND user_id=%s AND term_id=%s
+                        AND from_user_id=%s AND T=%s ; """, (
                 user_id, notif.term_id, notif.user_id, repr(str(notif.T_notify))))
 
     elif isinstance(notif, notify.TermRemoved):
       notif.term_string = notif.term_string.replace("'", "''")
       cur.execute("""DELETE FROM SI_Notify.Notify
-                      WHERE class='TermRemoved' AND user_id=%d
-                        AND term_string='%s' AND from_user_id=%d
-                        AND T=%s ; """ % (
+                      WHERE class='TermRemoved' AND user_id=%s
+                        AND term_string=%s AND from_user_id=%s
+                        AND T=%s ; """, (
                 user_id, notif.term_string, notif.user_id, repr(str(notif.T_notify)))) 
 
     else:
       cur.execute("""DELETE FROM SI_Notify.Notify( class, user_id, term_id, T )   
-                      WHERE class='Base' AND user_id=%d 
-                        AND term_id=%d and T=%s ; """ % (
+                      WHERE class='Base' AND user_id=%s
+                        AND term_id=%s and T=%s ; """, (
                 user_id, notif.term_id, repr(str(notif.T_notify))))
   
 
