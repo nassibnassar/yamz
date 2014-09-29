@@ -329,9 +329,11 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += '    <a id="voteDown" title="-1" href="#down" onclick="return TermAction(%s, \'down\');">' % row['id']
   string += '     <img src="/static/img/%s.png"></a><br>' % ('down_set' if vote == -1 else 'down')
   
+  
+  good = db_con.checkTracking(0 if not user_id else user_id, row['id'])
   string += '    <br><a id="star" title="Track this term" href="#star"' + \
-            '     onclick="return TermAction({1}, \'{0}\');">[{0}]</a><br> '.format(
-             ("unstar" if db_con.checkTracking(0 if not user_id else user_id, row['id']) else "star"), row['id'])
+            '     onclick="return TermAction({1}, \'{0}\');">[{2}]</a><br> '.format(
+             ("unstar" if good else "star"), row['id'], 'unwatch' if good else 'watch')
   string += "  </td></tr>"
 
   # Name/Class
@@ -362,7 +364,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "      <nobr><i>Contributed by</i> %s</nobr><br>"% db_con.getUserNameById(row['owner_id'], full=True)
   if persistent_id != '':
       string += "      <br>"
-      string += '      <nobr><i>Permalink:</i><br>' + permalink + '</nobr><br>'
+      string += '      <nobr><i>Permalink:</i><br>&nbsp;&nbsp;' + permalink + '</nobr><br>'
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
@@ -378,7 +380,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   # Definition/Examples
   string += "  <tr>"
   string += "    <td valign=top><i>Definition:</i></td>"
-  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % processTags(db_con, row['definition'])
+  string += "    <td colspan=4 valign=top style='padding-right:24px'><font size=\"3\"> %s</font></td>" % processTags(db_con, row['definition'])
   string += "  </tr>"
   string += "  <tr>"
   string += "    <td valign=top><i>Examples:</i></td>"
