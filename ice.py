@@ -422,8 +422,8 @@ def browse(listing = None):
       if term['term_string'][0].upper() != letter:
         letter = term['term_string'][0].upper()
         result += "</td></tr><tr><td width=20% align=center valign=top><h4>{0}</h4></td><td width=80%>".format(letter)
-      result += "<p><a href=\"/term=%d\">%s</a> <i>contributed by %s</i></p>" % (
-        term['id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
+      result += "<p><a href=\"/term=%s\">%s</a> <i>contributed by %s</i></p>" % (
+        term['concept_id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
     result += "</table>"
 
   else:
