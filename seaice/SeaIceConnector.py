@@ -398,10 +398,7 @@ class SeaIceConnector:
 
     #: Format entries for db query
     for (key, value) in term.iteritems():
-      if key.lower() in ["created", "modified", "t_stable", "t_last"]:
-        defTerm[key] = "'" + str(value) + "'"
-      else: 
-        defTerm[key] = unicode(value).replace("'", "''")
+        defTerm[key] = value
 
     try:
       cur.execute(
@@ -669,8 +666,6 @@ class SeaIceConnector:
     :type term: dict 
     """ 
     cur = self.con.cursor()
-    for (key, value) in term.iteritems():
-      term[key] = unicode(value).replace("'", "''")
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
  
@@ -878,9 +873,7 @@ class SeaIceConnector:
   
     #: Format entries for db query
     for (key, value) in comment.iteritems():
-      if key in ["created", "modified"]:
-        defComment[key] = "'" + str(value) + "'"
-      else: defComment[key] = unicode(value).replace("'", "''")
+      defComment[key] = value 
 
     try:
       cur = self.con.cursor()
@@ -925,8 +918,6 @@ class SeaIceConnector:
     :type id: dict 
     """
     cur = self.con.cursor()
-    for (key, value) in comment.iteritems():
-      comment[key] = unicode(value).replace("'", "''")
     cur.execute("UPDATE SI.Comments SET comment_string=%s WHERE id=%s", 
                  (comment['comment_string'], id))
 
