@@ -54,26 +54,25 @@
              <a href="/login">Login</a>
             {% endif %} 
         </ul>
-        <h3 class="muted" style="background-image: none; background-position: 0%
-        0%; background-repeat: repeat repeat;">YAMZ</h3>
+        <h3 class="muted" style="background-image: noneY; background-position: 0% 0%; background-repeat: repeat repeat;">YAMZ</h3>
       </div>
 
-      
+      <div> 
+        <h6 class="muted" style="white-space:nowrap;">A dictionary for all things metadata.</h6>
+        <form action="/search" method="post">
+          <div class="control-group"><label class="control-label"></label><div class="controls">
+          <input name="term_string" type="text" class="input-large search-query" placeholder="Search for a term"></div></div><hr>
+        </form>
+      </div>
+
       {% if not user_name %}
       
-        <hr>
         <div class="jumbotron">
-          <h1 style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">Metadictionary</h1>
           <p class="lead" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">
-            A crowdsourced metadata dictionary. Search for terms, upvote useful ones.</p>
+            <i>Metadictionary:</i> a crowd-sourced set of terms related to metadata. Search for terms, up-vote useful ones.</p>
         </div>
 
       {% endif %}
-      
-      <form action="/search" method="post">
-        <div class="control-group"><label class="control-label"></label><div class="controls">
-        <input name="term_string" type="text" class="input-large search-query" placeholder="Search for a term"></div></div><hr>
-      </form>
 
       {% if user_name %}
      
