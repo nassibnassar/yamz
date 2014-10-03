@@ -371,6 +371,18 @@ def getTerm(term_concept_id = None, message = ""):
             </td>
           </table>
         </form>""".format(term['id'])
+      else:
+        result += """ 
+        <form action="/login" method="get">
+          <table cellpadding=16 width=60%>
+            <tr><td><textarea type="text" rows=3
+              style="width:100%; height:100%"
+              placeholder="Log in to comment." readonly></textarea></td></tr>
+            <tr><td align=right><input type="submit" value="Comment"><td>
+            </td>
+          </table>
+        </form>"""
+      
       return render_template("basic_page.html", user_name = l.current_user.name, 
                                                 title = "Term - %s" %
                                                         term_concept_id, 

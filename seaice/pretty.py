@@ -108,7 +108,7 @@ style="font-size: 95%;
 '''
 
 tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp<b>#</b>&nbsp{1}&nbsp</a>'
-term_tag_string = '<a href=/term={0} title="{1}" ' + tag_style + '>&nbsp{2}&nbsp</a>'
+term_tag_string = '<a href=/term={0} title="{1}">&nbsp{2}&nbsp</a>'
 
 #: Regular expression for string matches.
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
@@ -371,7 +371,7 @@ def printTermAsHTML(db_con, row, user_id=0):
                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>""" % row['id']
  
   # Copy reference tag
-  string += '''    <hr><a id="copyLink" title="Click here to get a reference tag." href="#"
+  string += '''    <hr><a id="copyLink" title="Click here to get a reference link." href="#"
                         onclick="CopyToClipboard('#{%s : related to}');">Get term link</a>''' % row['concept_id']
 
   string += "    </td>"
@@ -380,11 +380,11 @@ def printTermAsHTML(db_con, row, user_id=0):
   # Definition/Examples
   string += "  <tr>"
   string += "    <td valign=top><i>Definition:</i></td>"
-  string += "    <td colspan=4 valign=top style='padding-right:24px'><font size=\"3\"> %s</font></td>" % processTags(db_con, row['definition'])
+  string += "    <td colspan=4 valign=top style='padding-right:36px'><font size=\"3\"> %s</font></td>" % processTags(db_con, row['definition'])
   string += "  </tr>"
   string += "  <tr>"
   string += "    <td valign=top><i>Examples:</i></td>"
-  string += "    <td colspan=4 valign=top><font size=\"3\"> %s</font></td>" % processTags(db_con, row['examples'])
+  string += "    <td colspan=4 valign=top style='padding-right:36px'><font size=\"3\"> %s</font></td>" % processTags(db_con, row['examples'])
   string += "  </tr>"
   string += "</table>"
   return string

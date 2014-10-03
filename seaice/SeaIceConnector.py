@@ -587,7 +587,8 @@ class SeaIceConnector:
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
                U_sum, D_sum, T_last, T_stable, tsv, concept_id
-            from SI.Terms where owner_id=%s;
+            from SI.Terms where owner_id=%s
+           order by term_string;
         """, (user_id,)) 
     for row in cur.fetchall():
       yield row
@@ -612,7 +613,8 @@ class SeaIceConnector:
             where track.user_id=%s 
                       and track.term_id=term.id 
                       and term.owner_id!=%s
-                      and track.star=true;
+                      and track.star=true
+            order by term_string; 
         """, (user_id, user_id))
     for row in cur.fetchall():
       yield row

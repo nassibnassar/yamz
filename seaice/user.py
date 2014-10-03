@@ -126,6 +126,7 @@ class User(BaseUser):
     """
     if db_con: 
       db_con.removeNotification(int(self.id), self.notifications[i])
+      db_con.commit()
     self.L_notify.acquire()
     self.notifications.remove(self.notifications[i])
     self.L_notify.release()
