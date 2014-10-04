@@ -108,7 +108,7 @@ style="font-size: 95%;
 '''
 
 tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp<b>#</b>&nbsp{1}&nbsp</a>'
-term_tag_string = '<a href=/term={0} title="{1}">&nbsp{2}&nbsp</a>'
+term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")

@@ -378,7 +378,7 @@ def getTerm(term_concept_id = None, message = ""):
             <tr><td><textarea type="text" rows=3
               style="width:100%; height:100%"
               placeholder="Log in to comment." readonly></textarea></td></tr>
-            <tr><td align=right><input type="submit" value="Comment"><td>
+            <tr><td align=right><input type="submit" value="Login"><td>
             </td>
           </table>
         </form>"""
