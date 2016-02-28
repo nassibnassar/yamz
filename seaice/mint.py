@@ -7,6 +7,7 @@ import re
 import os
 import urllib
 import urllib2
+import ssl
 import auth
 
 MINTER_URL = "https://n2t-pre.cdlib.org/a/yamz/m/ark/99152/h"
@@ -22,9 +23,16 @@ if CONFIG.has_option(deploy, 'minter_password'):
 else:
     PASSWORD = os.environ.get('MINTER_PASSWORD')
 
+# xxx change this host to match our actual hostname
+# xxx use non-real minter/binder for ANY non-"yamz" host
+# xxx turn off certificate check
 TARGET_URL_TEMPLATE = "http://yamz.net/term/concept=%s"
 
 _opener = None
+
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
 
 def mintArkIdentifier ():
   # Returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
@@ -34,7 +42,9 @@ def mintArkIdentifier ():
     m = urllib2.HTTPPasswordMgr()
     m.add_password(REALM, MINTER_URL, USERNAME, PASSWORD)
     m.add_password(REALM, BINDER_URL, USERNAME, PASSWORD)
-    _opener = urllib2.build_opener(urllib2.HTTPBasicAuthHandler(m))
+    _opener = urllib2.build_opener(
+      urllib2.HTTPSHandler(debuglevel=0, context=ctx),
+      urllib2.HTTPBasicAuthHandler(m))
   c = None
   try:
     c = _opener.open(MINTER_URL + "?mint%201")

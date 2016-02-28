@@ -148,7 +148,7 @@ class SeaIceConnector:
     given. This is to support Heroku functionality. For local testing 
     with your Heroku-Postgres based database, do 
 
-    ``export DATABAE_URL=$(heroku config:get DATABASE_URL) && ./ice.py --config=heroku``
+    ``export DATABASE_URL=$(heroku config:get DATABASE_URL) && ./ice.py --config=heroku``
 
   :param user: Name of DB role.
   :type user: str

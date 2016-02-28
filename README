@@ -2,7 +2,8 @@ This is the README for the YAMZ metadictionary and includes instructions for
 deploying on a local machine for testing and on Heroku (heroku.com) for a 
 scalable production version. These assume a Ubuntu GNU/Linux environment, but 
 should be easily adaptable to any system; YAMZ is written in Python and uses 
-only cross-platform packages. 
+only cross-platform packages.  This file is formatted by hand and does not
+contain markdown.
   
   Authored by Chris Patton. Last updated 28 Sep 2014. 
 
@@ -21,7 +22,7 @@ Contents
      1.1 Postgres authentication
      1.2 Create the database
      1.3 Create a role for standard queries
-     1.4 Oauth credentials and app key
+     1.4 OAuth credentials and app key
      1.5 N2T persistent identifier credentials
      1.6 Test the instance
  
@@ -42,7 +43,7 @@ Contents
 
 The contents of this directory are as follows: 
 
-  sea.py . . . . . . . . . . Consolue utility for scoring and classifying
+  sea.py . . . . . . . . . . Console utility for scoring and classifying
                              terms and other things. 
 
   ice.py . . . . . . . . . . Web server front end.
@@ -65,11 +66,11 @@ The contents of this directory are as follows:
                              contain actual keys. 
 
 Before you get started, you need to set up a database and some software 
-packages. On Ubuntu, grab the follwoing:
+packages. On Ubuntu, grab the following (on Mac OS X use ?):
   
   python-flask . . . . . . . Simple HTTP server.
 
-  postgresql . . . . . . . . We're using PostgreSQL for databse managment. 
+  postgresql . . . . . . . . We're using PostgreSQL for database managment. 
 
   python-psycopg2  . . . . . Python API for PostgreSQL.
 
@@ -79,19 +80,27 @@ packages. On Ubuntu, grab the follwoing:
 We need to download a package from pip that handles configuration files
 nicely. Do: 
 
-  $ sudo pip install configparser flask-login flask-Oauth 
-    python-dateutil urlparse
+  $ sudo pip install configparser flask-login flask-OAuth \
+        python-dateutil urlparse
 
 
-0.1 Repository structure
-========================
+0.1 Create the deploy_keys branch
+=================================
 
 The 'master' branch contains all the code to deploy locally or on heroku. 
-This directory. To deploy, create a local branch called "deploy_keys" and 
-edit .seaice .seaice_auth with actual API and app keys. Then push to 
-heroku with `git push heroku deploY_keys:master`. See section 2 for more 
-on heroku. NEVER PUSH THIS BRANCH TO GITHUB. 
+To deploy to heroku, we first need to create a local branch (one time
+operation) called "deploy_keys" and then check it out,
 
+  $ git branch deploy_keys
+  $ git checkout deploy_keys
+  
+Then edit .seaice and .seaice_auth with actual API and app keys, and push
+to heroku with
+
+  $ git push heroku deploy_keys:master
+  
+See section 2 for more on heroku.
+IMPORTANT: NEVER PUSH THIS BRANCH TO GITHUB. 
 
 
 1. Configuring a local instance 
@@ -100,20 +109,20 @@ on heroku. NEVER PUSH THIS BRANCH TO GITHUB.
 To start, we'll set up a database in postgres. First, we need to do some 
 configuration. Postgres requires an administrative user called 'postgres'. 
 It may be a good idea to create a SeaIce user (called "role" in postgres 
-jargin) with read/ write access granted on the tables. First, set postgres' 
-password: 
+jargon) with read/write access granted on the tables.  This work takes
+place in the top-level source directory.  First, set postgres' password: 
 
   $ sudo -u postgres psql template1
-  template1=# alter uesr postgres with encrypted password 'PASS';  
+  template1=# alter user postgres with encrypted password 'PASS';  
   template1=# \q [quit] 
 
 
-1.1 Posgres authentication
-==========================
+1.1 Postgres authentication
+===========================
 
 Now configure the authentication method for postgres and all other users 
 connecting locally. In /etc/postgresql/9.1/main/pg_hba.conf, change "peer" 
-in line
+in the line that will become
 
  local   all         postgres                          peer
 
@@ -124,7 +133,7 @@ line
 
  listen_addresses = 'localhost'
 
-After you've done this, you need to restart the postgres server:
+After you've done this, you need to restart the postgres server.
 
   $ sudo service postgresql restart
 
@@ -132,14 +141,14 @@ After you've done this, you need to restart the postgres server:
 1.2 Create the database
 =======================
 
-Finally, log back into postgres to create the database:
+Finally, log back in to postgres to create the database:
 
   $ sudo -u postgres psql
   postgres=# create database seaice with owner postgres;
   
 (Using unique, completely random passwords is a good idea here.) Next, 
 create a configuration file for the database and user account you set up. 
-Create a file called `.seaice` like: 
+Create a file called '.seaice' like: 
 
   [default]
   dbname = seaice
@@ -150,7 +159,7 @@ IMPORTANT NOTE: A template of this file is provided in the github
 repository. This file should remain secret and must not be published. 
 Set the correct file permissions with: 
 
-  $ chmod 600 `.seaice`
+  $ chmod 600 .seaice
 
 This file is used by the SeaIce DB connector to grant access to the database.
 To initialize the DB schema and tables, type:
@@ -161,8 +170,8 @@ To initialize the DB schema and tables, type:
 1.3 Create a role for standard queries
 ======================================
 
-At this point, it's suggested that you set up a user standard read/write 
-permssions on the table (no DROP, CREATE, GRANT, etc.) for most of the 
+At this point, it's suggested that you set up user standard read/write 
+permissions on the table (no DROP, CREATE, GRANT, etc.) for most of the 
 database queries. Note that this isn't applicable in Heroku; the postgres
 interface there doesn't allow you to control user views. 
   
@@ -171,7 +180,7 @@ interface there doesn't allow you to control user views.
   postgres=# grant select, insert, update, delete on all tables in 
              schema SI, SI_Notify to contributor;
 
-Add the configuuration to `.seaice`: 
+Add the configuration to '.seaice': 
 
   [contributor]
   dbname = seaice
@@ -186,22 +195,31 @@ same role. You can specify this on the command line:
 '--role' defaults to 'default'. 
 
 
-1.4 Oauth credentials and app key
+1.4 OAuth credentials and app key
 =================================
 
 YAMZ uses Google for third party authentication (OAuth-2.0) management of 
 logins. Visit https://console.developers.google.com to set this service up 
-for your instance. Navigate to "APIs & auth" -> "Credentials" and click 
-"Create new client ID". For local configuration: 
+for your instance. Navigate to something like API Manager -> Credentials
+and select whatever lets you create a new OAauth client ID.
+For local configuration: 
  
- Application type . . . . . . . . . . . . Web application
- Authorized javascript origins  . . . . . http://localhost:5000 
- Authorized redirect URI  . . . . . . . . http://localhost:5000/authorized 
+ Application type . . . . . . . . . . Web application
+ Authorized javascript origins  . . . http://localhost:5000 
+ Authorized redirect URI  . . . . . . http://localhost:5000/authorized 
 
-You'll create a new client ID for your heroku instance. (See section 2.) 
-Next, create a configuration file called `.seaice_auth` with the appropriate 
-client ID's and secret keys. For instance, you may have credentials for 
-'http://localhost:5000', as well as a dpeloyment on heroku: 
+Create another set of credentials for your heroku instance, say yamz-dev:
+
+ Application type . . . . . . . . . . Web application
+ Authorized javascript origins  . . . http://yamz-dev.herokuapp.com
+ Authorized redirect URI  . . . . . . http://yamz-dev.herokuapp.com/authorized 
+
+(See section 2.) XXX Are the instructions there complete, eg, redirect URL?) 
+XXX ?document this in a 0.x section, since it applies to local and heroku?
+
+Next, create a configuration file called '.seaice_auth' with the appropriate 
+client IDs and secret keys. For instance, you may have credentials for 
+'http://localhost:5000', as well as a deployment on heroku: 
 
   [dev]
   google_client_id = 000-fella.apps.googleusercontent.com
@@ -217,22 +235,24 @@ IMPORTANT NOTE: A template of this file is provided in the github
 repository. This file should remain secret and must not be published. 
 We provide the template, since heroku requires a commited file. 
 
-For conveniance, this file will also keep the Flask app's secret key. For 
+For convenience, this file will also keep the Flask app's secret key. For 
 this key, enter a long, random string of characters. Finally, set the correct 
 file permissions with: 
 
-  $ chmod 600 `.seaice_auth`
+  $ chmod 600 .seaice_auth
 
 
-1.5 N2T persistent identifier credentials
-========================================= 
+1.5 N2T persistent identifier resolver credentials
+==================================================
 
-A third-party URI resolver (maintianed by John Kunze et al.) is now an 
-integrated part of YAMZ. It is therefore necessary to provide a minter 
-password for API access to this web service. Include a line in .seaice_auth 
-for every view:
+Whenever a new term is created, YAMZ uses an API to n2t.net (maintained by
+the California Digital Library) in order to generate ("mint") a persistent
+identifier.  The main role of n2t.net is to be a resolver for the public-
+facing URLs that persistently identify YAMZ terms.  It is necessary to
+provide a minter password for API access to this web service.  To do so
+include a line in ".seaice_auth" for every view:
  
- minter_password = PASS
+   minter_password = PASS
 
 
 1.6 Test the instance
@@ -240,7 +260,7 @@ for every view:
 
 First, create the database schema: 
 
-  $ ./sea --config=.seaice --init-db
+   $ ./sea --config=.seaice --init-db
 
 Start the local server with: 
  
@@ -248,12 +268,11 @@ Start the local server with:
 
 If all goes well, you should be able to navigate to your server by typing 
 'http://localhost:5000' in the address bar. To verify that you've set up 
-Google Oauth-2.0 correctly, try logging in. This will create an account.
+Google OAuth-2.0 correctly, try logging in. This will create an account.
 Try adding a new term, modifying and deleting a term, and commenting on 
-termss. To classify a term, do: 
+terms. To classify a term, do: 
 
   $ ./sea.py --config=.seaice --classify-terms
-
 
 
 2. Deploying to Heroku
@@ -263,17 +282,17 @@ The YAMZ prototype is currently hosted at http://yamz.herokuapp.com.
 Heroku is a cloud-computing service which allows users to host web-based
 software projects. Heroku is scalable for a price; however, we can 
 still achieve quite a bit without spending money. We have access to a 
-small Postgres database, can shedule jobs, use a variety of packages 
-(all we need are available), and deploy easily with Git. It is however
-impossible to set up DB roles. Also, we can't assume persistent 
-access to the filesystem. 
+small Postgres database, can schedule jobs, use a variety of packages 
+(all we need are available), and deploy easily with Git. Some limitations
+of Heroku are that it is impossible to set up DB roles and any local files
+cannot be assumed to persist after a reboot.
 
 To begin, you need to setup an account with Heroku and download their software. 
 (It's nothing major, just some tools for running commands, interacting with 
 the database, etc.) Visit http://www.heroku.com. 
 
 Heroku requires a couple additional configuration files and some small
-code changes. The additional files are:
+code changes. The additional files (already set up in the repo) are:
 
   Procfile . . . . . . . specifies the commands that start web server, as 
                          well as periodic jobs. 
@@ -283,41 +302,49 @@ code changes. The additional files are:
                          available via pip.
 
 I used the following tutorial: https://devcenter.heroku.com/articles/python
-to set these up. Note that these steps have already been done; once you've
-set up your heroku account, you're ready to deploy. 
+to set these up.  Once you've set up your heroku account, you're ready to
+deploy. 
 
 The recommended best practice for managing your heroku instance is to set up
 a local branch called 'deploy_keys' based on 'master'. In this branch, edit 
-.seaice_auth to contain actual API and app keys. NOTE: IT IS CRITICAL THAT 
-YOU DON'T PUSH THIS BRANCH TO GITHUB. Publishing these secrets comprimises 
-the security of the entire app.
+.seaice and .seaice_auth to contain actual passwords and API and app keys.
+NOTE: IT IS CRITICAL THAT YOU DON'T PUSH THIS BRANCH TO GITHUB.
+Publishing these secrets compromises the security of the entire app.
 
-Login via the heroku website and create a new app. (Suppose we've named it
-"fella".) Navigate to the directory containing the cloned repository. Create
+Login via the heroku website and create a new app. Let's say we've named it
+"fella". Navigate to the directory containing the cloned repository. Create
 and checkout the branch 'deploy_keys'. 
 
+  $ git checkout -b deploy_keys
   $ heroku login
   $ heroku git:remote -a fella
-  $ git push heroku deploy_keys:master
 
 This creates a "slug" containing our code and its dependencies. To get the web 
-app running, we'll now need to set up a database and a couple heroku backend 
+app running, we'll now need to set up a database and a couple of heroku backend 
 services. 
 
 
 2.1 Heroku-Postgres
 ===================
 
-Heroku-Postgres is a scalable DB interface for heroku apps. Follow the 
-following tutorial to set this up: 
-https://devcenter.heroku.com/articles/heroku-postgresql#connection-in-python
+Heroku-Postgres is a scalable DB interface for heroku apps. (See the
+python section of devcenter.heroku.com/articles/heroku-postgresql .)
+To create a free addon,
+
+  # xxx retest the DATABASE_URL setting on a brand new instance
+  $ heroku addons:create heroku-postgresql:hobby-dev
 
 The 'master' branch is set up to use either a local postgres database server
-or Heroku-Postgres. The location of the DB in the "cloud" is specified by the 
-environment variable "DATABASE_URL". Using 'sea' or 'ice' with '--config=heroku'
-will force SeaIce to use this variable to connect to the DB. (Note this is the 
-default.) Heroku-Postgres doesn't allow you to create roles, so '--role' will 
-be ignored and the default will be used. To create the database schema: 
+or Heroku-Postgres.  The location of the DB in the "cloud" is specified
+when you create the heroku addon, and heroku automatically sets the
+instance's environment variable DATABASE_URL, which you can query with
+
+  $ heroku config
+
+Using 'sea' or 'ice' with '--config=heroku' will force SeaIce to use the
+web address found in this variable to connect to the DB. (Note this is the
+default.) Heroku-Postgres doesn't allow you to create roles, so '--role'
+will be ignored and the default will be used.  To create the database schema: 
 
   $ heroku run python sea.py --init-db
 
@@ -326,15 +353,18 @@ be ignored and the default will be used. To create the database schema:
 ===========
 
 YAMZ provides an email notification service for users who opt in. A utility 
-called 'digest' collects for each user all notifications that haven't previously 
-been emailed into a single digest. The code uses a heroku backend app called 
-Mailgun for SMTP service. To set this up, simply type 
+called 'digest' collects for each user all notifications that haven't
+previously been emailed into a single digest. The code uses a heroku backend
+app called Mailgun for SMTP service. To set this up, simply type (you may be
+asked to verify your heroku account with a credit card, but note your card
+should not be charged for the most basic service level)
 
-  $ heroku addons:add mailgun
+  $ heroku addons:create mailgun
 
-The code uses environment variables "MAILGUN_SMTP_LOGIN" and 
-"MAILGUN_SMTP_PASSWORD" to connect to Mailgun. To send out notifications, 
-type: 
+This sets a number of instance environment variables (see "heroku config").
+Of them the code uses "MAILGUN_SMTP_LOGIN" and "MAILGUN_SMTP_PASSWORD" to
+connect to Mailgun. Normally that happens when notifications are harvested
+by the scheduler (below), but to send out notifications manually, type: 
 
   $ heroku run python digest.py 
 
@@ -345,7 +375,7 @@ type:
 There are two periodic jobs that need to be scheduled in YAMZ: the term 
 classifier and the email digest. To set this up, do: 
   
-  $ heroku addons:add scheduler
+  $ heroku addons:create scheduler
   $ heroku addons:open scheduler
 
 The second command will take you to the web interface for the scheduler. Add
@@ -355,25 +385,46 @@ the following two jobs:
   "python digest.py" . . . . . . . . . . . . once per day
 
 
-2.4 Making changes
+2.4 Starting the instance
+=========================
+
+Now that your instance is all prepared, you can get it up and running with
+
+  $ git push heroku deploy_keys:master
+
+This pushes the secret keys found in the local deploy_keys branch so that
+they update the remote master branch on heroku.  (xxx see section 1.4 and
+??? for setting the secrets)
+
+# app_secret is the (api key?) password from netrc, or "heroku
+# auth:token"?
+# xxx need dev fake minter name!!
+# xxx need dev fake db!!
+
+
+2.5 Making changes
 ==================
 
 Deploying changes to heroku is made very easy with Git. Suppose we have changes
-to 'master' that we want to push to heroku. First checkout the already created
-local 'deploy_keys' branch:
-  
+to 'master' that we want to push to heroku.
+
  $ git checkout deploy_keys
- $ git merge master
+ $ git merge master            # updates deploy_keys with latest master commits
  $ git push heroku deploy_keys:master
 
+The first command checkouts the already created local 'deploy_keys' branch.
+The second command merges the latest commits from the master branch into it,
+and the final command updates the heroku master branch, which also restarts
+the instance.
 
-2.5 Exporting the dictionary
+
+2.6 Exporting the dictionary
 ============================
 
 The SeaIce API includes queries for importing and exporting database tables 
 in JSON formatted objects. This could be used to backup the entire database.
 Note however that imports must be done in the proper order in order to satisfy
-foreign key constratins. To back up the dictionary, do: 
+foreign key constraints. To back up the dictionary, do: 
 
   $ heroku config | grep DATABASE_URL
   DATABASE_URL: <whatever>
@@ -407,23 +458,25 @@ Next, under "Manage DNS", remove all entries except for 'A (Host)' and 'NS
  Points to  . . . . . . . . . . . . . . . . . . http://fella.herokuapp.com
  TTL  . . . . . . . . . . . . . . . . . . . . . 1 Hour
 
-Next, change the IP address for entry '@' under 'A (Host)' to 50.63.202.31. 
+Next, change the IP address for entry '@' under 'A (Host)' to 50.63.202.31
+(the current IP address of yamz.net).
 
 That's it for DNS configuration. The last thing we need to do is modify the 
-redirect URLS in the Google Oauth API. Edit the authorized javascript origins 
+redirect URLs in the Google OAuth API. Edit the authorized javascript origins 
 and redirect URI by replacing "fella.herokuapp.com" with "fella.org" and 
 save. 
 
 It can take a couple hours to a day for your DNS settings to propogate. Once 
 it's done, you can navigate to YAMZ by typing "fella.org" into your browser.
-Try logging in to verify that the Oauth settings are also correct. 
+Try logging in to verify that the OAuth settings are also correct. 
 
 
 
 4. Building the docs 
 ====================
 
-The seaice package is autodoc'ed using python-sphinx. To install on Ubuntu:
+The seaice package (but not this README file) is autodoc'ed using
+python-sphinx. To install on Ubuntu:
 
   $ sudo apt-get install python-sphinx
 
