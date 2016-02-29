@@ -405,17 +405,23 @@ they update the remote master branch on heroku.  (xxx see section 1.4 and
 2.5 Making changes
 ==================
 
-Deploying changes to heroku is made very easy with Git. Suppose we have changes
+Deploying changes to heroku is made easy with Git. Suppose we have changes
 to 'master' that we want to push to heroku.
 
  $ git checkout deploy_keys
- $ git merge master            # updates deploy_keys with latest master commits
+ $ git merge master          # updates deploy_keys with latest master commits
  $ git push heroku deploy_keys:master
 
-The first command checkouts the already created local 'deploy_keys' branch.
+The first command checks out the already created local 'deploy_keys' branch.
 The second command merges the latest commits from the master branch into it,
 and the final command updates the heroku master branch, which also restarts
-the instance.
+the instance.  This keeps the secrets outside the master branch.
+
+When you next checkout the master branch, however, your keys and secrets in
+the .seaice* files will be overwritten, so you may want to save them in
+separate files that you can copy back in to the branch when you later deploy
+again; just make sure those separate files don't ever become part of any
+branch that will show up in the public github repo.
 
 
 2.6 Exporting the dictionary

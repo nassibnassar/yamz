@@ -10,8 +10,10 @@ import urllib2
 import ssl
 import auth
 
-MINTER_URL = "https://n2t-pre.cdlib.org/a/yamz/m/ark/99152/h"
-BINDER_URL = "https://n2t-pre.cdlib.org/a/yamz/b"
+#MINTER_URL = "https://n2t-pre.cdlib.org/a/yamz/m/ark/99152/h"
+#BINDER_URL = "https://n2t-pre.cdlib.org/a/yamz/b"
+MINTER_URL = "https://n2t.net/a/yamz/m/ark/99152/fk2"
+BINDER_URL = "https://n2t.net/a/yamz_test/b"
 REALM = "yamz"
 USERNAME = "yamz"
 
