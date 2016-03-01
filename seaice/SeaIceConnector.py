@@ -368,7 +368,7 @@ class SeaIceConnector:
     
     ## Term queries ##
 
-  def insertTerm(self, term): 
+  def insertTerm(self, term, prod_mode): 
     """ Add a term to the database and return the term's ID. 
 
     :param term: Term row to be inserted. Default values will be used for 
@@ -421,7 +421,7 @@ class SeaIceConnector:
       id = None if res is None else res[0]
 
       # Mint persistent ID for term
-      persistent_id = mint.mint_persistent_id()
+      persistent_id = mint.mint_persistent_id(prod_mode)
       concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
       sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
       data = (persistent_id, concept_id, id)
@@ -657,13 +657,14 @@ class SeaIceConnector:
     rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
     return list(rows)
 
-  def updateTerm(self, id, term): 
-    """ Modify a term's term string, deifnition and examples. 
+  # xxx use prod_mode to select binder whose metadata will be updated
+  def updateTerm(self, id, term, prod_mode): 
+    """ Modify a term's term string, definition and examples. 
         Note: term ownership authenticated upstream! 
 
     :param id: Term ID. 
     :type id: int
-    :param term: Dictionary containing atleast the keys 'term_string', 'definition', 
+    :param term: Dictionary containing at least the keys 'term_string', 'definition', 
                  and 'examples' with string values.
     :type term: dict 
     """ 

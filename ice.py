@@ -26,6 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import seaice
+import ConfigParser
 from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash
@@ -43,7 +44,7 @@ parser = optparse.OptionParser()
 parser.description="""\
 This program is a Python/Flask-based web frontend for the SeaIce metadictionary. 
 SeaIce is a database comprised of a set of user-defined, crowd-sourced terms and 
-relationss. The goal of SeaIce is to develop a succint and complete set of 
+relations. The goal of SeaIce is to develop a succint and complete set of 
 metadata terms to register just about any type of file or data set. 'ice' is 
 distributed under the terms of the BSD license with the hope that it will be 
 # useful, but without warranty. You should have received a copy of the BSD 
@@ -62,7 +63,7 @@ parser.add_option('--credentials', dest='credentials_file',  metavar='FILE',
                   default='.seaice_auth')
 
 parser.add_option('--deploy', dest='deployment_mode', 
-                  help='Deployment mode, used to choose OAuth paramaters in credentials file.',
+                  help='Deployment mode, used to choose OAuth parameters in credentials file.',
                   default='heroku')
 
 parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
@@ -77,6 +78,13 @@ parser.add_option("--role", dest="db_role", metavar="USER",
 
 (options, args) = parser.parse_args()
 
+# Figure out if we're in production mode.  Look in 'heroku' section only.
+config = ConfigParser.ConfigParser()
+config.read('.seaice_auth')
+if config.has_option('heroku', 'prod_mode'):
+  prod_mode = config.get('heroku', 'prod_mode')
+else:
+  prod_mode = 'disable'
 
 ## Setup flask application ##
 print "ice: starting ..."
@@ -179,6 +187,10 @@ def index():
 @app.route("/about")
 def about():
   return render_template("about.html", user_name = l.current_user.name)
+
+@app.route("/guidelines")
+def guidelines():
+  return render_template("guidelines.html", user_name = l.current_user.name)
 
 @app.route("/api")
 def api():
@@ -493,7 +505,7 @@ def addTerm():
              'owner_id' : l.current_user.id,
              'id' : app.termIdPool.ConsumeId() }
 
-    (id, concept_id) = g.db.insertTerm(term)
+    (id, concept_id) = g.db.insertTerm(term, prod_mode)
     g.db.commit()
     app.dbPool.enqueue(g.db)
     return getTerm(concept_id, message = "Your term has been added to the metadictionary!")
@@ -520,7 +532,7 @@ def editTerm(term_concept_id = None):
                       'examples' : request.form['examples'],
                       'owner_id' : l.current_user.id } 
 
-      g.db.updateTerm(term['id'], updatedTerm)
+      g.db.updateTerm(term['id'], updatedTerm, prod_mode)
 
       # Notify tracking users
       notify_update = seaice.notify.TermUpdate(term['id'], l.current_user.id, 

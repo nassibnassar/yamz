@@ -254,6 +254,17 @@ include a line in ".seaice_auth" for every view:
  
    minter_password = PASS
 
+This password is also used to store metadata in a YAMZ binder on n2t.net.
+The main bit of metadata stored is the redirection target URL that supports
+resolution of ARK identifiers for YAMZ terms.
+
+Because real identifiers are meant to be persistent, no local or test
+instance of YAMZ should ever set the "prod_mode" parameter in
+".seaice_auth".  For such instances the generated and updated terms
+should only be for identifiers meant to be thrown away.  Only on the
+real production instance of YAMZ, when you're done testing term creation
+and update, should it be set to "enable" (the default is don't enable).
+
 
 1.6 Test the instance
 =====================
@@ -395,11 +406,7 @@ Now that your instance is all prepared, you can get it up and running with
 This pushes the secret keys found in the local deploy_keys branch so that
 they update the remote master branch on heroku.  (xxx see section 1.4 and
 ??? for setting the secrets)
-
-# app_secret is the (api key?) password from netrc, or "heroku
-# auth:token"?
-# xxx need dev fake minter name!!
-# xxx need dev fake db!!
+# xxx app_secret is the (api key?) password from netrc, or "heroku auth:token"?
 
 
 2.5 Making changes
@@ -408,9 +415,9 @@ they update the remote master branch on heroku.  (xxx see section 1.4 and
 Deploying changes to heroku is made easy with Git. Suppose we have changes
 to 'master' that we want to push to heroku.
 
- $ git checkout deploy_keys
- $ git merge master          # updates deploy_keys with latest master commits
- $ git push heroku deploy_keys:master
+  $ git checkout deploy_keys
+  $ git merge master          # updates deploy_keys with latest master commits
+  $ git push heroku deploy_keys:master
 
 The first command checks out the already created local 'deploy_keys' branch.
 The second command merges the latest commits from the master branch into it,
@@ -436,7 +443,6 @@ foreign key constraints. To back up the dictionary, do:
   DATABASE_URL: <whatever>
   $ export DATABASE_URL=<whatever> 
   $ ./sea.py --config=heroku --export=Terms >terms.json
-
 
 
 3. URL forwarding
@@ -475,7 +481,6 @@ save.
 It can take a couple hours to a day for your DNS settings to propogate. Once 
 it's done, you can navigate to YAMZ by typing "fella.org" into your browser.
 Try logging in to verify that the OAuth settings are also correct. 
-
 
 
 4. Building the docs 

@@ -6,18 +6,18 @@
 Welcome to the *YAMZ* documentation!
 ======================================
 
-*YAMZ* is an online, crowd-sourced dictionary for metadata terms, and
+*YAMZ* (yamz.net) is an online, crowd-sourced dictionary for metadata terms, and
 *SeaIce* (frozen sea water) is an open-source implementation of it using
 Python, PostgreSQL, and Flask.
 
-Users log in to *YAMZ* and contribute terms, vote on others', and leave
+Users log in to *YAMZ* and contribute terms, vote on others' terms, and leave
 comments. A reputation-based heuristic is used to estimate community
 consensus on these terms as a percentage. This **consensus score** is
 used in combination with a **term stability** metric to classify terms as
 being **vernacular**, **canonical**, or **deprecated**. The hope is that
 *YAMZ* will facilitate the evolution of a set of stable, canonical
-metadata terms, verified in social a ecosystem. We're calling the service
-a *metadictionary*. Check out the prototype at `yamz.net <http://yamz.net>`_. 
+metadata terms, verified in a social ecosystem. We're calling the service
+a *metadictionary*.
 
 Here you can find the complete documentation of the *SeaIce* API.
 
