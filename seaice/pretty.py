@@ -461,15 +461,19 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
                   <td>Score</td><td>Consensus</td><td>Class</td><td>Contributed by</td>
                   <td>Last modified</td></tr>'''
   for row in rows:
-    string += '''<tr><td><a title="hello" href=/term={5}>{0}</a></td><td>{1}</td><td>{2}</td>
+    string += '''<tr><td><a title="{8}" href=/term={5}>{0}</a></td><td>{1}</td><td>{2}</td>
                      <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
                      <td>{4}</td>
                      <td>{7}</tr>'''.format(
-      row['term_string'], row['up'] - row['down'],
-      summarizeConsensus(row['consensus']),
-      row['class'], 
-      db_con.getUserNameById(row['owner_id'], full=True), row['concept_id'], colorOf[row['class']],
-      printPrettyDate(row['modified']))
+          row['term_string'],
+          row['up'] - row['down'],
+          summarizeConsensus(row['consensus']),
+          row['class'], 
+          db_con.getUserNameById(row['owner_id'], full=True),
+          row['concept_id'],
+          colorOf[row['class']],
+          printPrettyDate(row['modified']),
+	  row['definition'])
   string += "</table>"
   return string
 

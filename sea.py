@@ -34,8 +34,8 @@ import seaice
 parser = optparse.OptionParser()
 
 description="""This program is the command line frontend for the SeaIce metadictionary. SeaIce \
-is a database comprised of a set of user-defined, crowd-sourced terms and relationss. \
-The goal of SeaIce is to develop a succint and complete set of metadata terms to register \
+is a database comprised of a set of user-defined, crowd-sourced terms and relations. \
+The goal of SeaIce is to develop a succinct and complete set of metadata terms to register \
 just about any type of file or data set. 'sea' provides administrative functionality for \
 SeaIce's database. It is distributed under the terms of the BSD license with the hope that it \
 will be useful, but without warranty. You should have received a copy of the BSD license with \
@@ -204,4 +204,4 @@ except IOError:
   sys.exit(1)
 
 except ValueError: 
-  print >>sys.stderr, "error: incorrect paramater type(s)"
+  print >>sys.stderr, "error: incorrect parameter type(s)"
