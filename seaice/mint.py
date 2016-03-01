@@ -33,6 +33,8 @@ else:
 TARGET_URL_TEMPLATE = "http://yamz.net/term/concept=%s"
 
 _opener = None
+_minter = None
+_binder = None
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
@@ -41,23 +43,24 @@ ctx.verify_mode = ssl.CERT_NONE
 def mintArkIdentifier (prod_mode):
   # Returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
   # Note that exceptions are not handled here but passed to the caller.
-  global _opener
+  global _opener, _minter, _binder
+  if not _minter:
+    if prod_mode == "enable":
+      _minter = REAL_MINTER_URL
+      _binder = REAL_BINDER_URL
+    else:
+      _minter = TEST_MINTER_URL
+      _binder = TEST_BINDER_URL
   if not _opener:
     m = urllib2.HTTPPasswordMgr()
-    if prod_mode == "enable":
-      minter = REAL_MINTER_URL
-      binder = REAL_BINDER_URL
-    else:
-      minter = TEST_MINTER_URL
-      binder = TEST_BINDER_URL
-    m.add_password(REALM, minter, USERNAME, PASSWORD)
-    m.add_password(REALM, binder, USERNAME, PASSWORD)
+    m.add_password(REALM, _minter, USERNAME, PASSWORD)
+    m.add_password(REALM, _binder, USERNAME, PASSWORD)
     _opener = urllib2.build_opener(
       urllib2.HTTPSHandler(debuglevel=0, context=ctx),
       urllib2.HTTPBasicAuthHandler(m))
   c = None
   try:
-    c = _opener.open(minter + "?mint%201")
+    c = _opener.open(_minter + "?mint%201")
     r = c.readlines()
     assert len(r) == 3 and r[0].startswith("s:") and r[1] == "nog-status: 0\n"
     arkId = r[0][3:].strip()
@@ -68,7 +71,7 @@ def mintArkIdentifier (prod_mode):
   c = None
   try:
     concept_id = arkId.split('/')[-1]
-    c = _opener.open(binder + "?" +\
+    c = _opener.open(_binder + "?" +\
       urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
     r = c.readlines()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
