@@ -88,7 +88,7 @@ def mintArkIdentifier (prod_mode):
     if c: c.close()
   return arkId
 
-def bindArkIdentifier (id, prod_mode):
+def bindArkIdentifier (arkId, prod_mode):
   # Returns the identifier passed in as a string.
   global _opener, _binder
   if not _opener: 
@@ -97,12 +97,12 @@ def bindArkIdentifier (id, prod_mode):
   try:
     concept_id = arkId.split('/')[-1]
     c = _opener.open(_binder + "?" +
-      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (id, concept_id)))
+      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
     r = c.readlines()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
   finally:
     if c: c.close()
-  return id
+  return arkId
 
 def mint_persistent_id(prod_mode):
     arkId = 'http://n2t.net/' + mintArkIdentifier(prod_mode)
