@@ -91,8 +91,7 @@ def bindArkIdentifier (arkId, prod_mode):
     #c = _opener.open(_binder + "?" +
     #  urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
     c = _opener.open(_binder + "?-")
-    d = urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) + "\n"
-      % (arkId, concept_id))
+    d = urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id))
     r = c.readlines()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
   finally:
