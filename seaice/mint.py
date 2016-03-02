@@ -39,10 +39,6 @@ _opener = None
 _minter = None
 _binder = None
 
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
-
 def minderOpener (prod_mode):
   # Note that exceptions are not handled here but passed to the caller.
   ctxt = ssl.create_default_context()
@@ -68,6 +64,7 @@ def minderOpener (prod_mode):
 
 def mintArkIdentifier (prod_mode):
   # Returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
+  global _opener, _minter
   if not _opener: 
     _opener = minderOpener(prod_mode)
   c = None
@@ -93,6 +90,7 @@ def mintArkIdentifier (prod_mode):
 
 def bindArkIdentifier (id, prod_mode):
   # Returns the identifier passed in as a string.
+  global _opener, _binder
   if not _opener: 
     _opener = minderOpener(prod_mode)
   c = None
