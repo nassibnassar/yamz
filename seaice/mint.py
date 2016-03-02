@@ -13,9 +13,12 @@ import auth
 REALM = "yamz"
 USERNAME = "yamz"
 
+# Be careful to use these URLs only in "production" yamz,
+# as the identifiers they create are meant to last forever.
 REAL_MINTER_URL = "https://n2t.net/a/yamz/m/ark/99152/h"
 REAL_BINDER_URL = "https://n2t.net/a/yamz/b"
 
+# The identifiers created with these URLs are meant to be thrown away.
 TEST_MINTER_URL = "https://n2t.net/a/yamz/m/ark/99152/fk2"
 TEST_BINDER_URL = "https://n2t.net/a/yamz_test/b"
 
@@ -79,7 +82,35 @@ def mintArkIdentifier (prod_mode):
     if c: c.close()
   return arkId
 
-# XXX change this to indicate that fake ids don't resolve
+def bindArkIdentifier (id, prod_mode):
+  # Returns the ARK identifier passed in as a string.
+  # Note that exceptions are not handled here but passed to the caller.
+  global _opener, _minter, _binder
+  if not _minter:
+    if prod_mode == "enable":
+      _minter = REAL_MINTER_URL
+      _binder = REAL_BINDER_URL
+    else:
+      _minter = TEST_MINTER_URL
+      _binder = TEST_BINDER_URL
+  if not _opener:
+    m = urllib2.HTTPPasswordMgr()
+    m.add_password(REALM, _minter, USERNAME, PASSWORD)
+    m.add_password(REALM, _binder, USERNAME, PASSWORD)
+    _opener = urllib2.build_opener(
+      urllib2.HTTPSHandler(debuglevel=0, context=ctx),
+      urllib2.HTTPBasicAuthHandler(m))
+  c = None
+  try:
+    concept_id = arkId.split('/')[-1]
+    c = _opener.open(_binder + "?" +\
+      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
+    r = c.readlines()
+    assert len(r) == 2 and r[0] == "egg-status: 0\n"
+  finally:
+    if c: c.close()
+  return arkId
+
 def mint_persistent_id(prod_mode):
     return 'http://n2t.net/' + mintArkIdentifier(prod_mode)
 

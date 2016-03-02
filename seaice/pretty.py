@@ -143,10 +143,11 @@ def _printTermTagAsHTML(db_con, m):
   """
   (term_concept_id, desc) = m.groups()
   try:
-    desc = desc.strip().replace('"', '&#34;')
+    #desc = desc.strip().replace('"', '&#34;')
     term_string = db_con.getTermStringByConceptId(term_concept_id)
     if term_string:
-      return term_tag_string.format(term_concept_id, desc, term_string)
+      return term_tag_string.format(term_concept_id, term_concept_id, term_string)
+      #return term_tag_string.format(term_concept_id, desc, term_string)
   except: pass
   return m.group(0)
 
@@ -461,7 +462,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
                   <td>Score</td><td>Consensus</td><td>Class</td><td>Contributed by</td>
                   <td>Last modified</td></tr>'''
   for row in rows:
-    string += '''<tr><td><a title="{8}" href=/term={5}>{0}</a></td><td>{1}</td><td>{2}</td>
+    string += '''<tr><td><a title="Def: {8}" href=/term={5}>{0}</a></td><td>{1}</td><td>{2}</td>
                      <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
                      <td>{4}</td>
                      <td>{7}</tr>'''.format(
