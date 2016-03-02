@@ -414,17 +414,19 @@ class SeaIceConnector:
                               persistent_id ) 
             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
             RETURNING id
-        """, (defTerm['id'], defTerm['term_string'], defTerm['definition'], defTerm['examples'], 
-              defTerm['up'], defTerm['down'], defTerm['created'], defTerm['modified'], defTerm['owner_id'], defTerm['persistent_id']))
+        """, (defTerm['id'], defTerm['term_string'], defTerm['definition'],
+	      defTerm['examples'], defTerm['up'], defTerm['down'],
+	      defTerm['created'], defTerm['modified'], defTerm['owner_id'],
+	      defTerm['persistent_id']))
     
       res = cur.fetchone()
       id = None if res is None else res[0]
 
-      # Create persistent ID for term
+      # create persistent ID for term
       persistent_id = mint.create_persistent_id(
         prod_mode,
         defTerm['term_string'], defTerm['definition'],
-	defTerm['modified'], defTerm['examples'] )
+	defTerm['created'], defTerm['examples'] )
       concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
       sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
       data = (persistent_id, concept_id, id)
@@ -674,7 +676,10 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
- 
+    # update persistent ID for term
+    mint.bindArkIdentifier(term['persistent_id'], prod_mode,
+      term['term_string'], term['definition'],
+      term['modified'], term['examples'])
 
     ## User queries ##
 
