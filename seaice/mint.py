@@ -43,9 +43,12 @@ ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
-def mintArkIdentifier (prod_mode):
-  # Returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
+def minderOpener (prod_mode):
   # Note that exceptions are not handled here but passed to the caller.
+  ctxt = ssl.create_default_context()
+  ctxt.check_hostname = False
+  ctxt.verify_mode = ssl.CERT_NONE
+
   global _opener, _minter, _binder
   if not _minter:
     if prod_mode == "enable":
@@ -59,8 +62,31 @@ def mintArkIdentifier (prod_mode):
     m.add_password(REALM, _minter, USERNAME, PASSWORD)
     m.add_password(REALM, _binder, USERNAME, PASSWORD)
     _opener = urllib2.build_opener(
-      urllib2.HTTPSHandler(debuglevel=0, context=ctx),
+      urllib2.HTTPSHandler(debuglevel=0, context=ctxt),
       urllib2.HTTPBasicAuthHandler(m))
+    return _opener
+
+def mintArkIdentifier (prod_mode):
+  # Returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
+  ## Note that exceptions are not handled here but passed to the caller.
+  #global _opener, _minter, _binder
+  #if not _minter:
+  #  if prod_mode == "enable":
+  #    _minter = REAL_MINTER_URL
+  #    _binder = REAL_BINDER_URL
+  #  else:
+  #    _minter = TEST_MINTER_URL
+  #    _binder = TEST_BINDER_URL
+  #if not _opener:
+  #  m = urllib2.HTTPPasswordMgr()
+  #  m.add_password(REALM, _minter, USERNAME, PASSWORD)
+  #  m.add_password(REALM, _binder, USERNAME, PASSWORD)
+  #  _opener = urllib2.build_opener(
+  #    urllib2.HTTPSHandler(debuglevel=0, context=ctx),
+  #    urllib2.HTTPBasicAuthHandler(m))
+  global _opener
+  if not _opener: 
+    _opener = minderOpener()
   c = None
   try:
     c = _opener.open(_minter + "?mint%201")
