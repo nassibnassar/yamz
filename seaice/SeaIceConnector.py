@@ -380,7 +380,7 @@ class SeaIceConnector:
     """
     cur = self.con.cursor()
 
-    #: Default values for table entries.  
+    #: Default values for database table column entries.  
     defTerm = { 
       "id" : None,
       "term_string" : "nil", 
@@ -420,8 +420,11 @@ class SeaIceConnector:
       res = cur.fetchone()
       id = None if res is None else res[0]
 
-      # Mint persistent ID for term
-      persistent_id = mint.mint_persistent_id(prod_mode)
+      # Create persistent ID for term
+      persistent_id = mint.create_persistent_id(
+        prod_mode,
+        defTerm['term_string'], defTerm['definition'],
+	defTerm['modified'], defTerm['examples'] )
       concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
       sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
       data = (persistent_id, concept_id, id)

@@ -81,7 +81,7 @@ def mintArkIdentifier (prod_mode):
     if c: c.close()
   return arkId
 
-def bindArkIdentifier (arkId, prod_mode):
+def bindArkIdentifier (arkId, prod_mode, who, what, when, peek):
   # Returns the identifier passed in as a string.
   global _opener, _binder
   if not _opener: 
@@ -92,18 +92,25 @@ def bindArkIdentifier (arkId, prod_mode):
     #c = _opener.open(_binder + "?" +
     #  urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
     #d = urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id))
-    d = ("ark:/%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id)
+    op = arkId + '.set '	# all our bind operations start this way
+    d = ("%s _t " + TARGET_URL_TEMPLATE + "\n") % (op, concept_id)
+    d += "%s how %s\n" % (op, "term")
+    d += "%s who %s\n" % (op, who)
+    d += "%s what %s\n" % (op, what)
+    d += "%s when %s\n" % (op, when)
+    d += "%s peek %s\n" % (op, peek)
+
     c = _opener.open(_binder + "?-", d)
     r = c.readlines()
-    print "r is %s, d is %s\n" % (r, d)
+    print "xxx r is %s, d is %s\n" % (r, d)
     sys.stdout.flush()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
   finally:
     if c: c.close()
   return arkId
 
-def mint_persistent_id(prod_mode):
+def create_persistent_id(prod_mode, who, what, when, peek):
   arkId = mintArkIdentifier(prod_mode)
-  bindArkIdentifier(arkId, prod_mode)
+  bindArkIdentifier(arkId, prod_mode, who, what, when, peek)
   return 'http://n2t.net/' + arkId
 
