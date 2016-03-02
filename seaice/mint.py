@@ -60,6 +60,7 @@ def minderOpener (prod_mode):
     _opener = urllib2.build_opener(
       urllib2.HTTPSHandler(debuglevel=0, context=ctxt),
       urllib2.HTTPBasicAuthHandler(m))
+    _opener.addheaders = [("Content-Type", "text/plain")]
     return _opener
 
 def mintArkIdentifier (prod_mode):
@@ -77,15 +78,6 @@ def mintArkIdentifier (prod_mode):
     arkId = "ark:/" + arkId
   finally:
     if c: c.close()
-  c = None
-  try:
-    concept_id = arkId.split('/')[-1]
-    c = _opener.open(_binder + "?" +\
-      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
-    r = c.readlines()
-    assert len(r) == 2 and r[0] == "egg-status: 0\n"
-  finally:
-    if c: c.close()
   return arkId
 
 def bindArkIdentifier (arkId, prod_mode):
@@ -96,8 +88,11 @@ def bindArkIdentifier (arkId, prod_mode):
   c = None
   try:
     concept_id = arkId.split('/')[-1]
-    c = _opener.open(_binder + "?" +
-      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
+    #c = _opener.open(_binder + "?" +
+    #  urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
+    c = _opener.open(_binder + "?-")
+    d = urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) + "\n"
+      % (arkId, concept_id))
     r = c.readlines()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
   finally:
