@@ -662,15 +662,14 @@ class SeaIceConnector:
     rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
     return list(rows)
 
-  # xxx use prod_mode to select binder whose metadata will be updated
   def updateTerm(self, id, term, prod_mode): 
     """ Modify a term's term string, definition and examples. 
         Note: term ownership authenticated upstream! 
 
     :param id: Term ID. 
     :type id: int
-    :param term: Dictionary containing at least the keys 'term_string', 'definition', 
-                 and 'examples' with string values.
+    :param term: Dictionary containing at least the keys 'persistent_id',
+            'term_string', 'definition', and 'examples' with string values.
     :type term: dict 
     """ 
     cur = self.con.cursor()

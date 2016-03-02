@@ -529,7 +529,8 @@ def editTerm(term_concept_id = None):
     if request.method == "POST":
 
       assert request.form.get('examples') != None
-      updatedTerm = { 'term_string' : request.form['term_string'],
+      updatedTerm = { 'persistent_id' : request.form['persistent_id'],
+                      'term_string' : request.form['term_string'],
                       'definition' : request.form['definition'],
                       'examples' : request.form['examples'],
                       'owner_id' : l.current_user.id } 
