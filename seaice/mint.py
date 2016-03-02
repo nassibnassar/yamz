@@ -9,6 +9,7 @@ import urllib
 import urllib2
 import ssl
 import auth
+import sys
 
 REALM = "yamz"
 USERNAME = "yamz"
