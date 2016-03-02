@@ -91,7 +91,8 @@ def bindArkIdentifier (arkId, prod_mode):
     concept_id = arkId.split('/')[-1]
     #c = _opener.open(_binder + "?" +
     #  urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
-    d = urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id))
+    #d = urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id))
+    d = "ark:/%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id))
     c = _opener.open(_binder + "?-", d)
     r = c.readlines()
     print "r is %s, d is %s\n" % (r, d)
@@ -102,7 +103,7 @@ def bindArkIdentifier (arkId, prod_mode):
   return arkId
 
 def mint_persistent_id(prod_mode):
-    arkId = 'http://n2t.net/' + mintArkIdentifier(prod_mode)
-    bindArkIdentifier(arkId, prod_mode)
-    return arkId
+  arkId = mintArkIdentifier(prod_mode)
+  bindArkIdentifier(arkId, prod_mode)
+  return 'http://n2t.net/' + arkId
 
