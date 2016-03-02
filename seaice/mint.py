@@ -68,23 +68,6 @@ def minderOpener (prod_mode):
 
 def mintArkIdentifier (prod_mode):
   # Returns an ARK identifier as a string (e.g., "ark:/99152/h4232").
-  ## Note that exceptions are not handled here but passed to the caller.
-  #global _opener, _minter, _binder
-  #if not _minter:
-  #  if prod_mode == "enable":
-  #    _minter = REAL_MINTER_URL
-  #    _binder = REAL_BINDER_URL
-  #  else:
-  #    _minter = TEST_MINTER_URL
-  #    _binder = TEST_BINDER_URL
-  #if not _opener:
-  #  m = urllib2.HTTPPasswordMgr()
-  #  m.add_password(REALM, _minter, USERNAME, PASSWORD)
-  #  m.add_password(REALM, _binder, USERNAME, PASSWORD)
-  #  _opener = urllib2.build_opener(
-  #    urllib2.HTTPSHandler(debuglevel=0, context=ctx),
-  #    urllib2.HTTPBasicAuthHandler(m))
-  global _opener
   if not _opener: 
     _opener = minderOpener(prod_mode)
   c = None
@@ -109,34 +92,21 @@ def mintArkIdentifier (prod_mode):
   return arkId
 
 def bindArkIdentifier (id, prod_mode):
-  # Returns the ARK identifier passed in as a string.
-  # Note that exceptions are not handled here but passed to the caller.
-  global _opener, _minter, _binder
-  if not _minter:
-    if prod_mode == "enable":
-      _minter = REAL_MINTER_URL
-      _binder = REAL_BINDER_URL
-    else:
-      _minter = TEST_MINTER_URL
-      _binder = TEST_BINDER_URL
-  if not _opener:
-    m = urllib2.HTTPPasswordMgr()
-    m.add_password(REALM, _minter, USERNAME, PASSWORD)
-    m.add_password(REALM, _binder, USERNAME, PASSWORD)
-    _opener = urllib2.build_opener(
-      urllib2.HTTPSHandler(debuglevel=0, context=ctx),
-      urllib2.HTTPBasicAuthHandler(m))
+  # Returns the identifier passed in as a string.
+  if not _opener: 
+    _opener = minderOpener(prod_mode)
   c = None
   try:
-    concept_id = arkId.split('/')[-1]
     c = _opener.open(_binder + "?" +\
-      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
+      urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % id))
     r = c.readlines()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
   finally:
     if c: c.close()
-  return arkId
+  return id
 
 def mint_persistent_id(prod_mode):
-    return 'http://n2t.net/' + mintArkIdentifier(prod_mode)
+    arkId = 'http://n2t.net/' + mintArkIdentifier(prod_mode)
+    bindArkIdentifier(arkId, prod_mode)
+    return arkId
 
