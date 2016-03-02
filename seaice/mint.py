@@ -86,7 +86,7 @@ def mintArkIdentifier (prod_mode):
   #    urllib2.HTTPBasicAuthHandler(m))
   global _opener
   if not _opener: 
-    _opener = minderOpener()
+    _opener = minderOpener(prod_mode)
   c = None
   try:
     c = _opener.open(_minter + "?mint%201")
