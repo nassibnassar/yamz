@@ -92,7 +92,7 @@ def bindArkIdentifier (arkId, prod_mode):
     #c = _opener.open(_binder + "?" +
     #  urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
     #d = urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id))
-    d = ("ark:/%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id))
+    d = ("ark:/%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id)
     c = _opener.open(_binder + "?-", d)
     r = c.readlines()
     print "r is %s, d is %s\n" % (r, d)
