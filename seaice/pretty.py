@@ -142,17 +142,20 @@ def _printTermTagAsHTML(db_con, m):
   :type m: re.MatchObject
   """
   (term_concept_id, desc) = m.groups()
+  # xxx desc unused
   try:
     #desc = desc.strip().replace('"', '&#34;')
-    term_string = db_con.getTermStringByConceptId(term_concept_id)
-    if term_string:
-      return term_tag_string.format(term_concept_id, term_concept_id, term_string)
+    #term_string = db_con.getTermStringByConceptId(term_concept_id)
+    term = db_con.getTermByConceptId(term_concept_id)
+    term_string = term['term_string'] if term['term_string'] else "(undefined)"
+    return term_tag_string.format(term_concept_id, term_concept_id, term_string)
+    #if term_string:
       #return term_tag_string.format(term_concept_id, desc, term_string)
   except: pass
   return m.group(0)
 
 
-def processTags(db_con, string): 
+def processTagsAsHTML(db_con, string): 
   """  Process tags in DB text entries into HTML. 
 
   :param db_con: DB connection.
@@ -381,11 +384,11 @@ def printTermAsHTML(db_con, row, user_id=0):
   # Definition/Examples
   string += "  <tr>"
   string += "    <td valign=top><i>Definition:</i></td>"
-  string += "    <td colspan=4 valign=top style='padding-right:36px'><font size=\"3\"> %s</font></td>" % processTags(db_con, row['definition'])
+  string += "    <td colspan=4 valign=top style='padding-right:36px'><font size=\"3\"> %s</font></td>" % processTagsAsHTML(db_con, row['definition'])
   string += "  </tr>"
   string += "  <tr>"
   string += "    <td valign=top><i>Examples:</i></td>"
-  string += "    <td colspan=4 valign=top style='padding-right:36px'><font size=\"3\"> %s</font></td>" % processTags(db_con, row['examples'])
+  string += "    <td colspan=4 valign=top style='padding-right:36px'><font size=\"3\"> %s</font></td>" % processTagsAsHTML(db_con, row['examples'])
   string += "  </tr>"
   string += "</table>"
   return string
@@ -424,8 +427,8 @@ def printTermsAsHTML(db_con, rows, user_id=0):
     string += "  </tr>"
     string += "  <tr>"
     string += "    <td valign=top>"
-    string += "     <i>Definition:</i>&nbsp;<font size=\"3\"> %s</font>&nbsp;" % processTags(db_con, row['definition'])
-    string += "     <i>Examples:</i>&nbsp;<font size=\"3\"> %s</font></td>" % processTags(db_con, row['examples'])
+    string += "     <i>Definition:</i>&nbsp;<font size=\"3\"> %s</font>&nbsp;" % processTagsAsHTML(db_con, row['definition'])
+    string += "     <i>Examples:</i>&nbsp;<font size=\"3\"> %s</font></td>" % processTagsAsHTML(db_con, row['examples'])
     string += "  </tr>"
     string += "  <tr height=16><td></td></tr>"
   string += "</table>"
@@ -494,7 +497,7 @@ def printCommentsAsHTML(db_con, rows, user_id=0):
   string = '<script>' + js_confirmRemoveComment + '</script><table>'
   for row in rows:
     string += "<tr>"
-    string += "  <td align=left valign=top width=70%>{0}".format(processTags(db_con, row['comment_string']))
+    string += "  <td align=left valign=top width=70%>{0}".format(processTagsAsHTML(db_con, row['comment_string']))
     if user_id == row['owner_id']:
       string += " <nobr><a href=\"/comment=%d/edit\">[edit]</a>" % row['id']
       string += """ <a id="removeComment" title="Click to remove this comment" href="#"

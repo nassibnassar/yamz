@@ -32,9 +32,6 @@ if CONFIG.has_option(deploy, 'minter_password'):
 else:
     PASSWORD = os.environ.get('MINTER_PASSWORD')
 
-# xxx change this host to match our actual hostname
-# xxx use non-real minter/binder for ANY non-"yamz" host
-# xxx turn off certificate check
 TARGET_URL_TEMPLATE = "http://yamz.net/term/concept=%s"
 
 _opener = None
@@ -106,12 +103,8 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
     d += "%s when %s\n" % (op, _encode(when))	# created
     d += "%s peek %s\n" % (op, _encode(peek))	# examples
 
-    print "xxx d is %s\n" % d
-    sys.stdout.flush()
     c = _opener.open(_binder + "?-", d)
     r = c.readlines()
-    print "xxx r is %s\n" % r
-    sys.stdout.flush()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
   finally:
     if c: c.close()

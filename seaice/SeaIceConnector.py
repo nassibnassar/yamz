@@ -673,8 +673,8 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
-    print "xxx pid is %s\n" % pid
-    sys.stdout.flush()
+    #print "xxx pid is %s\n" % pid
+    #sys.stdout.flush()
     # update persistent ID for term
     mint.bindArkIdentifier(mint.pid2ark(pid), prod_mode,
       term['term_string'], term['definition'], term['examples'])
