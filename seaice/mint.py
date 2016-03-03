@@ -117,8 +117,18 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
     if c: c.close()
   return arkId
 
-def create_persistent_id(prod_mode, who, what, peek):
+_resolver_base = 'http://n2t.net/'
+_resolver_base_len = len(_resolver_base)
+
+def ark2pid (ark):
+  return _resolver_base + ark
+
+def pid2ark (pid):
+  return pid[_resolver_base_len:]
+
+def create_persistent_id (prod_mode, who, what, peek):
   arkId = mintArkIdentifier(prod_mode)
   bindArkIdentifier(arkId, prod_mode, who, what, peek)
-  return 'http://n2t.net/' + arkId
+  return ark2pid(arkId)
+  #return 'http://n2t.net/' + arkId
 

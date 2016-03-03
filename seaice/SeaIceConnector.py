@@ -676,7 +676,7 @@ class SeaIceConnector:
     print "xxx pid is %s\n" % pid
     sys.stdout.flush()
     # update persistent ID for term
-    mint.bindArkIdentifier(pid, prod_mode,
+    mint.bindArkIdentifier(mint.pid2ark(pid), prod_mode,
       term['term_string'], term['definition'], term['examples'])
 
     ## User queries ##
