@@ -94,7 +94,7 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
   if not _opener: 
     _opener = minderOpener(prod_mode)
   # compute our own, since caller often only knows the string 'now()'
-  when = time.strftime("%Y.%m.%d_%H:%M:%S", gmtime())	# TEMPER-style datetime
+  when = time.strftime("%Y.%m.%d_%H:%M:%S", time.gmtime())	# TEMPER-style
   c = None
   try:
     concept_id = arkId.split('/')[-1]
