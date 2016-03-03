@@ -83,8 +83,8 @@ def mintArkIdentifier (prod_mode):
   return arkId
  
 enc_pat = re.compile("%|[^!-~]")	# encode all non-visible ascii
-def _encode (pattern, s):		# ^HH encodes chars (for egg :hx)
-  return pattern.sub(lambda c: "^%02X" % ord(c.group(0)), s.encode("UTF-8"))
+def _encode (s):		# ^HH encodes chars (for egg :hx)
+  return enc_pat.sub(lambda c: "^%02X" % ord(c.group(0)), s.encode("UTF-8"))
 
 def bindArkIdentifier (arkId, prod_mode, who, what, peek):
   # Returns the identifier passed in as a string.
