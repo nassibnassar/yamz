@@ -677,8 +677,7 @@ class SeaIceConnector:
         (term['term_string'], term['definition'], term['examples'], id))
     # update persistent ID for term
     mint.bindArkIdentifier(term['persistent_id'], prod_mode,
-      term['term_string'], term['definition'],
-      term['modified'], term['examples'])
+      term['term_string'], term['definition'], term['examples'])
 
     ## User queries ##
 

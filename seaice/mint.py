@@ -10,6 +10,7 @@ import urllib2
 import ssl
 import auth
 import sys
+import time
 
 REALM = "yamz"
 USERNAME = "yamz"
@@ -80,25 +81,30 @@ def mintArkIdentifier (prod_mode):
   finally:
     if c: c.close()
   return arkId
+ 
+enc_pat = re.compile("%|[^!-~]")	# encode all non-visible ascii
+def _encode (pattern, s):		# ^HH encodes chars (for egg :hx)
+  return pattern.sub(lambda c: "^%02X" % ord(c.group(0)), s.encode("UTF-8"))
 
-def bindArkIdentifier (arkId, prod_mode, who, what, when, peek):
+def bindArkIdentifier (arkId, prod_mode, who, what, peek):
   # Returns the identifier passed in as a string.
   global _opener, _binder
   if not _opener: 
     _opener = minderOpener(prod_mode)
+  # compute our own, since caller often only knows the string 'now()'
+  when = time.strftime("%Y.%m.%d_%H:%M:%S")	# TEMPER-style datetime
   c = None
   try:
     concept_id = arkId.split('/')[-1]
-    #c = _opener.open(_binder + "?" +
-    #  urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE) % (arkId, concept_id)))
-    #d = urllib.quote(("%s.set _t " + TARGET_URL_TEMPLATE + "\n") % (arkId, concept_id))
-    op = arkId + '.set '	# all our bind operations start this way
+    op = ':hx ' + arkId + '.set'	# all our bind operations start this way
     d = ("%s _t " + TARGET_URL_TEMPLATE + "\n") % (op, concept_id)
     d += "%s how %s\n" % (op, "term")
-    d += "%s who %s\n" % (op, who)
-    d += "%s what %s\n" % (op, what)
-    d += "%s when %s\n" % (op, when)
-    d += "%s peek %s\n" % (op, peek)
+    d += "%s who @\n%s\n" % (op, _encode(who))
+    d += "%s what @\n%s\n" % (op, _encode(what))
+    d += "%s when @\n%s\n" % (op, _encode(when))
+    d += "%s peek @\n%s\n" % (op, _encode(peek))
+
+    egg_enc_pat.sub(lambda c: "%%%02X" % ord(c.group(0)), s.encode("UTF-8"))
 
     c = _opener.open(_binder + "?-", d)
     r = c.readlines()
@@ -109,8 +115,8 @@ def bindArkIdentifier (arkId, prod_mode, who, what, when, peek):
     if c: c.close()
   return arkId
 
-def create_persistent_id(prod_mode, who, what, when, peek):
+def create_persistent_id(prod_mode, who, what, peek):
   arkId = mintArkIdentifier(prod_mode)
-  bindArkIdentifier(arkId, prod_mode, who, what, when, peek)
+  bindArkIdentifier(arkId, prod_mode, who, what, peek)
   return 'http://n2t.net/' + arkId
 
