@@ -98,11 +98,11 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
     concept_id = arkId.split('/')[-1]
     op = ':hx ' + arkId + '.set'	# all our bind operations start this way
     d = ("%s _t " + TARGET_URL_TEMPLATE + "\n") % (op, concept_id)
-    d += "%s how %s\n" % (op, "term")
-    d += "%s who @\n%s\n" % (op, _encode(who))
-    d += "%s what @\n%s\n" % (op, _encode(what))
-    d += "%s when @\n%s\n" % (op, _encode(when))
-    d += "%s peek @\n%s\n" % (op, _encode(peek))
+    d += "%s how %s\n" % (op, "term")		# metadata/resource type
+    d += "%s who %s\n" % (op, _encode(who))	# term label/string
+    d += "%s what %s\n" % (op, _encode(what))	# definition
+    d += "%s when %s\n" % (op, _encode(when))	# created
+    d += "%s peek %s\n" % (op, _encode(peek))	# examples
 
     print "xxx d is %s\n" % d
     sys.stdout.flush()
