@@ -84,6 +84,8 @@ def mintArkIdentifier (prod_mode):
  
 enc_pat = re.compile("%|[^!-~]")	# encode all non-visible ascii
 def _encode (s):		# ^HH encodes chars (for egg :hx)
+  if len(s) == 0:
+    return '""'			# empty string must be explicit
   return enc_pat.sub(lambda c: "^%02X" % ord(c.group(0)), s.encode("UTF-8"))
 
 def bindArkIdentifier (arkId, prod_mode, who, what, peek):
@@ -92,7 +94,7 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
   if not _opener: 
     _opener = minderOpener(prod_mode)
   # compute our own, since caller often only knows the string 'now()'
-  when = time.strftime("%Y.%m.%d_%H:%M:%S")	# TEMPER-style datetime
+  when = time.strftime("%Y.%m.%d_%H:%M:%S", gmtime())	# TEMPER-style datetime
   c = None
   try:
     concept_id = arkId.split('/')[-1]
