@@ -104,8 +104,6 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
     d += "%s when @\n%s\n" % (op, _encode(when))
     d += "%s peek @\n%s\n" % (op, _encode(peek))
 
-    egg_enc_pat.sub(lambda c: "%%%02X" % ord(c.group(0)), s.encode("UTF-8"))
-
     print "xxx d is %s\n" % d
     sys.stdout.flush()
     c = _opener.open(_binder + "?-", d)
