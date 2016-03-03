@@ -660,23 +660,23 @@ class SeaIceConnector:
     rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
     return list(rows)
 
-  def updateTerm(self, id, term, prod_mode): 
+  def updateTerm(self, id, term, pid, prod_mode): 
     """ Modify a term's term string, definition and examples. 
         Note: term ownership authenticated upstream! 
 
     :param id: Term ID. 
     :type id: int
-    :param term: Dictionary containing at least the keys 'persistent_id',
+    :param term: Dictionary containing at least the keys
             'term_string', 'definition', and 'examples' with string values.
     :type term: dict 
     """ 
     cur = self.con.cursor()
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
-    print "xxx pid is %s\n" % term['persistent_id']
+    print "xxx pid is %s\n" % pid
     sys.stdout.flush()
     # update persistent ID for term
-    mint.bindArkIdentifier(term['persistent_id'], prod_mode,
+    mint.bindArkIdentifier(pid, prod_mode,
       term['term_string'], term['definition'], term['examples'])
 
     ## User queries ##

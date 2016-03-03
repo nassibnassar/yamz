@@ -529,13 +529,13 @@ def editTerm(term_concept_id = None):
     if request.method == "POST":
 
       assert request.form.get('examples') != None
-      updatedTerm = { 'persistent_id' : request.form['persistent_id'],
+      updatedTerm = {
                       'term_string' : request.form['term_string'],
                       'definition' : request.form['definition'],
                       'examples' : request.form['examples'],
                       'owner_id' : l.current_user.id } 
 
-      g.db.updateTerm(term['id'], updatedTerm, prod_mode)
+      g.db.updateTerm(term['id'], updatedTerm, term['persistent_id'], prod_mode)
 
       # Notify tracking users
       notify_update = seaice.notify.TermUpdate(term['id'], l.current_user.id, 
