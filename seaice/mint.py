@@ -106,9 +106,11 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
 
     egg_enc_pat.sub(lambda c: "%%%02X" % ord(c.group(0)), s.encode("UTF-8"))
 
+    print "xxx d is %s\n" % d
+    sys.stdout.flush()
     c = _opener.open(_binder + "?-", d)
     r = c.readlines()
-    print "xxx r is %s, d is %s\n" % (r, d)
+    print "xxx r is %s\n" % r
     sys.stdout.flush()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
   finally:

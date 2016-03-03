@@ -423,10 +423,8 @@ class SeaIceConnector:
       id = None if res is None else res[0]
 
       # create persistent ID for term
-      persistent_id = mint.create_persistent_id(
-        prod_mode,
-        defTerm['term_string'], defTerm['definition'],
-	defTerm['created'], defTerm['examples'] )
+      persistent_id = mint.create_persistent_id( prod_mode,
+        defTerm['term_string'], defTerm['definition'], defTerm['examples'])
       concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
       sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
       data = (persistent_id, concept_id, id)
