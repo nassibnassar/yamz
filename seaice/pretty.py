@@ -154,12 +154,12 @@ def _printRefAsHTML(db_con, m):
   # if here, t or g must be the reftype -- IDstring is concept_id
   term = db_con.getTermByConceptId(IDstring)
   # xxx need to handle (a) undefined and (b) ambiguous
-  #term_string = term['term_string'] or '(undefined)'
-  term_def = ("Def: " + term['definition']) if term['definition'] else "(undefined)"
+  #term_string = term['term_string'] if term else term_concept_id
+  term_def = "Def: " + (term['definition'] if term else "(undefined)")
   return ref_string.format(IDstring, humstring, term_def)
   #(term_concept_id, desc) = m.groups()
-    #term = db_con.getTermByConceptId(term_concept_id)
-  return tag_string.format(string.lower(tag), tag)
+  #term = db_con.getTermByConceptId(term_concept_id)
+  #return tag_string.format(string.lower(tag), tag)
   #except: pass
   #return '#{exception}'
 
@@ -195,7 +195,7 @@ def _printTermTagAsHTML(db_con, m):
     term = db_con.getTermByConceptId(term_concept_id)
     term_string = term['term_string'] if term else term_concept_id
     # xxx isn't this the same code as _printRefAsHTML? should consolidate
-    term_def = "Def: " + (term['definition'] if term else "(nundefined)")
+    term_def = "Def: " + (term['definition'] if term else "(undefined)")
     return term_tag_string.format(term_concept_id, term_def, term_string)
     #if term_string:
       #return term_tag_string.format(term_concept_id, desc, term_string)
