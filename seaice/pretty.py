@@ -193,9 +193,9 @@ def _printTermTagAsHTML(db_con, m):
     #desc = desc.strip().replace('"', '&#34;')
     #term_string = db_con.getTermStringByConceptId(term_concept_id)
     term = db_con.getTermByConceptId(term_concept_id)
-    term_string = term['term_string'] if term['term_string'] else term_concept_id
+    term_string = term['term_string'] if term else term_concept_id
     # xxx isn't this the same code as _printRefAsHTML? should consolidate
-    term_def = ("Def: " + term['definition']) if term['definition'] else "(undefined)"
+    term_def = "Def: " + (term['definition'] if term else "(undefined)")
     return term_tag_string.format(term_concept_id, term_def, term_string)
     #if term_string:
       #return term_tag_string.format(term_concept_id, desc, term_string)
