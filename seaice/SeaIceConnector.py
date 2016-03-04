@@ -599,10 +599,10 @@ class SeaIceConnector:
             from SI.Terms where term_string=%s;
         """, (term_string,))
     row1 = cur.fetchone()
-    if not row:				# no rows
+    if not row1:			# no rows
       return 0, '(undefined)', None
     row2 = cur.fetchone()
-    if not row:				# only one row -- good result
+    if not row2:			# only one row -- good result
       return 1, row1['term_string'], row1['concept_id']
     else:				# more than one row
       return 2, '(ambiguous)', None
