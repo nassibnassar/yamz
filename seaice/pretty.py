@@ -112,14 +112,13 @@ tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp<b>#</b>&nbsp{1}&nbsp</a>'
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
-#ref_regex = re.compile("#\{\s*((\w+\s*:+)?([^}|]*\|+)?([^}]*))\s*\}")
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
-# subexpr start positions:    01              2        3         4
+# subexpr start positions:    01                   2        3         4
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
-def refs_norm(db_con, string): 
+def refs_norm(db_con, string, force=False): 
   """  Process references in DB text entries before storing.
 
   :param db_con: DB connection.
@@ -127,7 +126,7 @@ def refs_norm(db_con, string):
   :param string: The input string. 
   :returns: Modified plain text string.
   """
-  string = ref_regex.sub(lambda m: _ref_norm(db_con, m), string)
+  string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
     
 
@@ -204,6 +203,8 @@ def _printRefAsHTML(db_con, m):
   - humstring is the human-readable equivalent of IDstring
   - IDstring is a machine-readable string, either a concept_id or,
     in the case of "k" link, a URL.
+  - Note that the reference should have been normalized before being
+    stored in the database. (xxx check if that's true for API uploading)
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
@@ -223,6 +224,8 @@ def _printRefAsHTML(db_con, m):
       IDstring = humstring		# mixed up the order
     if not humstring:		# if no humanstring
       humstring = IDstring	# use link text instead
+    if not IDstring.startswith('http:'):
+      IDstring = 'http://' + IDstring
     return '<a href="%s">%s</a>' % (IDstring, humstring)
 
   # If we get here, reftype is not k, and IDstring (concept_id)
@@ -288,8 +291,7 @@ def processTagsAsHTML(db_con, string):
   string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
   return string
-    
-  
+
 
   ## Pretty prints. ##
 

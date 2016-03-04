@@ -503,8 +503,8 @@ def addTerm():
     g.db = app.dbPool.dequeue()
     # xxx normalize refs
     term = { 'term_string' : request.form['term_string'],
-             'definition' : request.form['definition'],
-             'examples' : request.form['examples'],
+             'definition' : seaice.pretty.refs_norm(g.db, request.form['definition']),
+             'examples' : seaice.pretty.refs_norm(g.db, request.form['examples']),
              'owner_id' : l.current_user.id,
              'id' : app.termIdPool.ConsumeId() }
 
