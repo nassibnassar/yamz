@@ -107,15 +107,61 @@ style="font-size: 95%;
     border-radius:4px; text-decoration:none"
 '''
 
+ref_string = '<a href=/term={0} title="{2}">{1}</a>'
 tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp<b>#</b>&nbsp{1}&nbsp</a>'
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
+#ref_regex = re.compile("#\{\s*((\w+\s*:+)?([^}|]*\|+)?([^}]*))\s*\}")
+ref_regex = re.compile("#\{\s*(([tgk])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
+# subexpr start positions:    01              2        3         4
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
   ## Processing tags in text areas. ##
+
+def _printRefAsHTML(db_con, m): 
+  """ Input a regular expression match and output the reference as HTML.
+  
+  A DB connector is required to resolve the tag string by ID. 
+  A reference has the form #{ reftype: humstring [ | IDstring ] }
+  - reftype is one of t (term), g (tag), k (link).
+  - humstring is the human-readable equivalent of IDstring
+  - IDstring is a machine-readable string, either a concept_id or,
+  in the case of "k" link, a URL.
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
+  try:
+    (rp) = m.groups()	# rp = ref parts, the part between #{ and }
+                        # we want subexpressions 1, 2, and 4
+    reftype, humstring, IDstring = t[1], t[2], t[4]
+    if not reftype:
+      reftype 't':		# apply default reftype
+    if not humstring and not IDstring:		# when empty
+      return '#{}'		# this is all we do for now
+    if reftype == 'k':		# an external link (URL)
+      if humstring and not IDstring:	# assume the caller
+        IDstring = humstring		# mixed up the order
+      if not humstring:		# if no humanstring
+        humstring = IDstring	# use link text instead
+      return '<a href="%s">%s</a>' % (IDstring, humstring)
+
+    # if here, t or g must be the reftype -- IDstring is concept_id
+    term = db_con.getTermByConceptId(IDstring)
+    # xxx need to handle (a) undefined and (b) ambiguous
+    #term_string = term['term_string'] or '(undefined)'
+    term_def = ("Def: " + term['definition']) if term['definition'] else "(undefined)"
+    return ref_string.format(IDstring, humstring, term_def)
+    #(term_concept_id, desc) = m.groups()
+      #term = db_con.getTermByConceptId(term_concept_id)
+    return tag_string.format(string.lower(tag), tag)
+  except: pass
+  return '#{exception}'
 
 def _printTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
@@ -148,8 +194,9 @@ def _printTermTagAsHTML(db_con, m):
     #term_string = db_con.getTermStringByConceptId(term_concept_id)
     term = db_con.getTermByConceptId(term_concept_id)
     term_string = term['term_string'] if term['term_string'] else term_concept_id
-    term_def = term['definition'] if term['definition'] else "(undefined)"
-    return term_tag_string.format(term_concept_id, term['definition'], term_string)
+    # xxx isn't this the same code as _printRefAsHTML? should consolidate
+    term_def = ("Def: " + term['definition']) if term['definition'] else "(undefined)"
+    return term_tag_string.format(term_concept_id, term_def, term_string)
     #if term_string:
       #return term_tag_string.format(term_concept_id, desc, term_string)
   except: pass
@@ -164,6 +211,7 @@ def processTagsAsHTML(db_con, string):
   :param string: The input string. 
   :returns: HTML-formatted string.
   """
+  string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
   string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
   return string

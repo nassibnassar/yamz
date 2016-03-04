@@ -645,7 +645,7 @@ class SeaIceConnector:
     :rtype: dict list
     """
     string = string.replace("'", "''")
-    string = ' & '.join(string.split(' ')) # |'s are also aloud, and paranthesis TODO
+    string = ' & '.join(string.split(' ')) # |'s are also allowed, and paranthesis TODO
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
       SELECT id, owner_id, term_string, definition, examples,  
