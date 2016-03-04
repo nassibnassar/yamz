@@ -136,30 +136,30 @@ def _printRefAsHTML(db_con, m):
   :param m: Regular expression match. 
   :type m: re.MatchObject
   """
-  #try:
-    (rp) = m.groups()	# rp = ref parts, the part between #{ and }
-                        # we want subexpressions 1, 2, and 4
-    reftype, humstring, IDstring = rp[1], rp[2], t[4]
-    if not reftype:
-      reftype = 't'		# apply default reftype
-    if not humstring and not IDstring:		# when empty
-      return '#{}'		# this is all we do for now
-    if reftype == 'k':		# an external link (URL)
-      if humstring and not IDstring:	# assume the caller
-        IDstring = humstring		# mixed up the order
-      if not humstring:		# if no humanstring
-        humstring = IDstring	# use link text instead
-      return '<a href="%s">%s</a>' % (IDstring, humstring)
 
-    # if here, t or g must be the reftype -- IDstring is concept_id
-    term = db_con.getTermByConceptId(IDstring)
-    # xxx need to handle (a) undefined and (b) ambiguous
-    #term_string = term['term_string'] or '(undefined)'
-    term_def = ("Def: " + term['definition']) if term['definition'] else "(undefined)"
-    return ref_string.format(IDstring, humstring, term_def)
-    #(term_concept_id, desc) = m.groups()
-      #term = db_con.getTermByConceptId(term_concept_id)
-    return tag_string.format(string.lower(tag), tag)
+  (rp) = m.groups()	# rp = ref parts, the part between #{ and }
+                        # we want subexpressions 1, 2, and 4
+  reftype, humstring, IDstring = rp[1], rp[2], t[4]
+  if not reftype:
+    reftype = 't'		# apply default reftype
+  if not humstring and not IDstring:		# when empty
+    return '#{}'		# this is all we do for now
+  if reftype == 'k':		# an external link (URL)
+    if humstring and not IDstring:	# assume the caller
+      IDstring = humstring		# mixed up the order
+    if not humstring:		# if no humanstring
+      humstring = IDstring	# use link text instead
+    return '<a href="%s">%s</a>' % (IDstring, humstring)
+
+  # if here, t or g must be the reftype -- IDstring is concept_id
+  term = db_con.getTermByConceptId(IDstring)
+  # xxx need to handle (a) undefined and (b) ambiguous
+  #term_string = term['term_string'] or '(undefined)'
+  term_def = ("Def: " + term['definition']) if term['definition'] else "(undefined)"
+  return ref_string.format(IDstring, humstring, term_def)
+  #(term_concept_id, desc) = m.groups()
+    #term = db_con.getTermByConceptId(term_concept_id)
+  return tag_string.format(string.lower(tag), tag)
   #except: pass
   #return '#{exception}'
 
