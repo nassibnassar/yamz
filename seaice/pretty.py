@@ -131,7 +131,7 @@ def refs_norm(db_con, string):
   return string
     
 
-def _ref_norm(db_con, m): 
+def _ref_norm(db_con, m, force=False): 
   """ Input a regular expression match and output a normalized reference.
   
   A DB connector is required to resolve the tag string by ID. 
@@ -141,11 +141,21 @@ def _ref_norm(db_con, m):
   - humstring is the human-readable equivalent of IDstring
   - IDstring is a machine-readable string, either a concept_id or,
     in the case of "k" link, a URL.
+  - the normalized reference will include all three parts
+  - normalization is based on looking up the given humstring, but
+    that only happens if IDstring is not present or
+    modify the humstring (eg, adding "(undefined)" or "(ambiguous)"),
+    so to obtain some idempotence
+    if the final
+    part (IDstring) is '-', it prevents re-normalization (to obtain
+    some idempotence when the)
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
   :param m: Regular expression match. 
   :type m: re.MatchObject
+  :param force: flag to force humstring lookup
+  :type m: boolean
   """
 
   (rp) = m.groups()	# rp = ref parts, the part between #{ and }
@@ -163,10 +173,15 @@ def _ref_norm(db_con, m):
       humstring = IDstring	# use link text instead
     return '#{k: %s | %s }' % (humstring, IDstring)
 
-  # If we get here, reftype is not k, and IDstring (concept_id)
-  # is expected to reference a term in the dictionary.
+  # If we get here, reftype is not k, and humstring is expected to
+  # reference a term_string in the dictionary.  If IDstring is empty
+  # or force=True, humstring is looked up in order to resolve it to
+  # a unique IDstring.
   # 
-  #n, term_string, concept_id = db_con.getTermByTermString(humstring)
+  if IDstring and not force:
+    return '#{%s: %s | %s}' % (reftype, humstring, IDstring)
+
+  # If we get here, we're doing the lookup.
   n, term = db_con.getTermByTermString(humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
@@ -174,7 +189,7 @@ def _ref_norm(db_con, m):
     term_string, concept_id = (humstring + '(undefined)'), '-'
   elif n == 2:
     term_string, concept_id = (humstring + '(ambiguous)'), '-'
-  return '#{%s: %s | %s }' % (reftype, term_string, concept_id)
+  return '#{%s: %s | %s}' % (reftype, term_string, concept_id)
 
 
   ## Processing tags in text areas. ##
