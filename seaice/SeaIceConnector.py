@@ -484,9 +484,9 @@ class SeaIceConnector:
                U_sum, D_sum, T_last, T_stable, tsv, concept_id, persistent_id
             from SI.Terms where concept_id=%s;
         """, (concept_id,))
-    xxx = cur.num_rows()
-    print "xxx num_rows is %s\n" % xxx
-    sys.stdout.flush()
+    #xxx = cur.num_rows()
+    #print "xxx num_rows is %s\n" % xxx
+    #sys.stdout.flush()
     return cur.fetchone()
   
   def getTermString(self, id): 
@@ -580,6 +580,32 @@ class SeaIceConnector:
         """, (term_string,))
     for row in cur.fetchall():
       yield row
+
+  def getTermByTermString(self, term_string): 
+    """ Search by term string and return (n, term_string, concept_id) where
+    n=0 for no matches, n=1 for one match, dn n=2 for more than one match
+
+    :param term_string: The exact term string (case sensitive). 
+    :type term_string: str
+    :rtype: n, term_string, concept_id
+    """
+    term_string = term_string.replace("'", "''")
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    # xxx should just select 2 columns for now, right?
+    cur.execute("""
+        select id, owner_id, created, modified, term_string,
+               definition, examples, up, down, consensus, class,
+               U_sum, D_sum, T_last, T_stable, tsv, concept_id
+            from SI.Terms where term_string=%s;
+        """, (term_string,))
+    row1 = cur.fetchone()
+    if not row:				# no rows
+      return 0, '(undefined)', None
+    row2 = cur.fetchone()
+    if not row:				# only one row -- good result
+      return 1, row1['term_string'], row1['concept_id']
+    else:				# more than one row
+      return 2, '(ambiguous)', None
 
   def getTermsByUser(self, user_id):
     """ Return an iterator over terms owned by a user. 

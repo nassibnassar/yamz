@@ -155,11 +155,11 @@ def _ref_norm(db_con, m):
 
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
-  # xxx need to handle (a) undefined and (b) ambiguous
   # 
-  term = db_con.getTermByConceptId(IDstring)
-  term_def = "Def: " + (term['definition'] if term else "(undefined)")
-  return ref_string.format(IDstring, humstring, term_def)
+  # xxx need to handle (a) undefined and (b) ambiguous
+  n, term_string, concept_id = db_con.getTermByTermString(humstring)
+  #term_def = "Def: " + (term['definition'] if term else "(undefined)")
+  return '#{%s: %s | %s }' % (reftype, term_string, concept_id)
 
 
   ## Processing tags in text areas. ##
