@@ -136,10 +136,10 @@ def _printRefAsHTML(db_con, m):
   :param m: Regular expression match. 
   :type m: re.MatchObject
   """
-  try:
+  #try:
     (rp) = m.groups()	# rp = ref parts, the part between #{ and }
                         # we want subexpressions 1, 2, and 4
-    reftype, humstring, IDstring = t[1], t[2], t[4]
+    reftype, humstring, IDstring = rp[1], rp[2], t[4]
     if not reftype:
       reftype = 't'		# apply default reftype
     if not humstring and not IDstring:		# when empty
@@ -160,8 +160,8 @@ def _printRefAsHTML(db_con, m):
     #(term_concept_id, desc) = m.groups()
       #term = db_con.getTermByConceptId(term_concept_id)
     return tag_string.format(string.lower(tag), tag)
-  except: pass
-  return '#{exception}'
+  #except: pass
+  #return '#{exception}'
 
 def _printTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
