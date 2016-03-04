@@ -139,7 +139,7 @@ def _printRefAsHTML(db_con, m):
 
   (rp) = m.groups()	# rp = ref parts, the part between #{ and }
                         # we want subexpressions 1, 2, and 4
-  reftype, humstring, IDstring = rp[1], rp[2], t[4]
+  reftype, humstring, IDstring = rp[1], rp[2], rp[4]
   if not reftype:
     reftype = 't'		# apply default reftype
   if not humstring and not IDstring:		# when empty
