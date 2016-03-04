@@ -484,6 +484,9 @@ class SeaIceConnector:
                U_sum, D_sum, T_last, T_stable, tsv, concept_id, persistent_id
             from SI.Terms where concept_id=%s;
         """, (concept_id,))
+    xxx = cur.num_rows()
+    print "xxx num_rows is %s\n" % xxx
+    sys.stdout.flush()
     return cur.fetchone()
   
   def getTermString(self, id): 
@@ -673,8 +676,6 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
-    #print "xxx pid is %s\n" % pid
-    #sys.stdout.flush()
     # update persistent ID for term
     mint.bindArkIdentifier(mint.pid2ark(pid), prod_mode,
       term['term_string'], term['definition'], term['examples'])

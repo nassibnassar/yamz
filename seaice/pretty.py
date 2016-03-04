@@ -113,11 +113,54 @@ term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
 #ref_regex = re.compile("#\{\s*((\w+\s*:+)?([^}|]*\|+)?([^}]*))\s*\}")
-ref_regex = re.compile("#\{\s*(([tgk])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
+ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01              2        3         4
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
+
+# def _refs_norm(db_con, string) xxx for entire string
+
+def _ref_norm(db_con, m): 
+  """ Input a regular expression match and output a normalized reference.
+  
+  A DB connector is required to resolve the tag string by ID. 
+  A reference has the form #{ reftype: humstring [ | IDstring ] }
+  - reftype is one of
+    t (term), g (tag), e (element), v (value), m (mtype), k (link)
+  - humstring is the human-readable equivalent of IDstring
+  - IDstring is a machine-readable string, either a concept_id or,
+    in the case of "k" link, a URL.
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
+
+  (rp) = m.groups()	# rp = ref parts, the part between #{ and }
+                        # we want subexpressions 1, 2, and 4
+  reftype, humstring, IDstring = rp[1], rp[2], rp[4]
+  if not reftype:
+    reftype = 't'		# apply default reftype
+  if not humstring and not IDstring:	# when both are empty
+    return '#{}'		# this is all we do for now
+  # If we get here, one of them is non-empty.
+  if reftype == 'k':		# an external link (URL)
+    if humstring and not IDstring:	# assume the caller
+      IDstring = humstring		# mixed up the order
+    if IDstring and not humstring:	# if no humanstring
+      humstring = IDstring	# use link text instead
+    return '#{k: %s | %s }' % (humstring, IDstring)
+
+  # If we get here, reftype is not k, and IDstring (concept_id)
+  # is expected to reference a term in the dictionary.
+  # xxx need to handle (a) undefined and (b) ambiguous
+  # 
+  term = db_con.getTermByConceptId(IDstring)
+  term_def = "Def: " + (term['definition'] if term else "(undefined)")
+  return ref_string.format(IDstring, humstring, term_def)
+
 
   ## Processing tags in text areas. ##
 
@@ -126,10 +169,11 @@ def _printRefAsHTML(db_con, m):
   
   A DB connector is required to resolve the tag string by ID. 
   A reference has the form #{ reftype: humstring [ | IDstring ] }
-  - reftype is one of t (term), g (tag), k (link).
+  - reftype is one of
+    t (term), g (tag), e (element), v (value), m (mtype), k (link)
   - humstring is the human-readable equivalent of IDstring
   - IDstring is a machine-readable string, either a concept_id or,
-  in the case of "k" link, a URL.
+    in the case of "k" link, a URL.
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
@@ -151,17 +195,13 @@ def _printRefAsHTML(db_con, m):
       humstring = IDstring	# use link text instead
     return '<a href="%s">%s</a>' % (IDstring, humstring)
 
-  # if here, t or g must be the reftype -- IDstring is concept_id
-  term = db_con.getTermByConceptId(IDstring)
+  # If we get here, reftype is not k, and IDstring (concept_id)
+  # is expected to reference a term in the dictionary.
+  # 
   # xxx need to handle (a) undefined and (b) ambiguous
-  #term_string = term['term_string'] if term else term_concept_id
+  term = db_con.getTermByConceptId(IDstring)
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
   return ref_string.format(IDstring, humstring, term_def)
-  #(term_concept_id, desc) = m.groups()
-  #term = db_con.getTermByConceptId(term_concept_id)
-  #return tag_string.format(string.lower(tag), tag)
-  #except: pass
-  #return '#{exception}'
 
 def _printTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
@@ -212,6 +252,9 @@ def processTagsAsHTML(db_con, string):
   :returns: HTML-formatted string.
   """
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
+  # xxx ref_regex should eventually obviate the next two calls
+  # xxx need way to convert existing terms
+
   string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
   return string

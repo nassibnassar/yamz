@@ -501,6 +501,7 @@ def addTerm():
 
   if request.method == "POST": 
     g.db = app.dbPool.dequeue()
+    # xxx normalize refs
     term = { 'term_string' : request.form['term_string'],
              'definition' : request.form['definition'],
              'examples' : request.form['examples'],
@@ -529,6 +530,8 @@ def editTerm(term_concept_id = None):
     if request.method == "POST":
 
       assert request.form.get('examples') != None
+      # xxx normalize refs ref_norm(string)
+      #     which looks up refs and ...
       updatedTerm = {
                       'term_string' : request.form['term_string'],
                       'definition' : request.form['definition'],
@@ -584,6 +587,7 @@ def remTerm(term_id):
     
     tracking_users = g.db.getTrackingByTerm(term_id)
 
+    # xxx remove binder data; (recycle id?)
     id = g.db.removeTerm(int(request.form['id']))
     app.termIdPool.ReleaseId(id)
       
