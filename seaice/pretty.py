@@ -141,7 +141,7 @@ def _printRefAsHTML(db_con, m):
                         # we want subexpressions 1, 2, and 4
     reftype, humstring, IDstring = t[1], t[2], t[4]
     if not reftype:
-      reftype 't':		# apply default reftype
+      reftype = 't'		# apply default reftype
     if not humstring and not IDstring:		# when empty
       return '#{}'		# this is all we do for now
     if reftype == 'k':		# an external link (URL)
