@@ -582,12 +582,12 @@ class SeaIceConnector:
       yield row
 
   def getTermByTermString(self, term_string): 
-    """ Search by term string and return (n, term_string, concept_id) where
-    n=0 for no matches, n=1 for one match, dn n=2 for more than one match
+    """ Search by term string and return (n, term) where n=0 for
+    no matches, n=1 for one match, and n=2 for more than one match
 
     :param term_string: The exact term string (case sensitive). 
     :type term_string: str
-    :rtype: n, term_string, concept_id
+    :rtype: n, term
     """
     term_string = term_string.replace("'", "''")
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -600,12 +600,13 @@ class SeaIceConnector:
         """, (term_string,))
     row1 = cur.fetchone()
     if not row1:			# no rows
-      return 0, '(undefined)', None
+      return 0, None
     row2 = cur.fetchone()
     if not row2:			# only one row -- good result
-      return 1, row1['term_string'], row1['concept_id']
+      #return 1, row1['term_string'], row1['concept_id']
+      return 1, row1
     else:				# more than one row
-      return 2, '(ambiguous)', None
+      return 2, None
 
   def getTermsByUser(self, user_id):
     """ Return an iterator over terms owned by a user. 
