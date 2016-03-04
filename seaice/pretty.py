@@ -119,7 +119,17 @@ tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
-# def _refs_norm(db_con, string) xxx for entire string
+def refs_norm(db_con, string): 
+  """  Process references in DB text entries before storing.
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param string: The input string. 
+  :returns: Modified plain text string.
+  """
+  string = ref_regex.sub(lambda m: _ref_norm(db_con, m), string)
+  return string
+    
 
 def _ref_norm(db_con, m): 
   """ Input a regular expression match and output a normalized reference.

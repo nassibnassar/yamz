@@ -530,12 +530,10 @@ def editTerm(term_concept_id = None):
     if request.method == "POST":
 
       assert request.form.get('examples') != None
-      # xxx normalize refs ref_norm(string)
-      #     which looks up refs and ...
       updatedTerm = {
                       'term_string' : request.form['term_string'],
-                      'definition' : request.form['definition'],
-                      'examples' : request.form['examples'],
+                      'definition' : seaice.pretty.refs_norm(request.form['definition']),
+                      'examples' : seaice.pretty.refs_norm(request.form['examples']),
                       'owner_id' : l.current_user.id } 
 
       g.db.updateTerm(term['id'], updatedTerm, term['persistent_id'], prod_mode)
