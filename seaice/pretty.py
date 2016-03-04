@@ -195,7 +195,7 @@ def _printTermTagAsHTML(db_con, m):
     term = db_con.getTermByConceptId(term_concept_id)
     term_string = term['term_string'] if term else term_concept_id
     # xxx isn't this the same code as _printRefAsHTML? should consolidate
-    term_def = "Def: " + (term['definition'] if term else "(undefined)")
+    term_def = "Def: " + (term['definition'] if term else "(nundefined)")
     return term_tag_string.format(term_concept_id, term_def, term_string)
     #if term_string:
       #return term_tag_string.format(term_concept_id, desc, term_string)
