@@ -119,8 +119,9 @@ tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp;<b>#</b>&nbsp;{1}&nbsp;</
 gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</a>'
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
-#: Regular expression for string matches.
-token_ref_regex = re.compile("#([\w.-]+)")
+# Regular expressions for string matches.
+token_ref_regex = re.compile("(.{,10})#([\w.-]+)")
+inside_gtag_regex = re.compile("#\{\s*g\s*:\s*$")
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                     2        3         4
 endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
@@ -138,11 +139,25 @@ def refs_norm(db_con, string, force=False):
   """
 
   # first promote any simple "#reference" into curly "#{reference}
-  string = token_ref_regex.sub("#{t: \\1}", string)
+  string = token_ref_regex.sub(lambda m: _token_ref(m), string)
   # now convert each curly "#{reference}
   string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
     
+
+def _token_ref(m):
+  """ Input a regular expression matching a simple "#reference" and some
+  preceding characters.  Promotes to #{t: reference} only if reference
+  does not appear to be part of an existing #{g: ref}.
+
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
+
+  (before, token) = m.groups()
+  if inside_gtag_regex.match(before):		# if in 'g' tag (kludgy),
+    return before + '#' + token			# then no substitution
+  return before + '#{t: ' + token + '}'		# else promote reference
 
 def _ref_norm(db_con, m, force=False): 
   """ Input a regular expression match and output a normalized reference.
