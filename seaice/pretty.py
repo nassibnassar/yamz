@@ -158,7 +158,7 @@ def _token_ref(m):
   :type m: re.MatchObject
   """
 
-  (token) = m.groups()
+  token = m.group(1)
   #(before, token) = m.groups()
   #if inside_gtag_regex.search(before):		# if in 'g' tag (kludgy),
   #  return before + '#' + token			# then no substitution
