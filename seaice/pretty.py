@@ -231,10 +231,12 @@ def _printRefAsHTML(db_con, m):
       IDstring = 'http://' + IDstring
     return '<a href="%s">%s</a>' % (IDstring, humstring)
 
+  if humstring == '---' and reftype in 'gve':
+    return '#{%s:%s}' % (reftype, humstring)	# leave untouched
+    
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
   # 
-  # xxx need to handle (a) undefined and (b) ambiguous
   term = db_con.getTermByConceptId(IDstring)
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
   return ref_string.format(IDstring, humstring, term_def)
