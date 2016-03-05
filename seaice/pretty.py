@@ -323,13 +323,16 @@ def processTagsAsHTML(db_con, string):
   :param string: The input string. 
   :returns: HTML-formatted string.
   """
+
+  # xxx drop this soon
+  string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
   # XXX need way to convert existing terms
   # xxx ref_regex should eventually obviate the next two calls
 
   #string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 
-  #string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   return string
 
 
