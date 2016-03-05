@@ -110,7 +110,7 @@ style="font-size: 95%;
 gtag_style = '''
 style="font-size: 95%;
     font-family: 'Sans-Serif', Arial, serif;
-    color:black; background-color:#e6e6e6;
+    color:black; background-color:#cceeff;
     border-radius:4px; text-decoration:none"
 '''
 
@@ -120,15 +120,15 @@ gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
-ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
-# subexpr start positions:    01                   2        3         4
+ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
+# subexpr start positions:    01                     2        3         4
 endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
 def refs_norm(db_con, string, force=False): 
-  """  Process references in DB text entries before storing.
+  """  Resolve references in text entries before storing in DB.
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
@@ -145,18 +145,15 @@ def _ref_norm(db_con, m, force=False):
   A DB connector is required to resolve the tag string by ID. 
   A reference has the form #{ reftype: humstring [ | IDstring ] }
   - reftype is one of
-    t (term), g (tag), e (element), v (value), m (mtype), k (link)
+        t (term), g (tag), m (mtype), k (link)
   - humstring is the human-readable equivalent of IDstring
   - IDstring is a machine-readable string, either a concept_id or,
     in the case of "k" link, a URL.
   - the normalized reference will include all three parts
   - normalization is based on looking up the given humstring, but
-    that only happens if IDstring is not present or
-    modify the humstring (eg, adding "(undefined)" or "(ambiguous)"),
-    so to obtain some idempotence
-    if the final
-    part (IDstring) is '-', it prevents re-normalization (to obtain
-    some idempotence when the)
+    that only happens if IDstring is not present or force=True
+  - humstring will have "(undefined)" added if lookup fails or
+    "(ambiguous)" added if lookup returns more than one hit
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
@@ -184,14 +181,17 @@ def _ref_norm(db_con, m, force=False):
   # If we get here, reftype is not k, and humstring is expected to
   # reference a term_string in the dictionary.  If IDstring is empty or
   # force=True, humstring is looked up in order to resolve it to a unique
-  # IDstring (so if IDstring is wrong, use force=True to correct it).
+  # IDstring (so if IDstring is wrong, delete it or use force=True to
+  # correct it).
   # 
   if IDstring and not force:
     return '#{%s: %s | %s}' % (reftype, humstring, IDstring)
   if humstring == '---':		# reserved magic string
     return '#{%s:---}' % reftype
 
-  # If we get here, we're doing the lookup.
+  # If we get here, we're going to do the lookup.
+  if reftype == 'g' and not humstring.startswith('#'):
+    humstring = '#' + humstring		# add # before lookup and storing
   n, term = db_con.getTermByTermString(humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
@@ -239,7 +239,7 @@ def _printRefAsHTML(db_con, m):
       IDstring = 'http://' + IDstring
     return '<a href="%s">%s</a>' % (IDstring, humstring)
 
-  if humstring == '---':
+  if humstring == '---':	# EndRefs
     if reftype == 'e':
       return '<br>Elements: '
     if reftype == 'v':
@@ -254,7 +254,8 @@ def _printRefAsHTML(db_con, m):
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
   # XXX need to preserve the '#tag' to make search work!
   if reftype == 'g':
-    return gtag_string.format(string.lower(humstring), humstring, term_def)
+    return gtag_string.format(
+      string.lower(humstring), '#' + humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
 
 def _printEndRefsAsHTML(m): 
