@@ -114,7 +114,7 @@ term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 #: Regular expression for string matches.
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                   2        3         4
-endrefs_regex = re.compile("#\{\s*-([gve])\s*:+\s*}\s*")
+endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
@@ -174,12 +174,14 @@ def _ref_norm(db_con, m, force=False):
     return '#{k: %s | %s }' % (humstring, IDstring)
 
   # If we get here, reftype is not k, and humstring is expected to
-  # reference a term_string in the dictionary.  If IDstring is empty
-  # or force=True, humstring is looked up in order to resolve it to
-  # a unique IDstring.
+  # reference a term_string in the dictionary.  If IDstring is empty or
+  # force=True, humstring is looked up in order to resolve it to a unique
+  # IDstring (so if IDstring is wrong, use force=True to correct it).
   # 
   if IDstring and not force:
     return '#{%s: %s | %s}' % (reftype, humstring, IDstring)
+  if humstring == '---':		# reserved magic string
+    return '#{%s:---}' % reftype
 
   # If we get here, we're doing the lookup.
   n, term = db_con.getTermByTermString(humstring)
@@ -240,7 +242,7 @@ def _printRefAsHTML(db_con, m):
 def _printEndRefsAsHTML(m): 
   """ Input a regular expression match and output the reference as HTML.
   
-  A cluster reference has the form #{-X:}, where X is one of
+  A cluster reference has the form #{X:---}, where X is one of
        g (tag), e (element), or v (value)
 
   :param m: Regular expression match. 
