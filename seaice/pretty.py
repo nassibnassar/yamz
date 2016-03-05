@@ -110,7 +110,7 @@ style="font-size: 95%;
 gtag_style = '''
 style="font-size: 95%;
     font-family: 'Sans-Serif', Arial, serif;
-    color:white; background-color:#99ddff;
+    color:black; background-color:#99ddff;
     border-radius:4px; text-decoration:none"
 '''
 
