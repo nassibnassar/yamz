@@ -120,8 +120,12 @@ gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 # Regular expressions for string matches.
-token_ref_regex = re.compile("(.{,10})#([\w.-]+)")
+#token_ref_regex = re.compile("(.{,10})#([\w.-]+)")
+token_ref_regex = re.compile("(?<!#\{g: )#([\w.-]+)")
 inside_gtag_regex = re.compile("#\{\s*g\s*:\s*$")
+#inside_gtag_regex = re.compile("(?<!#\{\s*g\s*:\s*$")
+#(?<![-+\d])
+
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                     2        3         4
 endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
@@ -154,12 +158,14 @@ def _token_ref(m):
   :type m: re.MatchObject
   """
 
-  (before, token) = m.groups()
-  if inside_gtag_regex.search(before):		# if in 'g' tag (kludgy),
-    return before + '#' + token			# then no substitution
-  print "xxx before[%s] token [%s]" % (before, token)
+  (token) = m.groups()
+  #(before, token) = m.groups()
+  #if inside_gtag_regex.search(before):		# if in 'g' tag (kludgy),
+  #  return before + '#' + token			# then no substitution
+  print "xxx token [%s]" % (token)
   sys.stdout.flush()
-  return before + '#{t: ' + token + '}'		# else promote reference
+  return '#{t: ' + token + '}'		# else promote reference
+  #return before + '#{t: ' + token + '}'		# else promote reference
 
 def _ref_norm(db_con, m, force=False): 
   """ Input a regular expression match and output a normalized reference.
