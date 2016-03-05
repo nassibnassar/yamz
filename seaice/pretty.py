@@ -329,7 +329,7 @@ def processTagsAsHTML(db_con, string):
 
   #string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 
-  string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  #string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   return string
 
 
