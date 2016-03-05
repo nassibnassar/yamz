@@ -326,7 +326,7 @@ def processTagsAsHTML(db_con, string):
   """
 
   # xxx drop this soon
-  string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  #string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
 
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
   # XXX need way to convert existing terms
