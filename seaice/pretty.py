@@ -232,7 +232,7 @@ def _printRefAsHTML(db_con, m):
     return '<a href="%s">%s</a>' % (IDstring, humstring)
 
   if humstring == '---' and reftype in 'gve':
-    return '#{%s:%s}' % (reftype, humstring)	# leave untouched
+    return '<br>Elements: '
     
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
@@ -313,14 +313,14 @@ def processTagsAsHTML(db_con, string):
 
   # These tags are meant to be displayed after the Definition.
   # at end of Definition block are lines (each optional) of the form
-  # #{-v:} value_tag ...
-  # #{-e:} element_tag ...
-  # #{-g:} group_tag ...
+  # #{v:---} value_tag ...
+  # #{e:---} element_tag ...
+  # #{g:---} group_tag ...
   # For now we remove each such line, and process it after the main string.
   # xxx should move type [gve] refs to the end of the string
   #   for idempotence (on each edit), don't move already moved strings.
 
-  string = endrefs_regex.sub(lambda m: _printEndRefsAsHTML(m), string)
+  #string = endrefs_regex.sub(lambda m: _printEndRefsAsHTML(m), string)
 
   #string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   #string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
