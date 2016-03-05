@@ -120,11 +120,12 @@ gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
+token_ref_regex = re.compile("#(\S+)")
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                     2        3         4
 endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
-tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
-term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
+tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")	# xxx drop
+term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")	# xxx drop
 permalink_regex = re.compile("^http://(.*)$")
 
 def refs_norm(db_con, string, force=False): 
@@ -135,6 +136,10 @@ def refs_norm(db_con, string, force=False):
   :param string: The input string. 
   :returns: Modified plain text string.
   """
+
+  # first promote any simple "#reference" into curly "#{reference}
+  string = token_ref_regex.sub("#{\0}", string)
+  # now convert each curly "#{reference}
   string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
     
@@ -255,7 +260,7 @@ def _printRefAsHTML(db_con, m):
   # XXX need to preserve the '#tag' to make search work!
   if reftype == 'g':
     return gtag_string.format(
-      string.lower(humstring), '#' + humstring, term_def)
+      string.lower(humstring), humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
 
 def _printEndRefsAsHTML(m): 
