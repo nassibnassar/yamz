@@ -108,9 +108,9 @@ style="font-size: 95%;
 '''
 
 gtag_style = '''
-style="font-size: 95%;
+style="font-size: 85%;
     font-family: 'Sans-Serif', Arial, serif;
-    color:black; background-color:#cceeff;
+    color:blue; background-color:#cceeff;
     border-radius:4px; text-decoration:none"
 '''
 
@@ -120,7 +120,7 @@ gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
-token_ref_regex = re.compile("#(\S+)")
+token_ref_regex = re.compile("#([\w.-]+)")
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                     2        3         4
 endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
