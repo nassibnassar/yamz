@@ -110,13 +110,13 @@ style="font-size: 95%;
 gtag_style = '''
 style="font-size: 95%;
     font-family: 'Sans-Serif', Arial, serif;
-    color:white; background-color:#0082C3;
+    color:white; background-color:#99ddff;
     border-radius:4px; text-decoration:none"
 '''
 
 ref_string = '<a href=/term={0} title="{2}">{1}</a>'
-tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp<b>#</b>&nbsp{1}&nbsp</a>'
-gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp{1}&nbsp</a>'
+tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp;<b>#</b>&nbsp;{1}&nbsp;</a>'
+gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</a>'
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
@@ -252,8 +252,9 @@ def _printRefAsHTML(db_con, m):
   # 
   term = db_con.getTermByConceptId(IDstring)
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
+  # XXX need to preserve the '#tag' to make search work!
   if reftype == 'g':
-    return gtag_string.format(IDstring, string.lower(humstring), humstring)
+    return gtag_string.format(string.lower(humstring), humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
 
 def _printEndRefsAsHTML(m): 
@@ -486,7 +487,7 @@ def printTermAsHTML(db_con, row, user_id=0):
 
   string += '    <h4>'
   if row['up'] > 0:
-    string += '    <font color="#004d73">+%s</font> &nbsp' % row['up']
+    string += '    <font color="#004d73">+%s</font> &nbsp;' % row['up']
   if row['down'] > 0: 
     string += '    <font color="#797979">-%s</font>' % row['down']
   if row['up'] == 0 and row['down'] == 0:
@@ -511,7 +512,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>"
   string += "    <td valign=top width=16% rowspan=2>"
-  string += '      <nobr><font style="background-color:{2};border-radius:4px;">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i></nobr><br>'.format(
+  string += '      <nobr><font style="background-color:{2};border-radius:4px;">&nbsp;{0}&nbsp;</font> <i>&nbsp;({1}%)</i></nobr><br>'.format(
               row['class'], int(100 * row['consensus']), colorOf[row['class']])
   string += "    </td>"
 
@@ -580,7 +581,7 @@ def printTermsAsHTML(db_con, rows, user_id=0):
       string += "    <a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
       string += """  <a id="removeTerm" title="Click to delete term" href="#"
                      onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
-    string += '      &nbsp<i>Class:</i>&nbsp<font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp({1}%)</i>'.format(
+    string += '      &nbsp;<i>Class:</i>&nbsp;<font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp;({1}%)</i>'.format(
                  row['class'], int(100 * row['consensus']), colorOf[row['class']])
     string += "    </td>" 
     string += "    <td valign=top rowspan=2>"
