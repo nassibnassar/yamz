@@ -107,8 +107,16 @@ style="font-size: 95%;
     border-radius:4px; text-decoration:none"
 '''
 
+gtag_style = '''
+style="font-size: 95%;
+    font-family: 'Sans-Serif', Arial, serif;
+    color:white; background-color:#0082C3;
+    border-radius:4px; text-decoration:none"
+'''
+
 ref_string = '<a href=/term={0} title="{2}">{1}</a>'
 tag_string = '<a href=/tag/{0} ' + tag_style + '>&nbsp<b>#</b>&nbsp{1}&nbsp</a>'
+gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp{1}&nbsp</a>'
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 #: Regular expression for string matches.
@@ -237,13 +245,15 @@ def _printRefAsHTML(db_con, m):
     if reftype == 'v':
       return '<br>Values: '
     if reftype == 'g':
-      return '<br> '		# group tag
+      return '<br> '
     
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
   # 
   term = db_con.getTermByConceptId(IDstring)
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
+  if reftype == 'g':
+    return gtag_string.format(IDstring, string.lower(humstring), humstring)
   return ref_string.format(IDstring, humstring, term_def)
 
 def _printEndRefsAsHTML(m): 
@@ -316,20 +326,9 @@ def processTagsAsHTML(db_con, string):
   # XXX need way to convert existing terms
   # xxx ref_regex should eventually obviate the next two calls
 
-  # These tags are meant to be displayed after the Definition.
-  # at end of Definition block are lines (each optional) of the form
-  # #{v:---} value_tag ...
-  # #{e:---} element_tag ...
-  # #{g:---} group_tag ...
-  # For now we remove each such line, and process it after the main string.
-  # xxx should move type [gve] refs to the end of the string
-  #   for idempotence (on each edit), don't move already moved strings.
-
-  #string = endrefs_regex.sub(lambda m: _printEndRefsAsHTML(m), string)
+  #string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 
   string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
-
-  #string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
   return string
 
 
