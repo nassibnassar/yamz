@@ -231,8 +231,13 @@ def _printRefAsHTML(db_con, m):
       IDstring = 'http://' + IDstring
     return '<a href="%s">%s</a>' % (IDstring, humstring)
 
-  if humstring == '---' and reftype in 'gve':
-    return '<br>Elements: '
+  if humstring == '---':
+    if reftype == 'e':
+      return '<br>Elements: '
+    if reftype == 'v':
+      return '<br>Values: '
+    if reftype == 'g':
+      return '<br> '		# group tag
     
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
@@ -322,7 +327,8 @@ def processTagsAsHTML(db_con, string):
 
   #string = endrefs_regex.sub(lambda m: _printEndRefsAsHTML(m), string)
 
-  #string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+
   #string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
   return string
 
