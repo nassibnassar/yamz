@@ -123,14 +123,14 @@ Now configure the authentication method for postgres and all other users
 connecting locally. In /etc/postgresql/9.1/main/pg_hba.conf, change "peer" 
 in the line that will become
 
- local   all         postgres                          peer
+  local   all         postgres                          peer
 
 to "md5" for the administrative account and local unix domain socket 
 connections. Next, we want to only be able to connect to the database from 
 the local machine. In /etc/postgresql/9.1/main/postgresql.conf, uncomment the 
 line
 
- listen_addresses = 'localhost'
+  listen_addresses = 'localhost'
 
 After you've done this, you need to restart the postgres server.
 

@@ -44,7 +44,7 @@ parser = optparse.OptionParser()
 parser.description="""\
 This program is a Python/Flask-based web frontend for the SeaIce metadictionary. 
 SeaIce is a database comprised of a set of user-defined, crowd-sourced terms and 
-relations. The goal of SeaIce is to develop a succint and complete set of 
+relations. The goal of SeaIce is to develop a succinct and complete set of 
 metadata terms to register just about any type of file or data set. 'ice' is 
 distributed under the terms of the BSD license with the hope that it will be 
 # useful, but without warranty. You should have received a copy of the BSD 

@@ -114,6 +114,7 @@ term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 #: Regular expression for string matches.
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                   2        3         4
+endrefs_regex = re.compile("#\{\s*-([gve])\s*:+\s*}\s*")
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
@@ -236,6 +237,24 @@ def _printRefAsHTML(db_con, m):
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
   return ref_string.format(IDstring, humstring, term_def)
 
+def _printEndRefsAsHTML(m): 
+  """ Input a regular expression match and output the reference as HTML.
+  
+  A cluster reference has the form #{-X:}, where X is one of
+       g (tag), e (element), or v (value)
+
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
+
+  (reftype) = m.groups()
+  if reftype == 'g':
+    return '<br>'
+  if reftype == 'e':
+    return '<br>Elements: '
+  if reftype == 'v':
+    return '<br>Values: '
+
 def _printTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
   
@@ -285,11 +304,22 @@ def processTagsAsHTML(db_con, string):
   :returns: HTML-formatted string.
   """
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
+  # XXX need way to convert existing terms
   # xxx ref_regex should eventually obviate the next two calls
-  # xxx need way to convert existing terms
 
-  string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
-  string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
+  # These tags are meant to be displayed after the Definition.
+  # at end of Definition block are lines (each optional) of the form
+  # #{-v:} value_tag ...
+  # #{-e:} element_tag ...
+  # #{-g:} group_tag ...
+  # For now we remove each such line, and process it after the main string.
+  # xxx should move type [gve] refs to the end of the string
+  #   for idempotence (on each edit), don't move already moved strings.
+
+  string = endrefs_regex.sub(lambda m: _printEndRefsAsHTML(m), string)
+
+  #string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  #string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
   return string
 
 
@@ -517,6 +547,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "</table>"
   return string
 
+# xxx not called right now -- needed?
 def printTermsAsHTML(db_con, rows, user_id=0): 
   """ Format search results for display on the web page. 
   
