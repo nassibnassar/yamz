@@ -120,11 +120,7 @@ gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 # Regular expressions for string matches.
-#token_ref_regex = re.compile("(.{,10})#([\w.-]+)")
 token_ref_regex = re.compile("(?<!#\{g: )#([\w.-]+)")
-inside_gtag_regex = re.compile("#\{\s*g\s*:\s*$")
-#inside_gtag_regex = re.compile("(?<!#\{\s*g\s*:\s*$")
-#(?<![-+\d])
 
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                     2        3         4
@@ -143,7 +139,8 @@ def refs_norm(db_con, string, force=False):
   """
 
   # first promote any simple "#reference" into curly "#{reference}
-  string = token_ref_regex.sub(lambda m: _token_ref(m), string)
+  string = token_ref_regex.sub('#{t: \\1}', string)
+  #string = token_ref_regex.sub(lambda m: _token_ref(m), string)
   # now convert each curly "#{reference}
   string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
@@ -159,13 +156,9 @@ def _token_ref(m):
   """
 
   token = m.group(1)
-  #(before, token) = m.groups()
-  #if inside_gtag_regex.search(before):		# if in 'g' tag (kludgy),
-  #  return before + '#' + token			# then no substitution
-  print "xxx token [%s]" % (token)
-  sys.stdout.flush()
+  #print "xxx token [%s]" % (token)
+  #sys.stdout.flush()
   return ('#{t: ' + token + '}')		# else promote reference
-  #return before + '#{t: ' + token + '}'		# else promote reference
 
   # to preserve newlines: str.replace("\n", "\n<br>")
   # str.replace(old, new[, count])
