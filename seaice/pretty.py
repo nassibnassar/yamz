@@ -138,7 +138,7 @@ def refs_norm(db_con, string, force=False):
   """
 
   # first promote any simple "#reference" into curly "#{reference}
-  string = token_ref_regex.sub("#{\0}", string)
+  string = token_ref_regex.sub("{t: \0}", string)
   # now convert each curly "#{reference}
   string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
