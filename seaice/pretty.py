@@ -155,7 +155,7 @@ def _token_ref(m):
   """
 
   (before, token) = m.groups()
-  if inside_gtag_regex.match(before):		# if in 'g' tag (kludgy),
+  if inside_gtag_regex.search(before):		# if in 'g' tag (kludgy),
     return before + '#' + token			# then no substitution
   print "xxx before[%s] token [%s]" % (before, token)
   sys.stdout.flush()
