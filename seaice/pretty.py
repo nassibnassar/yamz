@@ -164,8 +164,11 @@ def _token_ref(m):
   #  return before + '#' + token			# then no substitution
   print "xxx token [%s]" % (token)
   sys.stdout.flush()
-  return '#{t: ' + token + '}'		# else promote reference
+  return ('#{t: ' + token + '}')		# else promote reference
   #return before + '#{t: ' + token + '}'		# else promote reference
+
+  # to preserve newlines: str.replace("\n", "\n<br>")
+  # str.replace(old, new[, count])
 
 def _ref_norm(db_con, m, force=False): 
   """ Input a regular expression match and output a normalized reference.
