@@ -120,9 +120,10 @@ gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 # Regular expressions for string matches.
-token_ref_regex = re.compile("(?<!#\{g: )#([\w.-]+)")
+token_ref_regex = re.compile("(?<!#\{g: )#(#?[\w.-]+)")
 # Caution: exactly one space here -----^
-# The "lookbehind" regex relies on _ref_norm using just one space.
+# The "lookbehind" regex relies on _ref_norm using just one space;
+# we use it to match #foo NOT inside a #{g:... construct.
 
 #ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
@@ -141,13 +142,14 @@ def refs_norm(db_con, string, force=False):
   :returns: Modified plain text string.
   """
 
-  # first promote any simple "#reference" into curly "#{reference}
+  # first promote any simple "#ref" into curly "#{t: ref}
   string = token_ref_regex.sub('#{t: \\1}', string)
   # now convert each curly "#{reference}
   string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
     
 
+# looks a lot like _printRefAsHTML, but is about how we _store_ things
 def _ref_norm(db_con, m, force=False): 
   """ Input a regular expression match and output a normalized reference.
   
@@ -196,7 +198,7 @@ def _ref_norm(db_con, m, force=False):
   if IDstring and not force:
     return '#{%s: %s | %s}' % (reftype, humstring, IDstring)
   if humstring.startswith('---'):		# reserved magic string
-    return '#{%s: %s' % (reftype, humstring)
+    return '#{%s: %s}' % (reftype, humstring)
 
   # If we get here, we're going to do the lookup.
   if reftype == 'g' and not humstring.startswith('#'):
