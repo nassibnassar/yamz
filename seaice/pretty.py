@@ -124,8 +124,9 @@ token_ref_regex = re.compile("(?<!#\{g: )#([\w.-]+)")
 # Caution: exactly one space here -----^
 # The "lookbehind" regex relies on _ref_norm using just one space.
 
-ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
-# subexpr start positions:    01                     2        3         4
+#ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
+ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
+# subexpr start positions:    01                  2        3         4
 #endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")	# xxx drop
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")	# xxx drop
@@ -194,8 +195,8 @@ def _ref_norm(db_con, m, force=False):
   # 
   if IDstring and not force:
     return '#{%s: %s | %s}' % (reftype, humstring, IDstring)
-  if humstring == '---':		# reserved magic string
-    return '#{%s:---}' % reftype
+  if humstring.startswith('---'):		# reserved magic string
+    return '#{%s: %s' % (reftype, humstring)
 
   # If we get here, we're going to do the lookup.
   if reftype == 'g' and not humstring.startswith('#'):
