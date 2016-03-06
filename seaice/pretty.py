@@ -133,8 +133,21 @@ tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")	# xxx drop
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")	# xxx drop
 permalink_regex = re.compile("^http://(.*)$")
 
+def _token_ref_norm(m):
+  """ Promote simple "#ref" into curly "#{t: ref} or, if ref
+  begins with "#", into "#{g: ref}".
+
+  :param string: The input string. 
+  :returns: Modified plain text string.
+  """
+
+  token = m.group(1)
+  if token.startswith('#'):
+    return '#{g: ' + token + '}'
+  return '#{t: ' + token + '}'
+
 def refs_norm(db_con, string, force=False): 
-  """  Resolve references in text entries before storing in DB.
+  """ Resolve references in text entries before storing in DB.
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
@@ -143,7 +156,8 @@ def refs_norm(db_con, string, force=False):
   """
 
   # first promote any simple "#ref" into curly "#{t: ref}
-  string = token_ref_regex.sub('#{t: \\1}', string)
+  string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
+  #string = token_ref_regex.sub('#{t: \\1}', string)
   # now convert each curly "#{reference}
   string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
