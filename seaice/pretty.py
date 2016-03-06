@@ -124,9 +124,9 @@ token_ref_regex = re.compile("(?<!#\{g: )#([\w.-]+)")
 # Caution: exactly one space here -----^
 # The "lookbehind" regex relies on _ref_norm using just one space.
 
-ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
+ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                     2        3         4
-endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
+#endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")	# xxx drop
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")	# xxx drop
 permalink_regex = re.compile("^http://(.*)$")
@@ -219,7 +219,8 @@ def _printRefAsHTML(db_con, m):
   A DB connector is required to resolve the tag string by ID. 
   A reference has the form #{ reftype: humstring [ | IDstring ] }
   - reftype is one of
-    t (term), g (tag), e (element), v (value), m (mtype), k (link)
+    t (term), g (tag), s (section), m (mtype), k (link)
+    #t (term), g (tag), e (element), v (value), m (mtype), k (link)
   - humstring is the human-readable equivalent of IDstring
   - IDstring is a machine-readable string, either a concept_id or,
     in the case of "k" link, a URL.
@@ -248,7 +249,14 @@ def _printRefAsHTML(db_con, m):
       IDstring = 'http://' + IDstring
     return '<a href="%s">%s</a>' % (IDstring, humstring)
 
-  if humstring == '---':	# EndRefs
+  if humstring.startswith('---'):	# EndRefs
+    if humstring.startswith('---e'):
+      return '<br>Elements: '
+    if humstring.startswith('---v'):
+      return '<br>Values: '
+    if humstring.startswith('---g'):
+      return '<br> '
+    # xxx ditch these next
     if reftype == 'e':
       return '<br>Elements: '
     if reftype == 'v':
@@ -266,24 +274,6 @@ def _printRefAsHTML(db_con, m):
     return gtag_string.format(
       string.lower(humstring), humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
-
-def _printEndRefsAsHTML(m): 
-  """ Input a regular expression match and output the reference as HTML.
-  
-  A cluster reference has the form #{X:---}, where X is one of
-       g (tag), e (element), or v (value)
-
-  :param m: Regular expression match. 
-  :type m: re.MatchObject
-  """
-
-  (reftype) = m.groups()
-  if reftype == 'g':
-    return '<br>'
-  if reftype == 'e':
-    return '<br>Elements: '
-  if reftype == 'v':
-    return '<br>Values: '
 
 def _printTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
@@ -334,8 +324,8 @@ def processTagsAsHTML(db_con, string):
   :returns: HTML-formatted string.
   """
 
-  # preserve user-defined newlines by converting them into line breaks
-  string = string.replace("\n", "<br>")
+  # preserve user-defined newlines by converting to line breaks on output
+  string = string.replace("\n", "\n<br>")
   # replace tags afterwards (because that may add newlines)
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
 
