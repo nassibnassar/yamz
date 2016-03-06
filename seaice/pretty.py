@@ -121,6 +121,8 @@ term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 # Regular expressions for string matches.
 token_ref_regex = re.compile("(?<!#\{g: )#([\w.-]+)")
+# Caution: exactly one space here -----^
+# The "lookbehind" regex relies on _ref_norm using just one space.
 
 ref_regex = re.compile("#\{\s*(([gvetkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                     2        3         4
@@ -144,9 +146,6 @@ def refs_norm(db_con, string, force=False):
   string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
     
-  # xxx 
-  # to preserve newlines: str.replace("\n", "\n<br>")
-  # str.replace(old, new[, count])
 
 def _ref_norm(db_con, m, force=False): 
   """ Input a regular expression match and output a normalized reference.
@@ -209,6 +208,7 @@ def _ref_norm(db_con, m, force=False):
   elif n == 2:
     term_string, concept_id = (humstring + '(ambiguous)'), '-'
   return '#{%s: %s | %s}' % (reftype, term_string, concept_id)
+  # this space ^ is relied on by a (fixed width) lookbehind regex
 
 
   ## Processing tags in text areas. ##
@@ -335,6 +335,9 @@ def processTagsAsHTML(db_con, string):
   """
 
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
+  # preserve newlines by converting them into line breaks
+  string.replace("\n", "\n<br>")
+
   # XXX need way to convert existing terms
   # XXX especially existing #ppsr_term tags
 
