@@ -620,10 +620,10 @@ def addComment(term_id):
 
   try:
     assert l.current_user.id
-    
+
     term_id = int(term_id)
     g.db = app.dbPool.getScoped()
-    comment = { 'comment_string' : request.form['comment_string'],
+    comment = { 'comment_string' : seaice.pretty.refs_norm(g.db, request.form['comment_string']),
                 'term_id' : term_id,
                 'owner_id' : l.current_user.id,
                 'id' : app.commentIdPool.ConsumeId()}
@@ -657,7 +657,7 @@ def editComment(comment_id = None):
     assert l.current_user.id and comment['owner_id'] == l.current_user.id
     
     if request.method == "POST":
-      updatedComment = { 'comment_string' : request.form['comment_string'],
+      updatedComment = { 'comment_string' : seaice.pretty.refs_norm(g.db, request.form['comment_string']),
                          'owner_id' : l.current_user.id } 
 
       g.db.updateComment(int(comment_id), updatedComment)
@@ -683,8 +683,6 @@ def editComment(comment_id = None):
                                                   headline = "Edit your comment",
                                                   content = Markup(form.decode('utf-8')))
 
-
-  
   except ValueError:
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                               title = "Comment not found",

@@ -140,26 +140,11 @@ def refs_norm(db_con, string, force=False):
 
   # first promote any simple "#reference" into curly "#{reference}
   string = token_ref_regex.sub('#{t: \\1}', string)
-  #string = token_ref_regex.sub(lambda m: _token_ref(m), string)
   # now convert each curly "#{reference}
   string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
   return string
     
-
-def _token_ref(m):
-  """ Input a regular expression matching a simple "#reference" and some
-  preceding characters.  Promotes to #{t: reference} only if reference
-  does not appear to be part of an existing #{g: ref}.
-
-  :param m: Regular expression match. 
-  :type m: re.MatchObject
-  """
-
-  token = m.group(1)
-  #print "xxx token [%s]" % (token)
-  #sys.stdout.flush()
-  return ('#{t: ' + token + '}')		# else promote reference
-
+  # xxx 
   # to preserve newlines: str.replace("\n", "\n<br>")
   # str.replace(old, new[, count])
 
@@ -349,14 +334,9 @@ def processTagsAsHTML(db_con, string):
   :returns: HTML-formatted string.
   """
 
-  # xxx drop this soon
-  #string = tag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
-
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
   # XXX need way to convert existing terms
-  # xxx ref_regex should eventually obviate the next two calls
-
-  #string = term_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
+  # XXX especially existing #ppsr_term tags
 
   return string
 
