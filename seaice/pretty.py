@@ -337,6 +337,7 @@ def processTagsAsHTML(db_con, string):
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
   # preserve newlines by converting them into line breaks
   string.replace("\n", "\n<br>")
+  string.replace("d", "DDD<br>")
 
   # XXX need way to convert existing terms
   # XXX especially existing #ppsr_term tags
