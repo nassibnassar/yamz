@@ -710,7 +710,7 @@ class SeaIceConnector:
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
     # update persistent ID for term
-    mint.bind_persistent_id(mint.pid2ark(pid), prod_mode,
+    mint.bind_persistent_id(prod_mode, mint.pid2ark(pid),
       term['term_string'], term['definition'], term['examples'])
 
     ## User queries ##
