@@ -39,14 +39,36 @@ _minter = None
 _binder = None
 
 def minderOpener (prod_mode):
+  ctxt = None
   # Note that exceptions are not handled here but passed to the caller.
   ctxt = ssl.create_default_context()
   ctxt.check_hostname = False
   ctxt.verify_mode = ssl.CERT_NONE
 
+#  try:
+#    ctxt = ssl.create_default_context()
+#  except AttributeError:
+#    # Legacy Python that doesn't verify HTTPS certificates by default
+#    print "xxxxxxxxxx"
+#    pass
+#  else:
+#    ctxt.check_hostname = False
+#    ctxt.verify_mode = ssl.CERT_NONE
+#
+#  try:
+#    _create_unverified_https_context = ssl._create_unverified_context
+#  except AttributeError:
+#    #print "xxxxxxxxxx"
+#    # Legacy Python that doesn't verify HTTPS certificates by default
+#    pass
+#  else:
+#    # Handle target environment that doesn't support HTTPS verification
+#    ssl._create_default_https_context = _create_unverified_https_context
+
+  # Note that exceptions are not handled here but passed to the caller.
   global _opener, _minter, _binder
   if not _minter:
-    if prod_mode == "enable":
+    if prod_mode:
       _minter = REAL_MINTER_URL
       _binder = REAL_BINDER_URL
     else:
@@ -59,6 +81,14 @@ def minderOpener (prod_mode):
     _opener = urllib2.build_opener(
       urllib2.HTTPSHandler(debuglevel=0, context=ctxt),
       urllib2.HTTPBasicAuthHandler(m))
+
+#    if ctxt:
+#      _opener = urllib2.build_opener(
+#        urllib2.HTTPSHandler(debuglevel=0, context=ctxt),
+#        urllib2.HTTPBasicAuthHandler(m))
+#    else:
+#      _opener = urllib2.build_opener(
+#        urllib2.HTTPBasicAuthHandler(m))
     _opener.addheaders = [("Content-Type", "text/plain")]
     return _opener
 
@@ -123,5 +153,4 @@ def create_persistent_id (prod_mode, who, what, peek):
   arkId = mintArkIdentifier(prod_mode)
   bindArkIdentifier(arkId, prod_mode, who, what, peek)
   return ark2pid(arkId)
-  #return 'http://n2t.net/' + arkId
 

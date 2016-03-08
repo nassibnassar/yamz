@@ -422,6 +422,13 @@ class SeaIceConnector:
       res = cur.fetchone()
       id = None if res is None else res[0]
 
+# xxx add prod_mode arg to insert/updateTerm from Import
+# xxx make prod_mode True/False
+# xxx do #foo as &foo, ##foo as #foo
+# xxx make id minting ONLY happen if persistent_id not already set
+# xxx    and if it is set, when(?) do we update binder (and which binder)?
+# xxxxxxx and move this code below BEFORE the big INSERT, so we're not patching
+#           but just doint one INSERT
       # create persistent ID for term
       persistent_id = mint.create_persistent_id( prod_mode,
         defTerm['term_string'], defTerm['definition'], defTerm['examples'])
@@ -1368,11 +1375,13 @@ class SeaIceConnector:
     rows = cur.fetchall()
     pretty.printAsJSObject(rows, fd)
 
-  def Import(self, table, inf=None): 
+  def Import(self, table, prod_mode, inf=None): 
     """ Import database from JSON formated *inf*.
 
     :param table: Name of table. 
     :type table: str
+    :param prod_mode: Production mode flag.
+    :type prod_mode: boolean
     :param inf: File name from which to import.
     :type inf: str
     """
@@ -1389,7 +1398,7 @@ class SeaIceConnector:
       if table == "Users":
         self.insertUser(row)
       elif table == "Terms":
-        self.insertTerm(row)
+        self.insertTerm(row, prod_mode)
       elif table == "Comments":
         self.insertComment(row)
       elif table == "Tracking":

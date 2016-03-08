@@ -28,6 +28,15 @@
 import os, sys, optparse
 import json, psycopg2 as pqdb
 import seaice
+import ConfigParser
+
+# Figure out if we're in production mode.  Look in 'heroku' section only.
+config = ConfigParser.ConfigParser()
+config.read('.seaice_auth')
+if config.has_option('heroku', 'prod_mode'):
+  prod_mode = config.getboolean('heroku', 'prod_mode')
+else:
+  prod_mode = False             # default
 
 ## Parse command line options. ##
 
@@ -97,7 +106,7 @@ parser.add_option("-j", "--json", action="store_true", dest="json", default=Fals
                   help="Format terminal output as a JSON structure.")
 
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
-                  help="Don't prompt for comfirmation when dropping tables.")
+                  help="Don't prompt for confirmation when dropping tables.")
 
 parser.add_option("--role", dest="db_role", metavar="USER", 
                   help="Specify the database role to use for the DB connector pool. These roles " +
@@ -139,7 +148,7 @@ try:
       print >>sys.stderr, "sea: no such user (Id=%s not found)" % options.user_id
 
   if options.import_table:
-    sea.Import(options.import_table, options.file_name)
+    sea.Import(options.import_table, prod_mode, options.file_name)
 
   if options.export_table:
     sea.Export(options.export_table, options.file_name)
@@ -199,9 +208,10 @@ except pqdb.DatabaseError, e:
   print 'error: %s' % e    
   sys.exit(1)
 
-except IOError:
-  print >>sys.stderr, "error: file not found"
-  sys.exit(1)
-
-except ValueError: 
-  print >>sys.stderr, "error: incorrect parameter type(s)"
+# xxx commenting these out makes for better diagnostics?
+#except IOError:
+#  print >>sys.stderr, "error: file not found"
+#  sys.exit(1)
+#
+#except ValueError: 
+#  print >>sys.stderr, "error: incorrect parameter type(s)"

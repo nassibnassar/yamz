@@ -82,9 +82,9 @@ parser.add_option("--role", dest="db_role", metavar="USER",
 config = ConfigParser.ConfigParser()
 config.read('.seaice_auth')
 if config.has_option('heroku', 'prod_mode'):
-  prod_mode = config.get('heroku', 'prod_mode')
+  prod_mode = config.getboolean('heroku', 'prod_mode')
 else:
-  prod_mode = 'disable'
+  prod_mode = False		# default
 
 ## Setup flask application ##
 print "ice: starting ..."

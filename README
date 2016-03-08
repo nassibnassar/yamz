@@ -5,7 +5,7 @@ should be easily adaptable to any system; YAMZ is written in Python and uses
 only cross-platform packages.  This file is formatted by hand and does not
 contain markdown.
   
-  Authored by Chris Patton. Last updated 29 Feb 2016 (jak). 
+  Authored by Chris Patton. Last updated 5 March 2016 (jak). 
 
 YAMZ is formerly known as SeaIce; for this reason, the database tables 
 and API use names based on "SeaIce". 
@@ -65,7 +65,11 @@ The contents of this directory are as follows:
                              contain actual keys. 
 
 Before you get started, you need to set up a database and some software 
-packages. On Ubuntu, grab the following (on Mac OS X use ?):
+packages.  Mac OS X, this may suffice:
+
+  $ pip install psycopg2 Flask configparser flask-login flask-OAuth python-dateutil
+
+On Ubuntu, grab the following:
   
   python-flask . . . . . . . Simple HTTP server.
 
@@ -76,11 +80,10 @@ packages. On Ubuntu, grab the following (on Mac OS X use ?):
   python-pip . . . . . . . . Package manager for additional Python 
                              programs. 
 
-We need to download a package from pip that handles configuration files
-nicely. Do: 
+and then download a package from pip that handles configuration files nicely:
 
-  $ sudo pip install configparser flask-login flask-OAuth \
-        python-dateutil urlparse
+  $ sudo pip install \
+      configparser flask-login flask-OAuth python-dateutil urlparse
 
 
 0.1 Create the deploy_keys branch
@@ -258,9 +261,9 @@ The main bit of metadata stored is the redirection target URL that supports
 resolution of ARK identifiers for YAMZ terms.
 
 Because real identifiers are meant to be persistent, no local or test
-instance of YAMZ should ever set the "prod_mode" parameter in
+instance of YAMZ should ever set the boolean "prod_mode" parameter in
 ".seaice_auth".  For such instances the generated and updated terms
-should only be for identifiers meant to be thrown away.  Only on the
+should just be for identifiers meant to be thrown away.  Only on the
 real production instance of YAMZ, when you're done testing term creation
 and update, should it be set to "enable" (the default is don't enable).
 
@@ -341,7 +344,6 @@ Heroku-Postgres is a scalable DB interface for heroku apps. (See the
 python section of devcenter.heroku.com/articles/heroku-postgresql .)
 To create a free addon,
 
-  # xxx retest the DATABASE_URL setting on a brand new instance
   $ heroku addons:create heroku-postgresql:hobby-dev
 
 The 'master' branch is set up to use either a local postgres database server
