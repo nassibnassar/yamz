@@ -422,20 +422,18 @@ class SeaIceConnector:
       res = cur.fetchone()
       id = None if res is None else res[0]
 
-# xxx add prod_mode arg to insert/updateTerm from Import
-# xxx make prod_mode True/False
-# xxx do #foo as &foo, ##foo as #foo
-# xxx make id minting ONLY happen if persistent_id not already set
-# xxx    and if it is set, when(?) do we update binder (and which binder)?
-# xxxxxxx and move this code below BEFORE the big INSERT, so we're not patching
-#           but just doint one INSERT
-      # create persistent ID for term
-      persistent_id = mint.create_persistent_id( prod_mode,
-        defTerm['term_string'], defTerm['definition'], defTerm['examples'])
-      concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
-      sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
-      data = (persistent_id, concept_id, id)
-      cur.execute(sql, data)
+      persistent_id = term['persistent_id']
+      concept_id = term['concept_id']
+      # create persistent ID for term if need be
+      if not persistent_id:
+        persistent_id = mint.create_persistent_id(prod_mode)
+        mint.bind_persistent_id (prod_mode, persistend_id,
+          defTerm['term_string'], defTerm['definition'], defTerm['examples'])
+        concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
+        sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
+        data = (persistent_id, concept_id, id)
+        cur.execute(sql, data)
+      # xxx needs to be a way to rebind ids when we're not also minting
 
       return (id, concept_id)
 

@@ -49,7 +49,7 @@ def minderOpener (prod_mode):
 #    ctxt = ssl.create_default_context()
 #  except AttributeError:
 #    # Legacy Python that doesn't verify HTTPS certificates by default
-#    print "xxxxxxxxxx"
+#    print "xxx"
 #    pass
 #  else:
 #    ctxt.check_hostname = False
@@ -58,7 +58,7 @@ def minderOpener (prod_mode):
 #  try:
 #    _create_unverified_https_context = ssl._create_unverified_context
 #  except AttributeError:
-#    #print "xxxxxxxxxx"
+#    #print "xxx"
 #    # Legacy Python that doesn't verify HTTPS certificates by default
 #    pass
 #  else:
@@ -151,6 +151,9 @@ def pid2ark (pid):
 
 def create_persistent_id (prod_mode, who, what, peek):
   arkId = mintArkIdentifier(prod_mode)
+  return ark2pid(arkId)
+
+def bind_persistent_id (prod_mode, arkId, who, what, peek):
   bindArkIdentifier(arkId, prod_mode, who, what, peek)
   return ark2pid(arkId)
 
