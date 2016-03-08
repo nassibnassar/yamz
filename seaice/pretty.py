@@ -120,10 +120,11 @@ gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 # Regular expressions for string matches.
-token_ref_regex = re.compile("(?<!#\{g: )#(#?[\w.-]+)")
+#token_ref_regex = re.compile("(?<!#\{g: )#(#?[\w.-]+)")
+token_ref_regex = re.compile("(?<!#\{g: )[#&]([\w.-]+)")
 # Caution: exactly one space here -----^
-# The "lookbehind" regex relies on _ref_norm using just one space;
-# we use it to match #foo NOT inside a #{g:... construct.
+# The "lookbehind" regex relies on _ref_norm using just one space.
+# We use it to match #foo NOT inside a #{g:... construct.
 
 #ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
@@ -141,10 +142,15 @@ def _token_ref_norm(m):
   :returns: Modified plain text string.
   """
 
-  token = m.group(1)
-  if token.startswith('#'):
-    return '#{g: ' + token + '}'
-  return '#{t: ' + token + '}'
+  #token = m.group(1)
+  #if token.startswith('#'):
+  #  return '#{g: ' + token + '}'
+  sigil = m.group(1)
+  token = m.group(2)
+  if sigil == '#':
+    return '#{g: #' + token + '}'
+  else:			# must be '&'
+    return '#{t: ' + token + '}'
 
 def refs_norm(db_con, string, force=False): 
   """ Resolve references in text entries before storing in DB.
