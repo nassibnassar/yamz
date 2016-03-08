@@ -1,0 +1,42 @@
+[
+  {
+    "class": "vernacular",
+    "concept_id": "h1257",
+    "consensus": 0.0,
+    "created": "2016-03-02 18:43:21.223373+00:00",
+    "d_sum": 0,
+    "definition": "Data continuously acquired by the data acquisition system from all channels at a high rate of speed. Every fast data file is associated with a #{h1256 : related to} file.  Sometimes the data acquisition software is started and stopped several times during an experiment such that multiple slow files are consecutively related. The #{h1256 : related to} and fast data files include configuration information about the data acquisition system, including sensor names, calibrations, units, etc. #DesignSafeCentrifuge\r\n",
+    "down": 0,
+    "examples": "",
+    "id": 1200,
+    "modified": "2016-03-02 18:43:21.223373+00:00",
+    "owner_id": 1001,
+    "persistent_id": "http://n2t.net/ark:/99152/h1257",
+    "t_last": "2016-03-02 18:43:21.223373+00:00",
+    "t_stable": "2016-03-02 18:43:21.223373+00:00",
+    "term_string": "fast data",
+    "tsv": "'acquir':5 'acquisit':9,35,68 'associ':25 'calibr':73 'channel':13 'configur':63 'consecut':52 'continu':4 'data':2,3,8,22,34,60,67 'designsafecentrifug':76 'etc':75 'everi':20 'experi':45 'fast':1,21,59 'file':23,31,50,61 'h1256':28,55 'high':16 'includ':62,70 'inform':64 'multipl':48 'name':72 'rate':17 'relat':29,53,56 'sensor':71 'sever':41 'slow':49 'softwar':36 'sometim':32 'speed':19 'start':38 'stop':40 'system':10,69 'time':42 'unit':74",
+    "u_sum": 0,
+    "up": 0
+  },
+  {
+    "class": "vernacular",
+    "concept_id": "h1259",
+    "consensus": 0.0,
+    "created": "2016-03-04 15:30:36.216210+00:00",
+    "d_sum": 0,
+    "definition": "Where background data is collected under static load conditions.  A null event is commonly associated with an #{h1241 : related to} either a pre-shake or post-shake null event. #DesignSafeCentrifuge\r\n",
+    "down": 0,
+    "examples": "",
+    "id": 1198,
+    "modified": "2016-03-04 15:39:29.277791+00:00",
+    "owner_id": 1001,
+    "persistent_id": "http://n2t.net/ark:/99152/h1259",
+    "t_last": "2016-03-04 15:30:36.216210+00:00",
+    "t_stable": "2016-03-04 15:30:36.216210+00:00",
+    "term_string": "event_null",
+    "tsv": "'associ':17 'background':4 'collect':7 'common':16 'condit':11 'data':5 'designsafecentrifug':34 'either':23 'event':1,14,33 'h1241':20 'load':10 'null':2,13,32 'post':30 'post-shak':29 'pre':26 'pre-shak':25 'relat':21 'shake':27,31 'static':9",
+    "u_sum": 0,
+    "up": 0
+  }
+]
