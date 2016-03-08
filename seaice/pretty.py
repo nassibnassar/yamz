@@ -148,9 +148,9 @@ def _token_ref_norm(m):
   #  return '#{g: ' + token + '}'
   sigil = m.group(1)
   token = m.group(2)
-  if sigil == '#' and not token.startwith('#'):
+  if sigil == '#' and not token.startswith('#'):
     return '#{g: #' + token + '}'
-  elif sigil == '&' and not token.startwith('&'):
+  elif sigil == '&' and not token.startswith('&'):
     return '#{t: ' + token + '}'
   else:
     return sigil + token	# return untouched if doubled
