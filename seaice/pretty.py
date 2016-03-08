@@ -121,7 +121,8 @@ term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 # Regular expressions for string matches.
 #token_ref_regex = re.compile("(?<!#\{g: )#(#?[\w.-]+)")
-token_ref_regex = re.compile("(?<!#\{g: )[#&]([\w.-]+)")
+# xxx need ## and && to escape!
+token_ref_regex = re.compile("(?<!#\{g: )([#&])([\w.-]+)")
 # Caution: exactly one space here -----^
 # The "lookbehind" regex relies on _ref_norm using just one space.
 # We use it to match #foo NOT inside a #{g:... construct.
@@ -147,10 +148,12 @@ def _token_ref_norm(m):
   #  return '#{g: ' + token + '}'
   sigil = m.group(1)
   token = m.group(2)
-  if sigil == '#':
+  if sigil == '#' and not token.startwith('#'):
     return '#{g: #' + token + '}'
-  else:			# must be '&'
+  elif sigil == '&' and not token.startwith('&'):
     return '#{t: ' + token + '}'
+  else:
+    return sigil + token	# return untouched if doubled
 
 def refs_norm(db_con, string, force=False): 
   """ Resolve references in text entries before storing in DB.
