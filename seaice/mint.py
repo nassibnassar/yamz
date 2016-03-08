@@ -149,7 +149,7 @@ def ark2pid (ark):
 def pid2ark (pid):
   return pid[_resolver_base_len:]
 
-def create_persistent_id (prod_mode, who, what, peek):
+def create_persistent_id (prod_mode):
   arkId = mintArkIdentifier(prod_mode)
   return ark2pid(arkId)
 
