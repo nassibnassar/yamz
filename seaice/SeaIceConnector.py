@@ -428,7 +428,7 @@ class SeaIceConnector:
       # create persistent ID for term if need be
       if not persistent_id:
         persistent_id = mint.create_persistent_id(prod_mode)
-        mint.bind_persistent_id (prod_mode, persistent_id,
+        mint.bind_persistent_id(prod_mode, persistent_id,
           defTerm['term_string'], defTerm['definition'], defTerm['examples'])
         concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
         sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
@@ -710,7 +710,7 @@ class SeaIceConnector:
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
     # update persistent ID for term
-    mint.bind_persistent_identifier(mint.pid2ark(pid), prod_mode,
+    mint.bind_persistent_id(mint.pid2ark(pid), prod_mode,
       term['term_string'], term['definition'], term['examples'])
 
     ## User queries ##
