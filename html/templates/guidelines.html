@@ -153,10 +153,10 @@ YAMZ is not
 </li>
 <li>... a bunch of sub-vocabularies. If your working group in the XYZ
     domain wants its own version of thingummy, resist the temptation to
-    create XYZ_thingummy, or similarly adding the domain into the term.
-    Instead consider defining thingummy and tagging it #XYZ so your group
-    can sometimes narrow its focus to just #XYZ terms.  It is a feature
-    that YAMZ is ultimately one large, flat namespace with no domain borders.
+    create XYZ_thingummy, or similarly making the domain part of the term.
+    Instead consider creating thingummy and tagging it #XYZ so your group
+    can narrow its focus to #XYZ terms on demand.  It is a feature that
+    YAMZ is ultimately one large, flat namespace with no domain borders.
 </li>
 </ul>
 </p>
@@ -173,11 +173,15 @@ not be used to define natural language terms unless they are proposed
 for use as machine-readable jargon.
 https://owl.english.purdue.edu/owl/resource/622/01/
 https://www.prismnet.com/~hcexres/textbook/def.html
+<p>
+</p>
 
 Use #foo or #{foo} or #{t:foo} to reference a term.
 xxx use !foo to reference term? and #foo for a tag?
 xxx Use ##foo to reference a group?
 use #{k: text|link}
+<p>
+</p>
 
 Term strings (labels) should only contain [\w \-] (eg, no punctuation)
  xxx no '-'?
@@ -189,13 +193,23 @@ A typical definition reads:  A(n) <noun> that ...
 All metadata structure definitions should begin like this:
    A _structured statement_ that ....  Elements: <element1>, ..., <elementN-1>, <elementN>  [no period, no
 "and"]
+<p>
+</p>
 All metadata structure definitions should end like this:
    Elements: <element1>, ..., <elementN-1>, <elementN>  [no period, no "and"]
+<p>
+</p>
 For an element with controlled values:
    A <noun> that ....  Values: <value1>, ... <valueN-1>, <valueN>
+<p>
+</p>
 To add a tag, put #tag at the _very_ end of the definition (after elements and values).
+<p>
+</p>
 To define an acronym, _begin_ the definition with the expansion, using
 capital letters to indicate letters belonging to the acronym, eg,
+<p>
+</p>
    Term: PDP
    Definition: (Provider Descriptive Profile) A structured statement that ...
 </p>
