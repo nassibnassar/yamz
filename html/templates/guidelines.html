@@ -99,61 +99,67 @@ metadictionary is about terms used to create <i>structured</i>
 </p>
 <p>
 The metadictionary supports data too.  Like metadata, data is structured
-information, but with a shift in emphasis away from being <i>about</i>
-a particular thing.
+information, but with a probable shift in emphasis away from being
+<i>about</i> a particular thing.  Some people claim there's no important
+difference between data and metadata.
 </p>
 
 <h4>Things and assertions about them</h4>
 <p>
-Metadata usually looks like a group of assertions
-about a particular thing, such as a document.  For example, metadata may
-assert that a given document's title is X, it's author Y, and it's
-publication date Z.
+Metadata looks like a group of assertions about a particular thing, such
+as a document.  For example, metadata may assert that a given document's
+title is X, it's author Y, and it's publication date Z.
 </p>
 <p>
-Term definitions often refer to the thing being described using a word
+Term definitions often refer to the thing being described with a word
 like "thing", "resource", or "object", eg, a title could be "A name given
 to the resource".  Which exact thing is being referred to cannot be found
-in a term definition.  Instead it is revealed by metadata values or
-context (eg, metadata embedded in an image file often describes the image
-in the same file).
+in a term definition.  Instead it is revealed in metadata values or by
+context; for example, metadata inside an image file often describes the
+image elsewhere in the same file.
 </p>
 
 <h4>Elements and values</h4>
 <p>
 Lots of terms define metadata elements, which are small categories of
-information, such as "title", "author", or "response".  An element can
-also be defined as a structured statement that itself contains other
-elements; for example, a "location" that contains "latitude" and
-"longitude".
+information, such as "title", "author", or "response".  An element might
+also be a structured statement that itself contains other elements; for
+example, a "location" that contains "latitude" and "longitude".  Other
+elements are meant to take on metadata values, for example, pieces of
+text or personal names.
 </p>
 <p>
-Other elements are meant to take on metadata values, for example, pieces
-of text or personal names.  Terms may help when values have limits, for
-example, a "response" element might be one of "yes", "no", or "maybe".
-Another element might be meant to have an infinite number of values, but
-with all of them restricted to "integer".
+Lots of terms help with metadata values, especially when they are limited
+in some way.  For example, a "response" element might be one of "yes",
+"no", or "maybe".  A "count" element might take an infinite number of
+values, but always restricted to "integer".
+</p>
+<h4>What the metadictionary is not</h4>
+<p>
+YAMZ is not
+<ul>
+<li>an encyclopedia. A definition is approximately one sentence, not an essay.
+</li>
+<li>a grammar. Whether a term is required or optional in a given context
+    is out of scope.  In that sense a term is more like a nano-standard,
+    and its definition may link out to an external documents specifying
+    rules for given communities.
+</li>
+<li>a regular dictionary. While YAMZ contains many terms that look like
+    natural language terms, it should only contain terms that directly
+    support machine-readable descriptions and the metadictionary itself.
+</li>
+<li>a set of sub-vocabularies. YAMZ does have a tagging feature to let
+    a working group temporarily narrow its focus to term subsets, but it
+    is a feature that YAMZ is ultimately one large, flat namespace with
+    no domain borders.
+</li>
+</ul>
 </p>
 <p>
 </p>
 <h4>End</h4>
 <p>
-To be useful across lots of software and domains, that the elements and value
-A blob of metadata "record" describing a "thing" consists of one or more statements
-that themselves may contain smaller statements, all the way down to the
-finest levels of structure: named elements and their values.  Such a
-record may exist in a digital file or a database, and the described thing
-might be a the same digital file, a file nearby, or a physical object.
-</p>
-<p>
-What most concerns the YAMZ metadictionary, however, is coming up with
-a common vocabulary of named elements, and often their values, from which
-people can describe things by putting together the best structured
-statements (metadata records), that is, the ones that are as widely
-understood as possible.  It is aggressively cross-domain and includes
-all parts of metadata speech -- names, values, encodings, etc.  This is
-not the first online dictionary of metadata; it is Yet Another Metadata
-Zoo (YAMZ).
 </p>
 <h4>What makes the metadictionary useful</h4>
 <p>
