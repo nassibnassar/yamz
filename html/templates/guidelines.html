@@ -115,24 +115,24 @@ Term definitions often refer to the thing being described using a word
 like "thing", "resource", or "object", eg, a title could be "A name given
 to the resource".  Which exact thing is being referred to cannot be found
 in a term definition.  Instead it is revealed by metadata values or
-context (eg, metadata embedded in a file can often be assumed to describe
-the rest of the file).
+context (eg, metadata embedded in an image file often describes the image
+in the same file).
 </p>
 
 <h4>Elements and values</h4>
 <p>
-Lots of terms define elements, which are small categories of information,
-such as "title", "author", or "response".  Elements are meant to take on
-values, for example, pieces of text containing personal names.  When the
-values for an element have limits,
+Lots of terms define metadata elements, which are small categories of
+information, such as "title", "author", or "response".  An element can
+also be defined as a structured statement that itself contains other
+elements; for example, a "location" that contains "latitude" and
+"longitude".
 </p>
 <p>
-Term definitions can help when values have limits.  For example, a
-"response" element might take on one of the defined values "yes", "no",
-or "maybe".  Another element might have an infinite number of values, but
-all restricted to "integer".  Elements can also be defined as structured
-statements that themselves contain other defined elements; for example,
-a "location" that contains "latitude" and "longitude".
+Other elements are meant to take on metadata values, for example, pieces
+of text or personal names.  Terms may help when values have limits, for
+example, a "response" element might be one of "yes", "no", or "maybe".
+Another element might be meant to have an infinite number of values, but
+with all of them restricted to "integer".
 </p>
 <p>
 </p>
