@@ -98,27 +98,46 @@ metadictionary is about terms used to create <i>structured</i>
 (machine-readable) information.
 </p>
 <p>
-YAMZ supports data too.  Like metadata, data is structured information,
-but with a shift in emphasis away from being <i>about</i> one particular
-thing.
+The metadictionary supports data too.  Like metadata, data is structured
+information, but with a shift in emphasis away from being <i>about</i>
+a particular thing.
 </p>
+
 <h4>Things and assertions about them</h4>
 <p>
-The structured information in metadata is usually a group of assertions
+Metadata usually looks like a group of assertions
 about a particular thing, such as a document.  For example, metadata may
 assert that a given document's title is X, it's author Y, and it's
 publication date Z.
 </p>
 <p>
 Term definitions often refer to the thing being described using a word
-like "thing", "resource", or "object", eg, "Title: A name given to the
-resource".  Which exact thing that is cannot be found in a term
-definition.  Instead it is usually revealed by metadata values or context
-(eg, metadata embedded in a file can often be assumed to describe the
-rest of the file).
+like "thing", "resource", or "object", eg, a title could be "A name given
+to the resource".  Which exact thing is being referred to cannot be found
+in a term definition.  Instead it is revealed by metadata values or
+context (eg, metadata embedded in a file can often be assumed to describe
+the rest of the file).
+</p>
+
+<h4>Elements and values</h4>
+<p>
+Lots of terms define elements, which are small categories of information,
+such as "title", "author", or "response".  Elements are meant to take on
+values, for example, pieces of text containing personal names.  When the
+values for an element have limits,
 </p>
 <p>
-
+Term definitions can help when values have limits.  For example, a
+"response" element might take on one of the defined values "yes", "no",
+or "maybe".  Another element might have an infinite number of values, but
+all restricted to "integer".  Elements can also be defined as structured
+statements that themselves contain other defined elements; for example,
+a "location" that contains "latitude" and "longitude".
+</p>
+<p>
+</p>
+<h4>End</h4>
+<p>
 To be useful across lots of software and domains, that the elements and value
 A blob of metadata "record" describing a "thing" consists of one or more statements
 that themselves may contain smaller statements, all the way down to the
