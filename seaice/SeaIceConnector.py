@@ -426,7 +426,7 @@ class SeaIceConnector:
       persistent_id = defTerm['persistent_id']
       concept_id = defTerm['concept_id']
       # create persistent ID for term if need be
-      if not persistent_id:
+      if not persistent_id:		# xxx code not tested
         persistent_id = mint.create_persistent_id(prod_mode)
         mint.bind_persistent_id(prod_mode, persistent_id,
           defTerm['term_string'], defTerm['definition'], defTerm['examples'])
@@ -434,7 +434,7 @@ class SeaIceConnector:
         sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
         data = (persistent_id, concept_id, id)
         cur.execute(sql, data)
-      # xxx needs to be a way to rebind ids when we're not also minting
+      # xxx to fix: should enable re-binding of ids when not minting
 
       return (id, concept_id)
 
@@ -1397,7 +1397,7 @@ class SeaIceConnector:
       if table == "Users":
         self.insertUser(row)
       elif table == "Terms":
-        self.insertTerm(row, prod_mode)
+        self.insertTerm(row, prod_mode)	# xxx call not tested
       elif table == "Comments":
         self.insertComment(row)
       elif table == "Tracking":

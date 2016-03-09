@@ -82,9 +82,9 @@ js_termAction = """
 
 js_copyToClipboard = """
   function CopyToClipboard(text) {
-    window.prompt("Hit Ctrl-C (Cmd-C), then Enter to copy this tag to your clipboard. " +
-                  "Embedding this tag in your term definition or comment " +
-                  "will create a hyperlink to this term with the term name.", text);
+    window.prompt("Hit Ctrl-C (Cmd-C), then Enter to copy this reference to your clipboard. " +
+                  "Embedding this reference in your term definition or comment " +
+                  "will create a hyperlink to this term.", text);
   }
 """
 
@@ -562,8 +562,8 @@ def printTermAsHTML(db_con, row, user_id=0):
                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>""" % row['id']
  
   # Copy reference tag
-  string += '''    <hr><a id="copyLink" title="Click here to get a reference link." href="#"
-                        onclick="CopyToClipboard('#{%s : related to}');">Get term link</a>''' % row['concept_id']
+  string += '''    <hr><a id="copyLink" title="Click to get a reference link to this term." href="#"
+                        onclick="CopyToClipboard('#{t: %s | %s}');">Get term link</a>''' % (row['term_string'], row['concept_id'])
 
   string += "    </td>"
   string += "  </tr>"
