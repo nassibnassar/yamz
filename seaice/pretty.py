@@ -83,7 +83,7 @@ js_termAction = """
 js_copyToClipboard = """
   function CopyToClipboard(text) {
     window.prompt("Hit Ctrl-C (Cmd-C), then Enter to copy this reference to your clipboard. " +
-                  "Embedding this reference in your term definition or comment " +
+                  "Embedding the reference in your term definition or comment " +
                   "will create a hyperlink to this term.", text);
   }
 """
