@@ -527,10 +527,16 @@ def printTermAsHTML(db_con, row, user_id=0):
              ("unstar" if good else "star"), row['id'], 'unwatch' if good else 'watch')
   string += "  </td></tr>"
 
+  termstr = '''<a id="copyLink" title="Click to get a reference link to this term."
+                  href="#" onclick="CopyToClipboard('#{t: %s | %s}');"
+               ><font size=\"3\"><strong>%s</strong></font></a>''' % (
+	         row['term_string'], row['concept_id'], row['term_string'])
+
   # Name/Class
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
-  string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(row['term_string']) 
+  #string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(row['term_string']) 
+  string += "    <td valign=top width=25%>{0}<td>".format(termstr)
   string += "    <td valign=top width=5% rowspan=2>"
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>"
