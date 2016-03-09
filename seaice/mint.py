@@ -49,7 +49,6 @@ def minderOpener (prod_mode):
 #    ctxt = ssl.create_default_context()
 #  except AttributeError:
 #    # Legacy Python that doesn't verify HTTPS certificates by default
-#    print "xxx"
 #    pass
 #  else:
 #    ctxt.check_hostname = False
@@ -58,7 +57,6 @@ def minderOpener (prod_mode):
 #  try:
 #    _create_unverified_https_context = ssl._create_unverified_context
 #  except AttributeError:
-#    #print "xxx"
 #    # Legacy Python that doesn't verify HTTPS certificates by default
 #    pass
 #  else:

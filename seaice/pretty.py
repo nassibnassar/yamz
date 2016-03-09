@@ -120,8 +120,6 @@ gtag_string = '<a href=/tag/{0} title="{2}" ' + gtag_style + '>&nbsp;{1}&nbsp;</
 term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 
 # Regular expressions for string matches.
-#token_ref_regex = re.compile("(?<!#\{g: )#(#?[\w.-]+)")
-# xxx need ## and && to escape!
 token_ref_regex = re.compile("(?<!#\{g: )([#&]+)([\w.-]+)")
 # Caution: exactly one space here -----^
 # The "lookbehind" regex relies on _ref_norm using just one space.
@@ -282,20 +280,19 @@ def _printRefAsHTML(db_con, m):
       return '<br>Values: '
     if humstring.startswith('---t'):
       return '<br> '
-    # xxx ditch these next
-    if reftype == 'e':
-      return '<br>Elements: '
-    if reftype == 'v':
-      return '<br>Values: '
-    if reftype == 'g':
-      return '<br> '
+    #if reftype == 'e':
+    #  return '<br>Elements: '
+    #if reftype == 'v':
+    #  return '<br>Values: '
+    #if reftype == 'g':
+    #  return '<br> '
     
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
   # 
   term = db_con.getTermByConceptId(IDstring)
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
-  # XXX need to preserve the '#tag' to make search work!
+  # Note: search precision poor for '#tag' query
   if reftype == 'g':
     return gtag_string.format(
       string.lower(humstring), humstring, term_def)
@@ -352,12 +349,10 @@ def processTagsAsHTML(db_con, string):
 
   # preserve user-defined newlines by converting to line breaks on output
   string = string.replace("\n", "\n<br>")
-  # replace tags afterwards (because that may add newlines)
+  # replace tags afterwards (because replacement may add newlines)
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
-
-  # XXX need way to convert existing terms
-  # XXX especially existing #ppsr_term tags
-
+  string = string.replace("##", "#")	# escape mechanism
+  string = string.replace("&&", "&")
   return string
 
 
