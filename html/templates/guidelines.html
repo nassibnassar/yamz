@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>YAMZ Guidelines
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Le styles -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body { padding-top: 60px; /* 60px to make the container go all the way
+      to the bottom of the topbar */ }
+    </style>
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js">
+      </script>
+    <![endif]-->
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="/static/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="/static/ico/apple-touch-icon-57-precomposed.png">
+    <style>
+    </style>
+  </head>
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="/">YAMZ</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="/browse">Browse</a></li>
+              <li><a href="/contribute">Add</a></li>
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+              <li><a href="/account">Account</a></li>
+              <li>{% if user_name %}
+                 <a href="/logout">Log out of {{ user_name }}</a>
+                {% else %}
+                 <a href="/login">Login</a>
+                {% endif %} 
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <table width=100%>
+       <tr>
+        <td>
+          <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">YAMZ metadictionary guidelines</h1>
+          <p class="jetstrap-selected" contenteditable="false" style="background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALHRFWHRDcmVhdGlvbiBUaW1lAEZyaSAxMiBOb3YgMjAxMCAxOTowNzowMiArMTIwMOGr8p4AAAAHdElNRQfaCwwGBxwduq16AAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAfJJREFUeNqVkk1vElEUhp87X4CIFhhMG0toMC5K3Lgxbro10bhxY2Jc+CO666Y/oP/DxFVjTKM7l1apTdM0JSU0LSg0WqaUjwE6MDNebGpKBYlndc+55zw5H6/gim2UUd0qs5Uy6VaTa7EYdtOmUN7naHER92q+dtnZ2UFpHTOTXWfuwxrfYlNUHz1lxvdIVyx6MuXHPwFeBLW2z+29Pepr7ziUof7SEq1CibCEmKMAymXH6SD6LrpzRndQPIjNz9P3odu2URlhQ4C+ghcM0JpLEchkzrv7eIDS62JYP2lPBJS2cIMhyrMpwo+fMbW8jLhhc2t3F906pjoK8GcH29vonoenRDk1m5zcvUM6ZuJvZEnmcljT09hbR6iVIuLJw/PxhgAOPOj26Gk1nEQCNWAQ7XS4bxvw8hWuGedeo4iR+/y7+OtfgM1N9OIBwnFQ5SLdZJJ2JML17BdqEuYHgmiahsjnx4zw/i2fslm8dht/YQHx/AWpfI50/ZTKm9d8lykiHkf4/hjA6ipnF++VFRS7T1AoaDejyCEYlHmWNeEKF9YISz30CBkGirxKUIZGamAsQG2hux66BAipi1A6g/5fAM/HkGrUFfmr6wSSiWHJTwQoPrq8hCYEGDoh0xzfwUhyIY9ROkRrNKQ65e1P6uM7+AW+ibcHEM1ixAAAAABJRU5ErkJggg==); background-position: 708px 0px; background-repeat: no-repeat no-repeat;">
+          </p>
+        </td>
+        <td valign=top align=right width=30%>
+          <form action="/search" method="post">
+            <div class="control-group"><label class="control-label"></label>
+            <div class="controls"><input name="term_string" type="text" 
+            class="input-large search-query" placeholder="Search for a term"></div></div>
+          </form>
+        </td>
+       </tr>
+      </table> 
+
+      <hr>
+
+
+      
+      <p>
+          The YAMZ Metadictionary is an open registry of metadata terms from
+	  all domains and from all parts of "metadata speech".  With no login
+	  required, anyone can search for and link to term definitions.
+	  Register once, then login to create and edit your terms.
+	  YAMZ was initially developed in 2013-2014 by a Metadata Working
+	  Group within the NSF-funded
+	  <a href="http://www.dataone.org">DataONE</a> initiative, and
+	  extended with support from the
+	  <a href="https://www.diglib.org">Digital Library Federation</a>.
+      </p>
+
+      <p>
+          The metadictionary aims to be a high-quality cross-domain metadata 
+          vocabulary that is directly connected to evolving user needs.
+	  Change will be rapid and affordable, with no need for panels of
+	  experts to convene and deliberate to improve it. We expect dramatic
+	  simplification of vocabulary evolution compared to traditional
+	  methods that have created an overwhelming number of vocabularies
+	  (ontologies) to choose from.
+      </p>
+
+      <p>
+          The hope is that users (people creating machine-readable
+	  descriptions of objects they care about) will be able to find
+	  most of the terms they need in <i>one place</i> namely, the
+	  Metadictionary.  One vocabulary, one namespace.  This should
+	  reduce the number of namespaces, namespace clutter, and the
+	  expense of maintaining crosswalks with other vocabularies.
+          And the vocabulary is "shovel-ready" for linked data application,
+	  each term having its own permalink (an ARK identifier).
+      </p>
+      
+      <p>
+        The source code for the YAMZ metadictionary is available on
+        <a href="http://www.github.com/nassar/yamz">Github</a> as a Python
+	package under a BSD open source license.
+	<a href="/api">Full API documentation</a> is also available.
+      </p>
+
+      <h3>Basic metadictionary structure</h3>
+
+      <p>
+          Across the dictionary there are three disjoint term classes.
+	  Classification is ongoing and fully-automated, based on voting
+	  and user reputation. 
+          
+          <h4>Vernacular</h4>
+            <li>all terms are born here and considered to be works-in-progress</li>
+            <li>unstable terms; permalink points to a definition that may change</li>
+            <li>anyone can propose new vernacular terms</li>
+            <li>proposer(s) of a term "own" it initially; only they can make changes</li>
+            <li>communities of interest spring up around related term clusters</li>
+            <li>term tagging make it easy for communities (eg, working groups) to switch focus to selected term subsets</li>
+
+          <h4>Canonical</h4>
+            <li>terms safe for short- or long-term reference</li>
+            <li>stable terms; permalink points to an unchanging definition</li>
+            <li>terms move from vernacular to canonical by consensus</li>
+            <li>terms still subject to voting</li>
+
+          <h4>Deprecated</h4>
+            <li>stable terms, but deprecated for long-term reference</li>
+            <li>terms move from canonical to archival by consensus</li>
+            <li>archival terms have links such as "ObsoletedBy: term X"</li>
+      </p>
+
+      <h3>CC0</h3>
+      <p>
+          All parts of every term, including definitions, examples, and illustrations are 
+          dedicated to the public domain under the terms of the CC0 license. 
+      </p>
+      
+      <h3>History</h3>
+      <p>
+	  YAMZ was initially developed in 2013-2014 by a Metadata Working
+	  Group within the NSF-funded
+	  <a href="http://www.dataone.org">DataONE</a> initiative, and
+	  extended with support from the
+	  <a href="https://www.diglib.org">Digital Library Federation</a>.
+      </p>
+      <hr>
+
+      <div class="footer" align=right><font size="1" color="#8B8B8B">
+        Contributions to the <i>YAMZ</i> metadictionary are dedicated to the public
+        domain under the terms of CC0. By <br> using this site, you agree to Terms
+        of Use and Privacy Policy statements similar to 
+        <a href="http://wikimediafoundation.org">wikimediafoundation.org</a>.
+      </font></div><br>
+
+    </div> <!-- /container -->
+
+
+    <style>
+
+        body {
+          padding-top: 60px;
+        }
+
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js">
+    </script>
+    <script src="/static/js/bootstrap.js">
+    </script>
+    <script>
+
+    </script>
+  </body>
+</html>
