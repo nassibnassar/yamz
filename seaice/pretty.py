@@ -567,9 +567,9 @@ def printTermAsHTML(db_con, row, user_id=0):
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
                    onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>""" % row['id']
  
-  # Copy reference tag
-  string += '''    <hr><a id="copyLink" title="Click to get a reference link to this term." href="#"
-                        onclick="CopyToClipboard('#{t: %s | %s}');">Get term link</a>''' % (row['term_string'], row['concept_id'])
+  ## Copy reference tag
+  #string += '''    <hr><a id="copyLink" title="Click to get a reference link to this term." href="#"
+  #                      onclick="CopyToClipboard('#{t: %s | %s}');">Get term link</a>''' % (row['term_string'], row['concept_id'])
 
   string += "    </td>"
   string += "  </tr>"
