@@ -64,7 +64,7 @@
       <table width=100%>
        <tr>
         <td>
-          <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">YAMZ metadictionary guidelines</h1>
+          <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">Creating the metadictionary together</h1>
           <p class="jetstrap-selected" contenteditable="false" style="background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALHRFWHRDcmVhdGlvbiBUaW1lAEZyaSAxMiBOb3YgMjAxMCAxOTowNzowMiArMTIwMOGr8p4AAAAHdElNRQfaCwwGBxwduq16AAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAfJJREFUeNqVkk1vElEUhp87X4CIFhhMG0toMC5K3Lgxbro10bhxY2Jc+CO666Y/oP/DxFVjTKM7l1apTdM0JSU0LSg0WqaUjwE6MDNebGpKBYlndc+55zw5H6/gim2UUd0qs5Uy6VaTa7EYdtOmUN7naHER92q+dtnZ2UFpHTOTXWfuwxrfYlNUHz1lxvdIVyx6MuXHPwFeBLW2z+29Pepr7ziUof7SEq1CibCEmKMAymXH6SD6LrpzRndQPIjNz9P3odu2URlhQ4C+ghcM0JpLEchkzrv7eIDS62JYP2lPBJS2cIMhyrMpwo+fMbW8jLhhc2t3F906pjoK8GcH29vonoenRDk1m5zcvUM6ZuJvZEnmcljT09hbR6iVIuLJw/PxhgAOPOj26Gk1nEQCNWAQ7XS4bxvw8hWuGedeo4iR+/y7+OtfgM1N9OIBwnFQ5SLdZJJ2JML17BdqEuYHgmiahsjnx4zw/i2fslm8dht/YQHx/AWpfI50/ZTKm9d8lykiHkf4/hjA6ipnF++VFRS7T1AoaDejyCEYlHmWNeEKF9YISz30CBkGirxKUIZGamAsQG2hux66BAipi1A6g/5fAM/HkGrUFfmr6wSSiWHJTwQoPrq8hCYEGDoh0xzfwUhyIY9ROkRrNKQ65e1P6uM7+AW+ibcHEM1ixAAAAABJRU5ErkJggg==); background-position: 708px 0px; background-repeat: no-repeat no-repeat;">
           </p>
         </td>
@@ -80,7 +80,57 @@
 
       <hr>
 
+<h4>Why metadata</h4>
+<p>
+Metadata is structured information that we use to describe things we
+care about.  Structure makes the information more readable by software,
+and that helps us organize, manage, and analyze things, and discover more
+things we care about.  Metadata is essentially a structured statement
+that can be a simple group or a hierarchy of nested statements, ending at
+the finest levels of structure: named elements and their values.
+</p>
+<h4>What makes metadata describes</h4>
+<h4>What makes metadata useful</h4>
+<p>
+Metadata lives in files and databases.
+Metadata is broken down into elements and values so that we
 
+the more standar
+about.  The more that ifnr
+YAMZ is a tool for discovering and creating high-quality machine readable
+vocabulary
+Focus is on terms used for creating machine readable descriptions.
+Natural language can inform and inspire term definitions, but it should
+not be used to define natural language terms unless they are proposed
+for use as machine-readable jargon.
+https://owl.english.purdue.edu/owl/resource/622/01/
+https://www.prismnet.com/~hcexres/textbook/def.html
+
+Use #foo or #{foo} or #{t:foo} to reference a term.
+xxx use !foo to reference term? and #foo for a tag?
+xxx Use ##foo to reference a group?
+use #{k: text|link}
+
+Term strings (labels) should only contain [\w \-] (eg, no punctuation)
+ xxx no '-'?
+often assume an object as subject of description
+prefer to define in the singular, then use in plural form
+YAMZ is not
+ - an encyclopedia - definitions are short, one-sentence
+A typical definition reads:  A(n) <noun> that ...
+All metadata structure definitions should begin like this:
+   A _structured statement_ that ....  Elements: <element1>, ..., <elementN-1>, <elementN>  [no period, no
+"and"]
+All metadata structure definitions should end like this:
+   Elements: <element1>, ..., <elementN-1>, <elementN>  [no period, no "and"]
+For an element with controlled values:
+   A <noun> that ....  Values: <value1>, ... <valueN-1>, <valueN>
+To add a tag, put #tag at the _very_ end of the definition (after elements and values).
+To define an acronym, _begin_ the definition with the expansion, using
+capital letters to indicate letters belonging to the acronym, eg,
+   Term: PDP
+   Definition: (Provider Descriptive Profile) A structured statement that ...
+</p>
       
       <p>
           The YAMZ Metadictionary is an open registry of metadata terms from
