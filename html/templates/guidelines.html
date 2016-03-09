@@ -64,7 +64,7 @@
       <table width=100%>
        <tr>
         <td>
-          <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">Creating the metadictionary together</h1>
+          <h1 class="jetstrap-highlighted" style="background-image: none; background-position: 0% 0%; background-repeat: repeat repeat;">Metadictionary guidelines</h1>
           <p class="jetstrap-selected" contenteditable="false" style="background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALHRFWHRDcmVhdGlvbiBUaW1lAEZyaSAxMiBOb3YgMjAxMCAxOTowNzowMiArMTIwMOGr8p4AAAAHdElNRQfaCwwGBxwduq16AAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAfJJREFUeNqVkk1vElEUhp87X4CIFhhMG0toMC5K3Lgxbro10bhxY2Jc+CO666Y/oP/DxFVjTKM7l1apTdM0JSU0LSg0WqaUjwE6MDNebGpKBYlndc+55zw5H6/gim2UUd0qs5Uy6VaTa7EYdtOmUN7naHER92q+dtnZ2UFpHTOTXWfuwxrfYlNUHz1lxvdIVyx6MuXHPwFeBLW2z+29Pepr7ziUof7SEq1CibCEmKMAymXH6SD6LrpzRndQPIjNz9P3odu2URlhQ4C+ghcM0JpLEchkzrv7eIDS62JYP2lPBJS2cIMhyrMpwo+fMbW8jLhhc2t3F906pjoK8GcH29vonoenRDk1m5zcvUM6ZuJvZEnmcljT09hbR6iVIuLJw/PxhgAOPOj26Gk1nEQCNWAQ7XS4bxvw8hWuGedeo4iR+/y7+OtfgM1N9OIBwnFQ5SLdZJJ2JML17BdqEuYHgmiahsjnx4zw/i2fslm8dht/YQHx/AWpfI50/ZTKm9d8lykiHkf4/hjA6ipnF++VFRS7T1AoaDejyCEYlHmWNeEKF9YISz30CBkGirxKUIZGamAsQG2hux66BAipi1A6g/5fAM/HkGrUFfmr6wSSiWHJTwQoPrq8hCYEGDoh0xzfwUhyIY9ROkRrNKQ65e1P6uM7+AW+ibcHEM1ixAAAAABJRU5ErkJggg==); background-position: 708px 0px; background-repeat: no-repeat no-repeat;">
           </p>
         </td>
@@ -80,25 +80,64 @@
 
       <hr>
 
-<h4>Why metadata</h4>
+<h4>Metadata and data</h4>
 <p>
-Metadata is structured information that we use to describe things we
-care about.  Structure makes the information more readable by software,
-and that helps us organize, manage, and analyze things, and discover more
-things we care about.  Metadata is essentially a structured statement
-that can be a simple group or a hierarchy of nested statements, ending at
-the finest levels of structure: named elements and their values.
+Metadata is structured information for describing things we care about.
+It looks like text with extra punctuation to mark different regions,
+and elements and values within those regions.  That structure makes the
+information readable by software, which in turn helps us organize,
+manage, analyze, and discover things we care about.
 </p>
-<h4>What makes metadata describes</h4>
-<h4>What makes metadata useful</h4>
 <p>
-Metadata lives in files and databases.
-Metadata is broken down into elements and values so that we
+Real computational power comes when there is wide agreement on metadata
+terms &ndash; on element names and the values they take on.  The goal of
+YAMZ is to support finding, creating, and achieving community accord on
+high-quality terms.  These are the terms that you and others will use
+to create high-quality metadata. Unlike a regular dictionary, the
+metadictionary is about terms used to create <i>structured</i>
+(machine-readable) information.
+</p>
+<p>
+YAMZ supports data too.  Like metadata, data is structured information,
+but with a shift in emphasis away from being <i>about</i> one particular
+thing.
+</p>
+<h4>Things and assertions about them</h4>
+<p>
+The structured information in metadata is usually a group of assertions
+about a particular thing, such as a document.  For example, metadata may
+assert that a given document's title is X, it's author Y, and it's
+publication date Z.
+</p>
+<p>
+Term definitions often refer to the thing being described using a word
+like "thing", "resource", or "object", eg, "Title: A name given to the
+resource".  Which exact thing that is cannot be found in a term
+definition.  Instead it is usually revealed by metadata values or context
+(eg, metadata embedded in a file can often be assumed to describe the
+rest of the file).
+</p>
+<p>
 
-the more standar
-about.  The more that ifnr
-YAMZ is a tool for discovering and creating high-quality machine readable
-vocabulary
+To be useful across lots of software and domains, that the elements and value
+A blob of metadata "record" describing a "thing" consists of one or more statements
+that themselves may contain smaller statements, all the way down to the
+finest levels of structure: named elements and their values.  Such a
+record may exist in a digital file or a database, and the described thing
+might be a the same digital file, a file nearby, or a physical object.
+</p>
+<p>
+What most concerns the YAMZ metadictionary, however, is coming up with
+a common vocabulary of named elements, and often their values, from which
+people can describe things by putting together the best structured
+statements (metadata records), that is, the ones that are as widely
+understood as possible.  It is aggressively cross-domain and includes
+all parts of metadata speech -- names, values, encodings, etc.  This is
+not the first online dictionary of metadata; it is Yet Another Metadata
+Zoo (YAMZ).
+</p>
+<h4>What makes the metadictionary useful</h4>
+<p>
 Focus is on terms used for creating machine readable descriptions.
 Natural language can inform and inspire term definitions, but it should
 not be used to define natural language terms unless they are proposed
