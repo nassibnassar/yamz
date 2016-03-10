@@ -222,14 +222,16 @@ of its class.
 In particular, a definition (in the singular form) should start with
 the article "A", "An", or "The".  As an example, for the term "water",
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;A clear liquid made up of hydrogen and oxygen molecules.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+A clear liquid made up of hydrogen and oxygen molecules.
 </p>
 the class is "clear liquid".  If the term string is an acronym, expand it
 inside parentheses (using capital letters to delineate the acronym), and
 insert the expansion at the very beginning of the definition.
 As an example, for the term "ABC",
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;(Apple Bovine Cooler) An ointment for treating overheated cows.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(Apple Bovine Cooler) An ointment for treating overheated cows.
 </p>
 
 <h4>Referencing</h4>
@@ -242,9 +244,11 @@ links to words and concepts defined in YAMZ and elsewhere.
 When you create or edit text, a construct like
 </p>
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;#{t: <i>multi-word term string</i>}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#{t: <i>multi-word term string</i>}<br>
 or<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&amp;<i>term</i>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&amp;<i>term</i>
 </p>
 <p>
 refers to a term (the second is a shorthand for when the term string
@@ -252,7 +256,8 @@ consists of just one word).  After you save your editing, YAMZ converts
 this to a standard internal form:
 </p>
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;#{t: <i>term string</i> | <i>concept identifier</i>}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#{t: <i>term string</i> | <i>concept identifier</i>}
 </p>
 On display this reference will look like an ordinary link to the named
 term, and when your mouse hovers over it that term's definition should
@@ -268,9 +273,11 @@ sub-community, such as a working group trying to focus on a subset of
 terms in YAMZ for the duration of its work.  On editing, a tag looks
 like:
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;#{g: <i>tag string</i>}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#{g: <i>tag string</i>}<br>
 or<br>
-&nbsp;&nbsp;&nbsp;&nbsp;#<i>tag</i>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#<i>tag</i>
 </p>
 <p>
 On display a tag looks like a link inside a tile.  When you hover over it
@@ -282,9 +289,11 @@ bearing that tag.
 <p>
 If you need to, you can also add general links to external content using
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;#{k: <i>link string</i> | <i>URL (web address)</i>}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#{k: <i>link string</i> | <i>URL (web address)</i>}<br>
 or<br>
-&nbsp;&nbsp;&nbsp;&nbsp;#{k: <i>URL (web address)</i>}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#{k: <i>URL (web address)</i>}
 </p>
 These links are not to be used in the definition proper, but they may
 appear in a separate note, for example, "Note: context for this term's
@@ -304,17 +313,22 @@ and a list of elements.  For example, a definition for "collector" might
 look like this:
 </p>
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;A person who collects things of a certain type.
-&nbsp;&nbsp;&nbsp;&nbsp;Elements: &age, &height, &weight
-&nbsp;&nbsp;&nbsp;&nbsp;#geology, #botany
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+A person who collects things of a certain type.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Elements: &age, &height, &weight<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#geology, #botany
 </p>
 <p>
 A term may have either an element list, a value list, or neither, but not
 both.  A value list should also be placed at the end, as in:
 </p>
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;Values: &yes, &no, &maybe
-&nbsp;&nbsp;&nbsp;&nbsp;#cryptozoologists
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Values: &yes, &no, &maybe<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#finance<br>
 </p>
 
 <!--
@@ -323,26 +337,6 @@ search display looks like browse
 external links
 test ARKs
 guidelines
-
-All metadata structure definitions should begin like this:
-   A _structured statement_ that ....  Elements: <element1>, ..., <elementN-1>, <elementN>  [no period, no
-"and"]
-<p>
-</p>
-All metadata structure definitions should end like this:
-   Elements: <element1>, ..., <elementN-1>, <elementN>  [no period, no "and"]
-<p>
-</p>
-For an element with controlled values:
-   A <noun> that ....  Values: <value1>, ... <valueN-1>, <valueN>
-<p>
-</p>
-To add a tag, put #tag at the _very_ end of the definition (after elements and values).
-<p>
-</p>
-   Term: PDP
-   Definition: (Provider Descriptive Profile) A structured statement that ...
-</p>
 -->
       
 <h5>Updated</h5>
