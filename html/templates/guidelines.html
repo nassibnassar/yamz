@@ -129,7 +129,7 @@ elements are meant to take on metadata values, for example, pieces of
 text or personal names.
 </p>
 <p>
-Lots of terms help with metadata values, especially when they are limited
+Terms also help with metadata values, especially when they are limited
 in some way.  For example, a "response" element might be one of "yes",
 "no", or "maybe".  A "count" element might take an infinite number of
 values, but always restricted to "integer".
@@ -142,9 +142,8 @@ YAMZ is not
     not an essay.
 </li>
 <li>... a grammar. Whether a term is required or optional is out of scope.
-    In that sense a term is more like a nano-standard, and its definition
-    may link out to external documents specifying rules for given
-    communities.
+    A term is like a proposed nano-standard, and its definition may link
+    out to external documents specifying rules for given communities.
 </li>
 <li>... a regular dictionary. While there appear to be many natural
     language terms, they are actually formal jargon inspired by natural
@@ -163,34 +162,37 @@ YAMZ is not
 
 <h3>Term parts</h3>
 <p>
-Terms consist of a term string, definition, unique concept identifiers,
-examples, and comments.
+Terms consist of several parts:  a term string, definition, unique concept
+identifier, example section, and comments section.
 </p>
 
 <h4>Term string</h4>
 <p>
-A term string (or label) is one or more words to refer to the concept
-being defined.  It is how one refers to the term in speech.
+A term string (or label) is one or more words indicating how we speak about
+the concept being defined.
 
 <ul>
-</ol>
 <li>A term string should contain only letters, digits, hyphens, and
     underscores.  If it has more than one word, exactly one space
     separates each word.
 </li>
 <li>Although definitions are in English, the term string may be derived
     from any natural language.  Whatever its origin, consideration should
-    be given to making it easy to spell, pronounce, use in sentences.
+    be given to making it easy to spell, pronounce, and use in English
+    sentences.
 </li>
 <li>Prefer creating a term in the singular form, and in such a way that
-    the plural form need not also be defined.  This is often easier,
-    clearer, and more flexible than creating a term in the plural form.
+    the plural form need not also be defined.  This approach is often
+    easier, clearer, and more flexible than creating a term in the plural
+    form.
 </li>
-<li>A term string need not be unique in the metadictionary, but each term
-    gets a unique and persistent concept identifier when the term is
-    first created.  Sometimes two terms with the same term string may be
-    meant to complement each other or to compete.
+<li>A term string need not be unique in the metadictionary, but consider
+    carefully if you want to re-use an existing string.  Either way, each
+    term gets a unique and persistent concept identifier when it is first
+    created.  Two terms with the same term string may be meant to compete
+    with or to complement each other.
 </li>
+</ul>
 </p>
 
 <h4>Term definition</h4>
@@ -199,21 +201,21 @@ With the term string established, your term definition should consist
 of two main parts (see <a
 href="https://owl.english.purdue.edu/owl/resource/622/01/">[1]</a> and
 <a href="https://www.prismnet.com/~hcexres/textbook/def.html">[2]</a>):
-<ol>
+<ul>
 <li>The class of thing to which the term belongs, followed by
 </li>
 <li>differentiating characteristics that distinguish it from all others
 of its class.
 </li>
-</ol>
+</ul>
 In particular, a definition (in the singular form) should start with
 the article "A" or "The".  As an example, for the term "water",
 <blockquote>
 A clear liquid made up of hydrogen and oxygen molecules.
 </blockquote>
 the class is "clear liquid".  If the term string is an acronym, expand it
-in parentheses at the very beginning of the definition.  As an example,
-for the term "ABC",
+inside parentheses (using capital letters to delineate the acronym), at
+the very beginning of the definition.  As an example, for the term "ABC",
 <blockquote>
 (Apple Bovine Cooling) A treatment for overheated cows involving an
 ointment extracted from apples.
@@ -226,36 +228,14 @@ When term definitions, examples, and comments refer to words and concepts
 defined in YAMZ and elsewhere, you can create actionable links to them
 with special notation.  When you create or edit text in these parts of a
 term, be aware of constructs that look like
-<blockquote>
-<pre>#{t:</pre> <i>term string</i> | <i>concept identifier</i><pre>}</pre><br>
-<pre>#{g:</pre> <i>tag string</i> | <i>concept identifier</i><pre>}</pre><br>
-<pre>#{k:</pre> <i>link string</i> | <i>URL/web address</i><pre>}</pre><br>
-<pre>&foo</pre> (shorthand for <pre>#{t: foo}</pre><br>
-<pre>#foo</pre> (shorthand for <pre>#{g: foo}</pre>
-</blockquote>
+<blockquote><pre>
+#{t: <term string> | <concept identifier>}
+#{g: <tag string> | <concept identifier>}
+#{k: <link string> | <URL/web address>}
+&foo (shorthand for) #{t: foo}
+#foo (shorthand for) #{g: foo}
+</pre></blockquote>
 </p>
-
-is one or more words to refer to the concept
-being defined.  It is how one refers to the term in speech.
-
-<ul>
-</ol>
-<li>A term string should contain only letters, digits, hyphens, and
-    underscores.  If it has more than one word, exactly one space
-    separates each word.
-</li>
-<li>Although definitions are in English, the term string may be derived
-    from any natural language.  Whatever its origin, consideration should
-    be given to making it easy to spell, pronounce, use in sentences.
-</li>
-<li>Prefer creating a term in the singular form, and in such a way that
-    the plural form need not also be defined.  This is often easier,
-    clearer, and more flexible than creating a term in the plural form.
-</li>
-
-</p>
-</p>
-
 
 <h4>What makes a good definition</h4>
 <p>
@@ -263,19 +243,8 @@ being defined.  It is how one refers to the term in speech.
 <p>
 </p>
 <p>
-<p>
 </p>
 
-Use #foo or #{foo} or #{t:foo} to reference a term.
-xxx use !foo to reference term? and #foo for a tag?
-xxx Use ##foo to reference a group?
-use #{k: text|link}
-<p>
-</p>
-
-YAMZ is not
- - an encyclopedia - definitions are short, one-sentence
-A typical definition reads:  A(n) <noun> that ...
 All metadata structure definitions should begin like this:
    A _structured statement_ that ....  Elements: <element1>, ..., <elementN-1>, <elementN>  [no period, no
 "and"]
@@ -292,17 +261,13 @@ For an element with controlled values:
 To add a tag, put #tag at the _very_ end of the definition (after elements and values).
 <p>
 </p>
-To define an acronym, _begin_ the definition with the expansion, using
-capital letters to indicate letters belonging to the acronym, eg,
-<p>
-</p>
    Term: PDP
    Definition: (Provider Descriptive Profile) A structured statement that ...
 </p>
       
-<h5>Update</h5>
+<h5>Updated</h5>
 <p>
-Document last updated 10 March 2016 by jak.
+Document last updated 9 March 2016 by jak.
 </p>
 <hr>
 
