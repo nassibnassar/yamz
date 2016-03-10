@@ -151,8 +151,8 @@ YAMZ is not
 <li>... an encyclopedia. A definition is approximately one sentence,
     not an essay.
 </li>
-<li>... a grammar. Whether a term is required or optional is out of scope.
-    A term is like a proposed nano-standard, and its definition may link
+<li>... a grammar. Whether a term is required or optional is out of
+    scope.  A term is like a nano-standard, and its definition may link
     out to external documents specifying rules for given communities.
 </li>
 <li>... a regular dictionary. While there appear to be many natural
@@ -167,20 +167,14 @@ YAMZ is not
     can narrow its focus to #XYZ terms on demand.  It is a feature that
     YAMZ is ultimately one large, flat namespace with no domain borders.
 </li>
-<li>... a playground.  The YAMZ team reserves the right to remove content
-    that it deems inappropriate and to disable logins that are
-    and disable logins that it
-    deems inappropriate.
-    A term is like a proposed nano-standard, and its definition may link
-    out to external documents specifying rules for given communities.
-</li>
 </ul>
 </p>
 
 <h3>Term parts</h3>
 <p>
 Terms consist of several parts:  a term string, definition, unique concept
-identifier, example section, and comments section.
+identifier, example section, and comments section.  Term definitions
+should be in English.
 </p>
 
 <h4>Term string</h4>
@@ -226,16 +220,16 @@ of its class.
 </li>
 </ul>
 In particular, a definition (in the singular form) should start with
-the article "A" or "The".  As an example, for the term "water",
+the article "A", "An", or "The".  As an example, for the term "water",
 <p>
 &nbsp;&nbsp;&nbsp;&nbsp;A clear liquid made up of hydrogen and oxygen molecules.
 </p>
 the class is "clear liquid".  If the term string is an acronym, expand it
-inside parentheses (using capital letters to delineate the acronym), at
-the very beginning of the definition.  As an example, for the term "ABC",
+inside parentheses (using capital letters to delineate the acronym), and
+insert the expansion at the very beginning of the definition.
+As an example, for the term "ABC",
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;(Apple Bovine Cooling) A treatment for overheated cows involving an
-ointment extracted from apples.
+&nbsp;&nbsp;&nbsp;&nbsp;(Apple Bovine Cooler) An ointment for treating overheated cows.
 </p>
 
 <h4>Referencing</h4>
@@ -263,33 +257,34 @@ this to a standard internal form:
 On display this reference will look like an ordinary link to the named
 term, and when your mouse hovers over it that term's definition should
 appear.  Term references can be used liberally inside definitions,
-examples, and coments.
+examples, and comments.
 </p>
 <h5>Tag references</h5>
 <p>
-Tag references are similar, but are meant to appear only in definitions,
-where a group of one or more tags should be separated from the end of the
-definition by a single newline.  Tags identify one or more
-sub-communities, such as a working group trying to focus on a subset of
-terms in YAMZ for the duration of its work.  On editing, a tag looks like:
+Tag references are like term references, but are meant to appear only in
+definitions, where a group of one or more tags should be separated from
+the end of the definition by a single newline.  A tag identifies a
+sub-community, such as a working group trying to focus on a subset of
+terms in YAMZ for the duration of its work.  On editing, a tag looks
+like:
 <p>
 &nbsp;&nbsp;&nbsp;&nbsp;#{g: <i>tag string</i>}<br>
 or<br>
-&nbsp;&nbsp;&nbsp;&nbsp;#<i>tag</i>}
+&nbsp;&nbsp;&nbsp;&nbsp;#<i>tag</i>
 </p>
 <p>
-On display a tag looks like a small tile.  When you hover over it a
-definition should appear (yes, a tag takes a definition, just like a
-term), and when you click on it YAMZ performs a search on all terms
+On display a tag looks like a link inside a tile.  When you hover over it
+a definition should appear (yes, a tag takes a definition, just like a
+term), and when you click on it YAMZ performs a search for all terms
 bearing that tag.
 </p>
 <h5>External links</h5>
 <p>
-You can also add general links to external content using
+If you need to, you can also add general links to external content using
 <p>
-&nbsp;&nbsp;&nbsp;&nbsp;#{k: <i>link string</i> | <i>URL/web address</i>}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#{k: <i>link string</i> | <i>URL (web address)</i>}<br>
 or<br>
-&nbsp;&nbsp;&nbsp;&nbsp;#{k: <i>URL/web address</i>}
+&nbsp;&nbsp;&nbsp;&nbsp;#{k: <i>URL (web address)</i>}
 </p>
 These links are not to be used in the definition proper, but they may
 appear in a separate note, for example, "Note: context for this term's
@@ -303,12 +298,13 @@ them to the end of its definition (but before any tags).  When a term
 takes elements (has substructure), first start the definition with
 something like
 "A <a href="http://www.yamz.net/term=h1237">structured statement</a>
-that ...", followed by distinguishing characteristics.  Then, at the end
-of the definition (but before any tags), add a newline, "Elements: ", and
-a list of elements.  For example, the end your definition might look like
-this:
+defining ...", followed by distinguishing characteristics.  Then, at the
+end of the definition (but before any tags), add a newline, "Elements: ",
+and a list of elements.  For example, a definition for "collector" might
+look like this:
 </p>
 <p>
+&nbsp;&nbsp;&nbsp;&nbsp;A person who collects things of a certain type.
 &nbsp;&nbsp;&nbsp;&nbsp;Elements: &age, &height, &weight
 &nbsp;&nbsp;&nbsp;&nbsp;#geology, #botany
 </p>
