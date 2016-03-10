@@ -224,22 +224,59 @@ ointment extracted from apples.
 
 <h4>Referencing terms, tags, and external links</h4>
 <p>
-When term definitions, examples, and comments refer to words and concepts
-defined in YAMZ and elsewhere, you can create actionable links to them
-with special notation.  When you create or edit text in these parts of a
-term, be aware of constructs that look like
-<pre>
-#{t: &lt;term string&gt; | &lt;concept identifier&gt;}
-#{g: &lt;tag string&gt; | &lt;concept identifier&gt;}
-#{k: &lt;link string&gt; | &lt;URL/web address&gt;}
-&foo (which is shorthand for) #{t: foo}
-#foo (which is shorthand for) #{g: foo}
-</pre>
+In term definitions, examples, and comments you can refer to words and
+concepts defined in YAMZ and elsewhere, you can create actionable links
+to them with special notation.  When you create or edit text in these
+parts of a term, consider using constructs like
+</p>
+<p>
+&nbsp;&nbsp;#{t: <i>multi word term string</i>}<br>
+or<br>
+&nbsp;&nbsp;&amp;<i>term</i>
+</p>
+<p>
+which YAMZ converts to
+</p>
+<p>
+&nbsp;&nbsp;#{t: <i>term string</i> | <i>concept identifier</i>}
+</p>
+after you save your editing.  Upon display this looks like an ordinary
+link to the named term, and when your mouse hovers over it that term's
+definition should appear.  Similarly, you can add tags to your terms in
+order to identify one or more sub-communities or working groups:
+<p>
+&nbsp;&nbsp;#{g: <i>tag string</i>}<br>
+or<br>
+&nbsp;&nbsp;#<i>tag</i>}
+</p>
+<p>
+Tag references should be separated from the end of your definition by a
+single newline.  A tag reference looks like a small tile upon display.
+When you hover over it a definition should appear (yes, a tag takes a
+definition, just like a term), and when you click on it YAMZ performs a
+search on all terms bearing that tag.  Finally, you can also add general
+links to external content using
+<p>
+&nbsp;&nbsp;#{k: <i>link string</i> | <i>URL/web address</i>}<br>
+or<br>
+&nbsp;&nbsp;#{k: <i>URL/web address</i>}
+</p>
+These links are not to be used directly in the definition proper.
+They may be used sparingly, for example, "Note: context for this term's
+use may be found at #{k: example.com/xyzterms}."
+</p>
 
-... a few more details to add ...
+<h4>Terms that take values or substructure</h4>
+<p>
 </p>
 
 <!--
+Changes
+search display looks like browse
+external links
+test ARKs
+guidelines
+
 All metadata structure definitions should begin like this:
    A _structured statement_ that ....  Elements: <element1>, ..., <elementN-1>, <elementN>  [no period, no
 "and"]
@@ -263,7 +300,7 @@ To add a tag, put #tag at the _very_ end of the definition (after elements and v
       
 <h5>Updated</h5>
 <p>
-Document last updated 9 March 2016 by jak.
+Document last updated 10 March 2016 by jak.
 </p>
 <hr>
 
