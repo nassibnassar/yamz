@@ -428,7 +428,8 @@ class SeaIceConnector:
       # create persistent ID for term if need be
       if not persistent_id:		# xxx code not tested
         persistent_id = mint.create_persistent_id(prod_mode)
-        mint.bind_persistent_id(prod_mode, persistent_id,
+	arkId = mint.pid2ark(persistent_id)	# removes URL hostname
+        mint.bind_persistent_id(prod_mode, arkId,
           defTerm['term_string'], defTerm['definition'], defTerm['examples'])
         concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
         sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"

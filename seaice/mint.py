@@ -24,7 +24,7 @@ REAL_BINDER_URL = "https://n2t.net/a/yamz/b"
 TEST_MINTER_URL = "https://n2t.net/a/yamz/m/ark/99152/fk2"
 TEST_BINDER_URL = "https://n2t.net/a/yamz_test/b"
 
-# FIXME Location for `minter_password` is needlessly hardcoded. 
+# FIXME Location for minter_password is needlessly hardcoded. 
 deploy = 'heroku' 
 CONFIG = auth.get_config('.seaice_auth')
 if CONFIG.has_option(deploy, 'minter_password'):
@@ -142,10 +142,10 @@ _resolver_base = 'http://n2t.net/'
 _resolver_base_len = len(_resolver_base)
 
 def ark2pid (ark):
-  return _resolver_base + ark
+  return _resolver_base + ark		# add URL base
 
 def pid2ark (pid):
-  return pid[_resolver_base_len:]
+  return pid[_resolver_base_len:]	# remove URL base
 
 def create_persistent_id (prod_mode):
   arkId = mintArkIdentifier(prod_mode)
