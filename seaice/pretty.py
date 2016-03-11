@@ -129,10 +129,10 @@ token_ref_regex = re.compile("(?<!#\{g: )([#&]+)([\w.-]+)")
 ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                  2        3         4
 #endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
-_xtag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*_term)")	# hack!
-tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
+_xtag_regex = re.compile("#(([a-zA-Z][a-zA-Z0-9_\-\.]*)_term)")	# hack!
+#tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 _xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(is related to[^\{\}]*)\}")	# hack!
-term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
+#term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
 def _token_ref_norm(m):
@@ -155,6 +155,13 @@ def _token_ref_norm(m):
   else:
     return sigil + token	# return untouched if doubled
 
+def _xtag_norm(db_con, m):
+  """ Promote old style "#xxx_term" into new style "#{g: #xxx | hNNNN }".
+  """
+  subtag = m.group(2)	# xxx hack, should match "ppsr" in "ppsr_term"
+  term = db_con.getTermByTermString(subtag)
+  return '#{g: #%s | %s }' % (subtag, term['concept_id'])
+
 def _xterm_tag_norm(db_con, m):
   """ Promote old style "#{hNNNN : is related to }" into new style
   "#{t: term string | hNNNN }".
@@ -172,9 +179,11 @@ def refs_norm(db_con, string, force=False):
   :returns: Modified plain text string.
   """
 
-  # xxx hack
-  # convert old xterm_tag_regex and xtag_regex matches!
+  # xxx temporary transitional hack
+  # convert old xterm_tag_regex and xtag_regex matches
   string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(db_con, m), string)
+  string = _xtag_regex.sub(lambda m: _xtag_norm(db_con, m), string)
+
   # first promote any simple "#ref" into curly "#{t: ref}
   string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
   #string = token_ref_regex.sub('#{t: \\1}', string)
