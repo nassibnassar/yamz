@@ -129,7 +129,7 @@ token_ref_regex = re.compile("(?<!#\{g: )([#&]+)([\w.-]+)")
 ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                  2        3         4
 #endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
-xtag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*_term)")	# hack!
+_xtag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*_term)")	# hack!
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
 _xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(is related to[^\{\}]*)\}")	# hack!
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
@@ -368,8 +368,8 @@ def processTagsAsHTML(db_con, string):
   string = string.replace("\n", "\n<br>")
 
   # xxx transitional code to support old style tags along with new style tags
-  string = xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
-  string = xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
+  string = _xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  string = _xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
   string = string.replace("##", "#")	# escape mechanism
