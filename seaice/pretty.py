@@ -159,7 +159,7 @@ def _xtag_norm(db_con, m):
   """ Promote old style "#xxx_term" into new style "#{g: #xxx | hNNNN }".
   """
   subtag = m.group(2)	# xxx hack, should match "ppsr" in "ppsr_term"
-  n, term = db_con.getTermByTermString('#' + subtag)
+  n, term = db_con.getTermByTermString(subtag)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
   elif n == 0:
