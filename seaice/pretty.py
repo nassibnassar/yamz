@@ -131,7 +131,7 @@ ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\
 #endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
 xtag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*_term)")	# hack!
 tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
-xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(is related to[^\{\}]*)\}")	# hack!
+_xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(is related to[^\{\}]*)\}")	# hack!
 term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
@@ -155,6 +155,17 @@ def _token_ref_norm(m):
   else:
     return sigil + token	# return untouched if doubled
 
+def _xterm_tag_norm(m):
+  """ Promote old style "#{hNNNN : is related to }" into new style
+  "#{t: term string | hNNNN }".
+
+  :param string: The input string. 
+  :returns: Modified plain text string.
+  """
+  concept_id = m.group(1)
+  term_string = "xxx " + concept_id
+  return '#{t: %s | %s }' % (term_string, concept_id)
+
 def refs_norm(db_con, string, force=False): 
   """ Resolve references in text entries before storing in DB.
 
@@ -166,6 +177,7 @@ def refs_norm(db_con, string, force=False):
 
   # xxx hack
   # convert old xterm_tag_regex and xtag_regex matches!
+  string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(m), string)
   # first promote any simple "#ref" into curly "#{t: ref}
   string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
   #string = token_ref_regex.sub('#{t: \\1}', string)
@@ -352,13 +364,16 @@ def processTagsAsHTML(db_con, string):
   """
 
   # preserve user-defined newlines by converting to line breaks on output
-  string = string.replace("\n", "\n<br>")
   # replace tags afterwards (because replacement may add newlines)
+  string = string.replace("\n", "\n<br>")
+
+  # xxx transitional code to support old style tags along with new style tags
+  string = xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  string = xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
+
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
-  string = xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
-  string = xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
   return string
 
 
