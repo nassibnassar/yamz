@@ -155,16 +155,13 @@ def _token_ref_norm(m):
   else:
     return sigil + token	# return untouched if doubled
 
-def _xterm_tag_norm(m):
+def _xterm_tag_norm(db_con, m):
   """ Promote old style "#{hNNNN : is related to }" into new style
   "#{t: term string | hNNNN }".
-
-  :param string: The input string. 
-  :returns: Modified plain text string.
   """
   concept_id = m.group(1)
-  term_string = "xxx " + concept_id
-  return '#{t: %s | %s }' % (term_string, concept_id)
+  term = db_con.getTermByConceptId(concept_id)
+  return '#{t: %s | %s }' % (term['term_string'], concept_id)
 
 def refs_norm(db_con, string, force=False): 
   """ Resolve references in text entries before storing in DB.
@@ -177,7 +174,7 @@ def refs_norm(db_con, string, force=False):
 
   # xxx hack
   # convert old xterm_tag_regex and xtag_regex matches!
-  string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(m), string)
+  string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(db_con, m), string)
   # first promote any simple "#ref" into curly "#{t: ref}
   string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
   #string = token_ref_regex.sub('#{t: \\1}', string)
