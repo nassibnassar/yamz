@@ -129,8 +129,10 @@ token_ref_regex = re.compile("(?<!#\{g: )([#&]+)([\w.-]+)")
 ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                  2        3         4
 #endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
-tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")	# xxx drop
-term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")	# xxx drop
+xtag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*_term)")	# hack!
+tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
+xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(is related to[^\{\}]*)\}")	# hack!
+term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
 def _token_ref_norm(m):
@@ -162,6 +164,8 @@ def refs_norm(db_con, string, force=False):
   :returns: Modified plain text string.
   """
 
+  # xxx hack
+  # convert old xterm_tag_regex and xtag_regex matches!
   # first promote any simple "#ref" into curly "#{t: ref}
   string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
   #string = token_ref_regex.sub('#{t: \\1}', string)
@@ -353,6 +357,8 @@ def processTagsAsHTML(db_con, string):
   string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
+  string = xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  string = xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
   return string
 
 
