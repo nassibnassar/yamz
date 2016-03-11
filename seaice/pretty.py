@@ -159,8 +159,14 @@ def _xtag_norm(db_con, m):
   """ Promote old style "#xxx_term" into new style "#{g: #xxx | hNNNN }".
   """
   subtag = m.group(2)	# xxx hack, should match "ppsr" in "ppsr_term"
-  term = db_con.getTermByTermString(subtag)
-  return '#{g: #%s | %s }' % (subtag, term['concept_id'])
+  n, term = db_con.getTermByTermString(subtag)
+  if n == 1:
+    term_string, concept_id = term['term_string'], term['concept_id']
+  elif n == 0:
+    term_string, concept_id = (subtag + '(undefined)'), '-'
+  elif n == 2:
+    term_string, concept_id = (subtag + '(ambiguous)'), '-'
+  return '#{g: #%s | %s }' % (term_string, concept_id)
 
 def _xterm_tag_norm(db_con, m):
   """ Promote old style "#{hNNNN : is related to }" into new style
