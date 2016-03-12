@@ -131,7 +131,7 @@ ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\
 #endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
 _xtag_regex = re.compile("#(([a-zA-Z][a-zA-Z0-9_\-\.]*)_term)")	# hack!
 #tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
-_xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(is related to[^\{\}]*)\}")	# hack!
+_xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(related to[^\{\}]*)\}")	# hack!
 #term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
@@ -170,7 +170,7 @@ def _xtag_norm(db_con, m):
   #return '#{g: #%s | %s }' % (term_string, concept_id)
 
 def _xterm_tag_norm(db_con, m):
-  """ Promote old style "#{hNNNN : is related to }" into new style
+  """ Promote old style "#{hNNNN : related to}" into new style
   "#{t: term string | hNNNN }".
   """
   concept_id = m.group(1)
