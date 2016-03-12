@@ -175,7 +175,12 @@ def _xterm_tag_norm(db_con, m):
   """
   concept_id = m.group(1)
   term = db_con.getTermByConceptId(concept_id)
-  return '#{t: %s | %s }' % (term['term_string'], concept_id)
+  if term:
+    term_string = term['term_string']
+  else:
+    term_string = concept_id + '(undefined)'
+
+  return '#{t: %s | %s }' % (term_string, concept_id)
 
 def refs_norm(db_con, string, force=False): 
   """ Resolve references in text entries before storing in DB.
