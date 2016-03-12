@@ -182,6 +182,7 @@ def _xterm_tag_norm(db_con, m):
 
   return '#{t: %s | %s }' % (term_string, concept_id)
 
+
 def refs_norm(db_con, string, force=False): 
   """ Resolve references in text entries before storing in DB.
 
