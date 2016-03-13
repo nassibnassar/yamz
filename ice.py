@@ -365,47 +365,47 @@ def remNotification(user_id, notif_index):
 def getTerm(term_concept_id = None, message = ""):
   
     g.db = app.dbPool.getScoped()
-  #try: 
     term = g.db.getTermByConceptId(term_concept_id)
-    if term:
-      result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
-      result = message + "<hr>" + result + "<hr>"
-      result += seaice.pretty.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
-                                                 l.current_user.id)
-      if l.current_user.id:
-        result += """ 
-        <form action="/term={0}/comment" method="post">
-          <table cellpadding=16 width=60%>
-            <tr><td><textarea type="text" name="comment_string" rows=3
-              style="width:100%; height:100%"
-              placeholder="Add comment"></textarea></td></tr>
-            <tr><td align=right><input type="submit" value="Comment"><td>
-            </td>
-          </table>
-        </form>""".format(term['id'])
-      else:
-        result += """ 
-        <form action="/login" method="get">
-          <table cellpadding=16 width=60%>
-            <tr><td><textarea type="text" rows=3
-              style="width:100%; height:100%"
-              placeholder="Log in to comment." readonly></textarea></td></tr>
-            <tr><td align=right><input type="submit" value="Login"><td>
-            </td>
-          </table>
-        </form>"""
-      
-      return render_template("basic_page.html", user_name = l.current_user.name, 
-                                                title = "Term - %s" %
-                                                        term_concept_id, 
-                                                headline = "Term", 
-                                                content = Markup(result.decode('utf-8')))
-  #except ValueError: pass
+    if not term:
+      return render_template("basic_page.html",
+               user_name = l.current_user.name, 
+               title = "Term not found",
+               headline = "Term", 
+               content = Markup("Term <strong>#%s</strong> not found!!" \
+	           % term_concept_id))
 
-    return render_template("basic_page.html", user_name = l.current_user.name, 
-                                            title = "Term not found",
-                                            headline = "Term", 
-                                            content = Markup("Term <strong>#%s</strong> not found!" % term_concept_id))
+    result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
+    result = message + "<hr>" + result + "<hr>"
+    result += seaice.pretty.printCommentsAsHTML(g.db, g.db.getCommentHistory(term['id']),
+                                               l.current_user.id)
+    if l.current_user.id:
+      result += """ 
+      <form action="/term={0}/comment" method="post">
+        <table cellpadding=16 width=60%>
+          <tr><td><textarea type="text" name="comment_string" rows=3
+            style="width:100%; height:100%"
+            placeholder="Add comment"></textarea></td></tr>
+          <tr><td align=right><input type="submit" value="Comment"><td>
+          </td>
+        </table>
+      </form>""".format(term['id'])
+    else:
+      result += """ 
+      <form action="/login" method="get">
+        <table cellpadding=16 width=60%>
+          <tr><td><textarea type="text" rows=3
+            style="width:100%; height:100%"
+            placeholder="Log in to comment." readonly></textarea></td></tr>
+          <tr><td align=right><input type="submit" value="Login"><td>
+          </td>
+        </table>
+      </form>"""
+    
+    return render_template("basic_page.html", user_name = l.current_user.name,
+                            title = "Term - %s" %
+                                    term_concept_id, 
+                            headline = "Term", 
+                            content = Markup(result.decode('utf-8')))
 
 @app.route("/browse")
 @app.route("/browse/<listing>")
