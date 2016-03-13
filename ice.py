@@ -400,7 +400,7 @@ def getTerm(term_concept_id = None, message = ""):
                                                         term_concept_id, 
                                                 headline = "Term", 
                                                 content = Markup(result.decode('utf-8')))
-  except ValueError: pass
+  #except ValueError: pass
 
   return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Term not found",

@@ -9,4 +9,4 @@ google_client_id = 000-guy.apps.googleusercontent.com
 google_client_secret = SECRET4
 app_secret = SECRET5
 minter_password = SECRET6
-prod_mode = True
+prod_mode = False
