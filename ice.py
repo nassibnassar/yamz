@@ -364,8 +364,8 @@ def remNotification(user_id, notif_index):
 @app.route("/term=<term_concept_id>")
 def getTerm(term_concept_id = None, message = ""):
   
-  g.db = app.dbPool.getScoped()
-  try: 
+    g.db = app.dbPool.getScoped()
+  #try: 
     term = g.db.getTermByConceptId(term_concept_id)
     if term:
       result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
@@ -402,7 +402,7 @@ def getTerm(term_concept_id = None, message = ""):
                                                 content = Markup(result.decode('utf-8')))
   #except ValueError: pass
 
-  return render_template("basic_page.html", user_name = l.current_user.name, 
+    return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Term not found",
                                             headline = "Term", 
                                             content = Markup("Term <strong>#%s</strong> not found!" % term_concept_id))
