@@ -431,7 +431,12 @@ class SeaIceConnector:
 	arkId = mint.pid2ark(persistent_id)	# removes URL hostname
         mint.bind_persistent_id(prod_mode, arkId,
           defTerm['term_string'], defTerm['definition'], defTerm['examples'])
-        concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
+        #concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
+        concept_id = concept_id_regex.search(persistent_id).group(1)
+	if concept_id == None:
+          print >>sys.stderr, "warning: aborting insert for id=%s, persistent_id=%s" % (defTerm['id'], persistent_id)
+          cur.execute("ROLLBACK;")
+          return None 
         sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
         data = (persistent_id, concept_id, id)
         cur.execute(sql, data)
@@ -441,9 +446,9 @@ class SeaIceConnector:
 
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': #: Duplicate primary key
-         print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defTerm['id']
-         cur.execute("ROLLBACK;")
-         return None 
+        print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defTerm['id']
+        cur.execute("ROLLBACK;")
+        return None 
       raise e
 
   def removeTerm(self, id):

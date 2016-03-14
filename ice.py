@@ -371,7 +371,7 @@ def getTerm(term_concept_id = None, message = ""):
                user_name = l.current_user.name, 
                title = "Term not found",
                headline = "Term", 
-               content = Markup("Term <strong>#%s</strong> not found!!" \
+               content = Markup("Term <strong>#%s</strong> not found!" \
 	           % term_concept_id))
 
     result = seaice.pretty.printTermAsHTML(g.db, term, l.current_user.id)
@@ -501,20 +501,22 @@ def addTerm():
 
   if request.method == "POST": 
     g.db = app.dbPool.dequeue()
-    term = { 'term_string' : request.form['term_string'],
-             'definition' : seaice.pretty.refs_norm(g.db, request.form['definition']),
-             'examples' : seaice.pretty.refs_norm(g.db, request.form['examples']),
-             'owner_id' : l.current_user.id,
-             'id' : app.termIdPool.ConsumeId() }
+    term = {
+      'term_string' : request.form['term_string'],
+      'definition' : seaice.pretty.refs_norm(g.db, request.form['definition']),
+      'examples' : seaice.pretty.refs_norm(g.db, request.form['examples']),
+      'owner_id' : l.current_user.id,
+      'id' : app.termIdPool.ConsumeId() }
 
     (id, concept_id) = g.db.insertTerm(term, prod_mode)
     g.db.commit()
     app.dbPool.enqueue(g.db)
-    return getTerm(concept_id, message = "Your term has been added to the metadictionary!")
+    return getTerm(concept_id,
+        message = "Your term has been added to the metadictionary!")
   
-  else: return render_template("contribute.html", user_name = l.current_user.name, 
-                                                  title = "Contribute", 
-                                                  headline = "Add a dictionary term")
+  else:			# GET
+    return render_template("contribute.html", user_name = l.current_user.name, 
+      title = "Contribute", headline = "Add a dictionary term")
 
 
 @app.route("/term=<term_concept_id>/edit", methods = ['POST', 'GET'])
@@ -524,22 +526,23 @@ def editTerm(term_concept_id = None):
   try: 
     g.db = app.dbPool.dequeue()
     term = g.db.getTermByConceptId(term_concept_id)
+    # yyy not checking if term was found?
     assert l.current_user.id and term['owner_id'] == l.current_user.id
     
     if request.method == "POST":
 
       assert request.form.get('examples') != None
       updatedTerm = {
-                      'term_string' : request.form['term_string'],
-                      'definition' : seaice.pretty.refs_norm(g.db, request.form['definition']),
-                      'examples' : seaice.pretty.refs_norm(g.db, request.form['examples']),
-                      'owner_id' : l.current_user.id } 
+        'term_string' : request.form['term_string'],
+        'definition' : seaice.pretty.refs_norm(g.db, request.form['definition']),
+        'examples' : seaice.pretty.refs_norm(g.db, request.form['examples']),
+        'owner_id' : l.current_user.id } 
 
       g.db.updateTerm(term['id'], updatedTerm, term['persistent_id'], prod_mode)
 
       # Notify tracking users
-      notify_update = seaice.notify.TermUpdate(term['id'], l.current_user.id, 
-                                               term['modified'])
+      notify_update = seaice.notify.TermUpdate(
+        term['id'], l.current_user.id, term['modified'])
                                                
       for user_id in g.db.getTrackingByTerm(term['id']):
         app.SeaIceUsers[user_id].notify(notify_update, g.db)        
@@ -547,30 +550,35 @@ def editTerm(term_concept_id = None):
       g.db.commit()
       app.dbPool.enqueue(g.db)
 
-      return getTerm(term_concept_id, message = "Your term has been updated in the metadictionary.")
+      return getTerm(term_concept_id,
+	message = "Your term has been updated in the metadictionary.")
   
-    else: # GET 
+    else:		# GET 
       app.dbPool.enqueue(g.db)
       if term: 
-        return render_template("contribute.html", user_name = l.current_user.name, 
-                                                  title = "Edit - %s" % term_concept_id,
-                                                  headline = "Edit term",
-                                                  edit_id = term_concept_id,
-                                                  term_string_edit = term['term_string'].decode('utf-8'),
-                                                  definition_edit = term['definition'].decode('utf-8'),
-                                                  examples_edit = term['examples'].decode('utf-8'))
+        return render_template("contribute.html",
+	  user_name = l.current_user.name, 
+          title = "Edit - %s" % term_concept_id,
+          headline = "Edit term",
+          edit_id = term_concept_id,
+          term_string_edit = term['term_string'].decode('utf-8'),
+          definition_edit = term['definition'].decode('utf-8'),
+          examples_edit = term['examples'].decode('utf-8'))
+
   except ValueError:
-    return render_template("basic_page.html", user_name = l.current_user.name, 
-                                              title = "Term not found",
-                                              headline = "Term", 
-                                              content = Markup("Term <strong>#%s</strong> not found!" % term_concept_id))
+    return render_template("basic_page.html",
+      user_name = l.current_user.name, 
+      title = "Term not found",
+      headline = "Term", 
+      content = Markup("Term <strong>#%s</strong> not found!" % term_concept_id))
 
   except AssertionError:
-    return render_template("basic_page.html", user_name = l.current_user.name, 
-                                              title = "Term - %s" % term_concept_id, 
-                                              content = 
-              """Error! You may only edit or remove terms and definitions which 
-                 you've contributed. However, you may comment or vote on this term. """)
+    return render_template("basic_page.html",
+      user_name = l.current_user.name, 
+      title = "Term - %s" % term_concept_id, 
+      content = 
+      """Error! You may only edit or remove terms and definitions which 
+         you've contributed. However, you may comment or vote on this term.""")
 
 
 @app.route("/term=<int:term_id>/remove", methods=["POST"])
