@@ -412,28 +412,31 @@ class SeaIceConnector:
                               created,
                               modified,
                               owner_id,
-                              persistent_id ) 
+                              persistent_id,
+			      concept_id )
             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
             RETURNING id
         """, (defTerm['id'], defTerm['term_string'], defTerm['definition'],
 	      defTerm['examples'], defTerm['up'], defTerm['down'],
 	      defTerm['created'], defTerm['modified'], defTerm['owner_id'],
-	      defTerm['persistent_id']))
+	      defTerm['persistent_id'], defTerm['concept_id']))
     
       res = cur.fetchone()
       id = None if res is None else res[0]
 
       persistent_id = defTerm['persistent_id']
       concept_id = defTerm['concept_id']
+      print >>sys.stderr, "xxx insert for id=%s" % defTerm['id']
       # create persistent ID for term if need be
-      if not persistent_id:		# xxx code not tested
+      if not persistent_id:
         persistent_id = mint.create_persistent_id(prod_mode)
-	arkId = mint.pid2ark(persistent_id)	# removes URL hostname
+        arkId = mint.pid2ark(persistent_id)	# removes URL hostname
         mint.bind_persistent_id(prod_mode, arkId,
           defTerm['term_string'], defTerm['definition'], defTerm['examples'])
         #concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
         concept_id = concept_id_regex.search(persistent_id).group(1)
-	if concept_id == None:
+        print >>sys.stderr, "xxx pid=%s, cid=%s" % (persistent_id, concept_id)
+        if concept_id == None:
           print >>sys.stderr, "warning: aborting insert for id=%s, persistent_id=%s" % (defTerm['id'], persistent_id)
           cur.execute("ROLLBACK;")
           return None 
