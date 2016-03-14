@@ -414,7 +414,7 @@ class SeaIceConnector:
                               owner_id,
                               persistent_id,
 			      concept_id )
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
             RETURNING id
         """, (defTerm['id'], defTerm['term_string'], defTerm['definition'],
 	      defTerm['examples'], defTerm['up'], defTerm['down'],
