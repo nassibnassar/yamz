@@ -2,6 +2,7 @@
 dbname = seaice
 user = reader
 password = PASSWORD1
+
 [contributor]
 dbname = seaice
 user = contributor

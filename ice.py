@@ -363,6 +363,7 @@ def remNotification(user_id, notif_index):
 @app.route("/term/concept=<term_concept_id>")
 @app.route("/term=<term_concept_id>")
 def getTerm(term_concept_id = None, message = ""):
+# NOTE: this getTerm is called with concept_id, the other getTerm with id
   
     g.db = app.dbPool.getScoped()
     term = g.db.getTermByConceptId(term_concept_id)
@@ -671,7 +672,6 @@ def editComment(comment_id = None):
       g.db.commit()
       app.dbPool.enqueue(g.db)
       return getTerm(g.db.getTermConceptId(comment['term_id']), message = "Your comment has been updated.")
-  
     else: # GET 
       app.dbPool.enqueue(g.db)
       if comment: 

@@ -1,7 +1,7 @@
 .. SeaIce API documentation master file, created by
    sphinx-quickstart on Tue Jul 23 14:37:11 2013.
 
-Top level programs ``sea``, ``ice``, and ``digest``
+Top level programs ``sea.py``, ``ice.py``, and ``digest.py``
 ===================================================
 
 Two top-level Python programs that make use of the *SeaIce* API (which
@@ -25,7 +25,7 @@ of the source distribution. Both share two parameters in common:
 ``sea.py``
 =======
 
-``sea`` is the command line UI for *SeaIce* and provides administrative 
+``sea.py`` is the command line UI for *SeaIce* and provides administrative 
 functionality. It allows you to initialize and drop the database schema, 
 import and export individual tables, score and classify terms in the database, 
 and seed a user's reputation. Use ``--help`` for a full list of options. 
@@ -48,11 +48,21 @@ to delete a term manually with ``--remove=ID``, where ``ID`` is the term's surro
 
 .. code-block:: bash
 
-  $ ./sea --export=Userss >users.json
-  $ ./sea --export=Terms >terms.json
-  $ ./sea --export=Comments >comments.json
-  $ ./sea --export=Tracking >tracking.json
-  $ ./sea --drop-db --init-db -q
+  $ ./sea.py --export=Users >users.json
+  $ ./sea.py --export=Terms >terms.json
+  $ ./sea.py --export=Comments >comments.json
+  $ ./sea.py --export=Tracking >tracking.json
+
+Now delete and re-initialize the database with
+
+  $ ./sea.py --drop-db --init-db -q
+
+When working with a heroku instance, that last command may hang unless you
+drop existing open database connections, and afterwards restart the server.
+
+  $ heroku pg:killall --app yamz
+  $ ./sea.py --drop-db --init-db -q
+  $ heroku restart --app yamz
 
 Now add the necessary modifications directly to the ``*.json`` exports. 
 When importing, it's important to do so in the correct order since the 
@@ -60,10 +70,10 @@ tables use surrogate keys to reference each other.
 
 .. code-block:: bash
 
-  $ ./sea --import=Userss <users.json
-  $ ./sea --import=Terms <terms.json
-  $ ./sea --import=Comments <comments.json
-  $ ./sea --import=Tracking <tracking.json
+  $ ./sea.py --import=Users <users.json
+  $ ./sea.py --import=Terms <terms.json
+  $ ./sea.py --import=Comments <comments.json
+  $ ./sea.py --import=Tracking <tracking.json
   
 **Seed reputation**. Use ``--set-reputation=N`` with ``--user=ID``, where ``N`` is the 
 new reputation value and ``ID`` is the surrogate ID of the user. Say you want to seed 
@@ -72,7 +82,7 @@ standard output:
 
 .. code-block:: bash
  
-  $ ./sea --export=Users 
+  $ ./sea.py --export=Users 
   [
        ... 
     {
@@ -86,7 +96,7 @@ standard output:
     }
        ... 
   ]
-  $ ./sea --set-retpuation=400 --user=1032
+  $ ./sea.py --set-retpuation=400 --user=1032
 
 
 **Score terms manually**. When a vote is cast, the new consensus score of a term is 

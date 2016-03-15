@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/env python
 # 
 # sea - console frontend to the SeaIce metadictionary. 
 #
@@ -115,6 +115,15 @@ parser.add_option("--role", dest="db_role", metavar="USER",
 
 (options, args) = parser.parse_args()
 
+# Note that if more than one option is given, more than one action will
+# be taken.  But the order of actions is determined by the code below and
+# not by the order of the options, eg, if --drop-db and --init-db are both
+# given, the first action will be drop-db, followed by init-db; this
+# example may be one of the few combinations that makes sense.
+
+if len(args) < 1:
+  parser.print_help()
+  sys.exit(0)
 
 ## Establish connection to PostgreSQL db ##
 

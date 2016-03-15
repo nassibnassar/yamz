@@ -426,26 +426,32 @@ class SeaIceConnector:
 
       persistent_id = defTerm['persistent_id']
       concept_id = defTerm['concept_id']
-      print >>sys.stderr, "xxx insert for id=%s" % defTerm['id']
+
       # create persistent ID for term if need be
       if not persistent_id:
         persistent_id = mint.create_persistent_id(prod_mode)
         arkId = mint.pid2ark(persistent_id)	# removes URL hostname
         mint.bind_persistent_id(prod_mode, arkId,
           defTerm['term_string'], defTerm['definition'], defTerm['examples'])
-        #concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
-        concept_id = concept_id_regex.search(persistent_id).group(1)
-        print >>sys.stderr, "xxx pid=%s, cid=%s" % (persistent_id, concept_id)
-        if concept_id == None:
-          print >>sys.stderr, "warning: aborting insert for id=%s, persistent_id=%s" % (defTerm['id'], persistent_id)
+
+      if not persistent_id:		# if that didn't work, bail
+          print >>sys.stderr, "warning: aborting insert for id=%s -- no persistent_id" % defTerm['id']
           cur.execute("ROLLBACK;")
           return None 
-        sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
-        data = (persistent_id, concept_id, id)
-        cur.execute(sql, data)
-      # xxx to fix: should enable re-binding of ids when not minting
+
+      #concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
+      concept_id = concept_id_regex.search(persistent_id).group(1)
+      if not concept_id:
+        print >>sys.stderr, "warning: aborting insert for id=%s, persistent_id=%s" % (defTerm['id'], persistent_id)
+        cur.execute("ROLLBACK;")
+        return None 
+
+      sql = "update si.terms set persistent_id = %s, concept_id = %s where id = %s;"
+      data = (persistent_id, concept_id, id)
+      cur.execute(sql, data)
 
       return (id, concept_id)
+      # yyy enable re-binding of ids when not minting?
 
     except pgdb.DatabaseError, e:
       if e.pgcode == '23505': #: Duplicate primary key
@@ -469,6 +475,8 @@ class SeaIceConnector:
     else:   return None
 
 
+  # yyy shouldn't getTermConceptId call?
+  # NOTE: this getTerm is called with id, the other getTerm with concept_id
   def getTerm(self, id): 
     """ Get term by ID. 
 
@@ -499,9 +507,6 @@ class SeaIceConnector:
                U_sum, D_sum, T_last, T_stable, tsv, concept_id, persistent_id
             from SI.Terms where concept_id=%s;
         """, (concept_id,))
-    #xxx = cur.num_rows()
-    #print "xxx num_rows is %s\n" % xxx
-    #sys.stdout.flush()
     return cur.fetchone()
   
   def getTermString(self, id): 
@@ -578,6 +583,7 @@ class SeaIceConnector:
     for row in cur.fetchall():
       yield row
 
+  # yyy rename getTermByTermstring?
   def getByTerm(self, term_string): 
     """ Search table by term string and return an iterator over the matches.
 
@@ -596,6 +602,7 @@ class SeaIceConnector:
     for row in cur.fetchall():
       yield row
 
+  # yy hack? reuse getByTerm?
   def getTermByTermString(self, term_string): 
     """ Search by term string and return (n, term) where n=0 for
     no matches, n=1 for one match, and n=2 for more than one match
@@ -1406,7 +1413,7 @@ class SeaIceConnector:
       if table == "Users":
         self.insertUser(row)
       elif table == "Terms":
-        self.insertTerm(row, prod_mode)	# xxx call not tested
+        self.insertTerm(row, prod_mode)
       elif table == "Comments":
         self.insertComment(row)
       elif table == "Tracking":

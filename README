@@ -256,9 +256,11 @@ include a line in ".seaice_auth" for every view:
  
    minter_password = PASS
 
-This password is also used to store metadata in a YAMZ binder on n2t.net.
-The main bit of metadata stored is the redirection target URL that supports
-resolution of ARK identifiers for YAMZ terms.
+Comment out that line if you wish the password to be read from the
+MINTER_PASSWORD environment variable.  This password is used again in the
+API call to store metadata in a YAMZ binder on n2t.net.  The main bit of
+metadata stored is the redirection target URL that supports resolution of
+ARK identifiers for YAMZ terms.
 
 Because real identifiers are meant to be persistent, no local or test
 instance of YAMZ should ever set the boolean "prod_mode" parameter in
