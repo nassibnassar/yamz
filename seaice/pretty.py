@@ -135,6 +135,9 @@ _xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(related to[^\{\}]*)\}
 #term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
+ixuniq = '#'		# "uniquerifier" makes string uniquer for indexing
+ixqlen = len(ixuniq)
+
 def _token_ref_norm(m):
   """ Promote simple "#ref" into curly "#{t: ref} or, if ref
   begins with "#", into "#{g: ref}".
@@ -329,8 +332,10 @@ def _printRefAsHTML(db_con, m):
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
   # yyy can we improve poor search for '#tag' query?
   if reftype == 'g':
-    if humstring.startswith('#'):	# store as '#tag' for indexing
-      humstring = humstring[1:]		# but remove '#' on display
+    if humstring.startswith('#'):	# store index "uniquerifier" string
+      humstring = humstring[ixqlen:]	# but remove uniquerifier on display
+    #if humstring.startswith('#'):	# store as '#tag' for indexing
+    #  humstring = humstring[1:]		# but remove '#' on display
     return gtag_string.format(
       string.lower(humstring), humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
