@@ -403,7 +403,7 @@ def getTerm(term_concept_id = None, message = ""):
       </form>"""
     
     return render_template("basic_page.html", user_name = l.current_user.name,
-                            title = "Term - %s" % term_string,
+                            title = "Term - %s" % term['term_string'],
                                     #term_concept_id, 
                             headline = "Term", 
                             content = Markup(result.decode('utf-8')))
