@@ -471,7 +471,6 @@ def returnQuery():
       return render_template("search.html", user_name = l.current_user.name, 
                                             term_string = request.form['term_string'])
     else:
-      #result = seaice.pretty.printTermsAsHTML(g.db, terms, l.current_user.id)
       result = seaice.pretty.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
       return render_template("search.html", user_name = l.current_user.name, 
         term_string = request.form['term_string'], result = Markup(result.decode('utf-8')))
@@ -490,7 +489,7 @@ def getTag(tag = None):
     return render_template("tag.html", user_name = l.current_user.name, 
                                           term_string = tag)
   else:
-    result = seaice.pretty.printTermsAsHTML(g.db, terms, l.current_user.id)
+    result = seaice.pretty.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
     return render_template("tag.html", user_name = l.current_user.name, 
       term_string = tag, result = Markup(result.decode('utf-8')))
 
