@@ -484,7 +484,7 @@ def returnQuery():
 def getTag(tag = None): 
   g.db = app.dbPool.getScoped()
   # XXX add '#' in front of tag!
-  terms = g.db.search(tag)
+  terms = g.db.search('#' + tag)
   if len(terms) == 0: 
     return render_template("tag.html", user_name = l.current_user.name, 
                                           term_string = tag)
