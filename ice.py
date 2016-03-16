@@ -403,8 +403,8 @@ def getTerm(term_concept_id = None, message = ""):
       </form>"""
     
     return render_template("basic_page.html", user_name = l.current_user.name,
-                            title = "Term - %s" %
-                                    term_concept_id, 
+                            title = "Term - %s" % term_string,
+                                    #term_concept_id, 
                             headline = "Term", 
                             content = Markup(result.decode('utf-8')))
 
@@ -483,7 +483,7 @@ def returnQuery():
 @app.route("/tag/<tag>")
 def getTag(tag = None): 
   g.db = app.dbPool.getScoped()
-  # XXX add '#' in front of tag!
+  # yyy we try, but adding '#' doesn't currently improve search precision
   terms = g.db.search('#' + tag)
   if len(terms) == 0: 
     return render_template("tag.html", user_name = l.current_user.name, 
