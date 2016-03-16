@@ -480,10 +480,11 @@ def returnQuery():
     return render_template("search.html", user_name = l.current_user.name)
 
 
-# xxx getTag currently not called -- needed?
+# when user clicks on community tag (searches for all terms bearing the tag)
 @app.route("/tag/<tag>")
 def getTag(tag = None): 
   g.db = app.dbPool.getScoped()
+  # XXX add '#' in front of tag!
   terms = g.db.search(tag)
   if len(terms) == 0: 
     return render_template("tag.html", user_name = l.current_user.name, 

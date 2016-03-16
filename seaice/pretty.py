@@ -327,8 +327,10 @@ def _printRefAsHTML(db_con, m):
   # 
   term = db_con.getTermByConceptId(IDstring)
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
-  # Note: search precision poor for '#tag' query
+  # yyy can we improve poor search for '#tag' query?
   if reftype == 'g':
+    if humstring.startswith('#'):	# store as '#tag' for indexing
+      humstring = humstring[1:]		# but remove '#' on display
     return gtag_string.format(
       string.lower(humstring), humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
@@ -387,6 +389,7 @@ def processTagsAsHTML(db_con, string):
   string = string.replace("\n", "\n<br>")
 
   # xxx transitional code to support old style tags along with new style tags
+  # xxx problemmatic!
   string = _xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   string = _xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 

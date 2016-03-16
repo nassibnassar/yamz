@@ -121,10 +121,6 @@ parser.add_option("--role", dest="db_role", metavar="USER",
 # given, the first action will be drop-db, followed by init-db; this
 # example may be one of the few combinations that makes sense.
 
-if len(args) < 1:
-  parser.print_help()
-  sys.exit(0)
-
 ## Establish connection to PostgreSQL db ##
 
 try:
