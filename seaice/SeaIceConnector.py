@@ -602,7 +602,7 @@ class SeaIceConnector:
     for row in cur.fetchall():
       yield row
 
-  # yy hack? reuse getByTerm?
+  # yyy hack? reuse getByTerm?
   def getTermByTermString(self, term_string): 
     """ Search by term string and return (n, term) where n=0 for
     no matches, n=1 for one match, and n=2 for more than one match

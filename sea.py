@@ -113,6 +113,10 @@ parser.add_option("--role", dest="db_role", metavar="USER",
                        "are specified in the configuration file (see --config).",
                   default="default")
 
+if len(sys.argv) < 2:
+  parser.print_help()
+  sys.exit(0)
+
 (options, args) = parser.parse_args()
 
 # Note that if more than one option is given, more than one action will

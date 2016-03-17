@@ -468,11 +468,12 @@ def returnQuery():
     terms = g.db.search(request.form['term_string'])
     if len(terms) == 0: 
       return render_template("search.html", user_name = l.current_user.name, 
-                                            term_string = request.form['term_string'])
+        term_string = request.form['term_string'])
     else:
       result = seaice.pretty.printTermsAsBriefHTML(g.db, terms, l.current_user.id)
       return render_template("search.html", user_name = l.current_user.name, 
-        term_string = request.form['term_string'], result = Markup(result.decode('utf-8')))
+        term_string = request.form['term_string'],
+	result = Markup(result.decode('utf-8')))
 
   else: # GET
     return render_template("search.html", user_name = l.current_user.name)

@@ -723,7 +723,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
                      <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
                      <td>{4}</td>
                      <td>{7}</tr>'''.format(
-          row['term_string'],
+          refs_norm(db_con, row['term_string']),
           row['up'] - row['down'],
           summarizeConsensus(row['consensus']),
           row['class'], 
