@@ -472,7 +472,8 @@ def returnQuery():
     search_words = hash2uniquerifier_regex.sub(
         seaice.pretty.ixuniq + '\\1',
         request.form['term_string'])
-    terms = g.db.search(request.form['term_string'])
+    terms = g.db.search(search_words)
+    #terms = g.db.search(request.form['term_string'])
     if len(terms) == 0: 
       return render_template("search.html", user_name = l.current_user.name, 
         term_string = request.form['term_string'])
