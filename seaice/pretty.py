@@ -214,7 +214,7 @@ def refs_norm(db_con, string, force=False):
   return string
     
 
-# looks a lot like _printRefAsHTML, but is about how we _store_ things
+# looks a lot like printRefAsHTML, but is about how we _store_ things
 def _ref_norm(db_con, m, force=False): 
   """ Input a regular expression match and output a normalized reference.
   
@@ -285,7 +285,7 @@ def _ref_norm(db_con, m, force=False):
 
   ## Processing tags in text areas. ##
 
-def _printRefAsHTML(db_con, m): 
+def printRefAsHTML(db_con, m): 
   """ Input a regular expression match and output the reference as HTML.
   
   A DB connector is required to resolve the tag string by ID. 
@@ -382,7 +382,7 @@ def _printTermTagAsHTML(db_con, m):
     #term_string = db_con.getTermStringByConceptId(term_concept_id)
     term = db_con.getTermByConceptId(term_concept_id)
     term_string = term['term_string'] if term else term_concept_id
-    # xxx isn't this the same code as _printRefAsHTML? should consolidate
+    # xxx isn't this the same code as printRefAsHTML? should consolidate
     term_def = "Def: " + (term['definition'] if term else "(undefined)")
     return term_tag_string.format(term_concept_id, term_def, term_string)
     #if term_string:
@@ -409,7 +409,7 @@ def processTagsAsHTML(db_con, string):
   string = _xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   string = _xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 
-  string = ref_regex.sub(lambda m: _printRefAsHTML(db_con, m), string)
+  string = ref_regex.sub(lambda m: printRefAsHTML(db_con, m), string)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
   return string
@@ -723,7 +723,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
                      <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
                      <td>{4}</td>
                      <td>{7}</tr>'''.format(
-          refs_norm(db_con, row['term_string']),
+          processTagsAsHTML(db_con, row['term_string']),
           row['up'] - row['down'],
           summarizeConsensus(row['consensus']),
           row['class'], 
