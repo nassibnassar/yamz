@@ -285,7 +285,7 @@ def _ref_norm(db_con, m, force=False):
 
   ## Processing tags in text areas. ##
 
-def printRefAsHTML(db_con, m): 
+def printRefAsHTML(db_con, m, tagAsTerm): 
   """ Input a regular expression match and output the reference as HTML.
   
   A DB connector is required to resolve the tag string by ID. 
@@ -343,12 +343,14 @@ def printRefAsHTML(db_con, m):
   # yyy can we improve poor search for '#tag' query?
   if reftype == 'g':
     # yyy in theory don't need to check before removing uniquerifier string
+    #     as all normalized tag ids will start with it
     if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
       humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
-    #if humstring.startswith('#'):	# store as '#tag' for indexing
-    #  humstring = humstring[1:]		# but remove '#' on display
-    return gtag_string.format(
-      string.lower(humstring), humstring, term_def)
+    if not tagAsTerm:
+      return gtag_string.format(
+        string.lower(humstring), humstring, term_def)
+    else:				# if tagAsTerm, format tag like a term
+      humstring = '#' + humstring	# pointing to definition, not search
   return ref_string.format(IDstring, humstring, term_def)
 
 def _printTagAsHTML(db_con, m): 
@@ -391,7 +393,7 @@ def _printTermTagAsHTML(db_con, m):
   return m.group(0)
 
 
-def processTagsAsHTML(db_con, string): 
+def processTagsAsHTML(db_con, string, tagAsTerm = False): 
   """  Process tags in DB text entries into HTML. 
 
   :param db_con: DB connection.
@@ -409,7 +411,7 @@ def processTagsAsHTML(db_con, string):
   string = _xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   string = _xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 
-  string = ref_regex.sub(lambda m: printRefAsHTML(db_con, m), string)
+  string = ref_regex.sub(lambda m: printRefAsHTML(db_con, m), string, tagAsTerm)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
   return string
