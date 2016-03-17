@@ -411,7 +411,7 @@ def processTagsAsHTML(db_con, string, tagAsTerm = False):
   string = _xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
   string = _xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 
-  string = ref_regex.sub(lambda m: printRefAsHTML(db_con, m), string, tagAsTerm)
+  string = ref_regex.sub(lambda m: printRefAsHTML(db_con, m, tagAsTerm), string)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
   return string
@@ -725,7 +725,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
                      <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
                      <td>{4}</td>
                      <td>{7}</tr>'''.format(
-          processTagsAsHTML(db_con, row['term_string']),
+          processTagsAsHTML(db_con, row['term_string'], tagAsTerm = True),
           row['up'] - row['down'],
           summarizeConsensus(row['consensus']),
           row['class'], 
