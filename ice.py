@@ -533,7 +533,7 @@ def editTerm(term_concept_id = None):
 
       assert request.form.get('examples') != None
       updatedTerm = {
-        'term_string' : request.form['term_string'],
+        'term_string' : seaice.pretty.refs_norm(g.db, request.form['term_string']),
         'definition' : seaice.pretty.refs_norm(g.db, request.form['definition']),
         'examples' : seaice.pretty.refs_norm(g.db, request.form['examples']),
         'owner_id' : l.current_user.id } 
