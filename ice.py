@@ -34,7 +34,7 @@ from flask import request, session, g
 from flask.ext import login as l
 
 from urllib2 import Request, urlopen, URLError
-import os, sys, optparse
+import os, sys, optparse, re
 import json, psycopg2 as pgdb
 
 ## Parse command line options. ##
@@ -459,12 +459,19 @@ def browse(listing = None):
                                         content = Markup(result.decode('utf-8')))
 
 
-
+hash2uniquerifier_regex = re.compile('(?<!#)#(\w[\w.-]+)')
+# xxx is " the problem (use ' below)?
+#token_ref_regex = re.compile("(?<!#\{g: )([#&]+)([\w.-]+)")
 
 @app.route("/search", methods = ['POST', 'GET'])
 def returnQuery():
   g.db = app.dbPool.getScoped()
   if request.method == "POST": 
+    # XXX whoa -- this use of term_string (in all html forms) is totally
+    #     different from term_string as used in the database!
+    search_words = hash2uniquerifier_regex.sub(
+        seaice.pretty.ixuniq + '\\1',
+        request.form['term_string'])
     terms = g.db.search(request.form['term_string'])
     if len(terms) == 0: 
       return render_template("search.html", user_name = l.current_user.name, 
@@ -483,7 +490,6 @@ def returnQuery():
 @app.route("/tag/<tag>")
 def getTag(tag = None): 
   g.db = app.dbPool.getScoped()
-  #terms = g.db.search('#' + tag)
   terms = g.db.search(seaice.pretty.ixuniq + tag)
   if len(terms) == 0: 
     return render_template("tag.html", user_name = l.current_user.name, 

@@ -129,9 +129,9 @@ token_ref_regex = re.compile("(?<!#\{g: )([#&]+)([\w.-]+)")
 ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                  2        3         4
 #endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
-_xtag_regex = re.compile("#(([a-zA-Z][a-zA-Z0-9_\-\.]*)_term)")	# hack!
+_xtag_regex = re.compile('#(([a-zA-Z][a-zA-Z0-9_\-\.]*)_term)')	# hack!
 #tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
-_xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(relate. to[^\{\}]*)\}")	# hack!
+_xterm_tag_regex = re.compile('#\{\s*([a-zA-Z0-9]+)\s*:\s*(relate. to[^\{\}]*)\}')	# hack!
 #term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
@@ -592,7 +592,7 @@ def printTermAsHTML(db_con, row, user_id=0):
                   href="#" onclick="CopyToClipboard('#{t: %s | %s}');"
                ><font size=\"3\"><strong>%s</strong></font></a>''' % (
 	         row['term_string'], row['concept_id'],
-                 processTagsAsHTML(db_con, row['term_string']))
+                 processTagsAsHTML(db_con, row['term_string'], tagAsTerm=True))
 
   # Name/Class
   string += "  <tr>"
