@@ -586,7 +586,8 @@ def printTermAsHTML(db_con, row, user_id=0):
   termstr = '''<a id="copyLink" title="Click to get a reference link to this term."
                   href="#" onclick="CopyToClipboard('#{t: %s | %s}');"
                ><font size=\"3\"><strong>%s</strong></font></a>''' % (
-	         row['term_string'], row['concept_id'], row['term_string'])
+	         row['term_string'], row['concept_id'],
+                 processTagsAsHTML(db_con, row['term_string']))
 
   # Name/Class
   string += "  <tr>"
