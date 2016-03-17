@@ -193,6 +193,8 @@ def _xterm_tag_norm(db_con, m):
 
 def refs_norm(db_con, string, force=False): 
   """ Resolve references in text entries before storing in DB.
+  First promote each simple "#ref" into "#{g: ixuniq+ref | concept_id}
+  and each simple "&ref" into #{t: ref | concept_id}
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
@@ -205,7 +207,6 @@ def refs_norm(db_con, string, force=False):
   string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(db_con, m), string)
   string = _xtag_regex.sub(lambda m: _xtag_norm(db_con, m), string)
 
-  # first promote any simple "#ref" into curly "#{t: ref}
   string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
   #string = token_ref_regex.sub('#{t: \\1}', string)
   # now convert each curly "#{reference}
@@ -218,7 +219,7 @@ def _ref_norm(db_con, m, force=False):
   """ Input a regular expression match and output a normalized reference.
   
   A DB connector is required to resolve the tag string by ID. 
-  A reference has the form #{ reftype: humstring [ | IDstring ] }
+  A reference has the form #{reftype: humstring [ | IDstring ]}
   - reftype is one of
         t (term), g (tag), m (mtype), k (link)
   - humstring is the human-readable equivalent of IDstring
@@ -266,8 +267,8 @@ def _ref_norm(db_con, m, force=False):
 
   # If we get here, we're going to do the lookup.
   #if reftype == 'g' and not humstring.startswith('#'):
-  if reftype == 'g':
-    humstring = ixuniq + humstring	# add uniquerifier before storing
+  #if reftype == 'g':
+  #  humstring = ixuniq + humstring	# add uniquerifier before storing
   n, term = db_con.getTermByTermString(humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
