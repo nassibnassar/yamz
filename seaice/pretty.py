@@ -140,7 +140,7 @@ permalink_regex = re.compile("^http://(.*)$")
 # string is prepended to a user-defined tag during storage normalization
 # and stripped out during display normalization.
 
-ixuniq = '#'
+ixuniq = 'xq'
 ixqlen = len(ixuniq)
 
 def _token_ref_norm(m):
