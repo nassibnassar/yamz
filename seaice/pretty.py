@@ -135,11 +135,16 @@ _xterm_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*(related to[^\{\}]*)\}
 #term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
 permalink_regex = re.compile("^http://(.*)$")
 
-ixuniq = '#'		# "uniquerifier" makes string uniquer for indexing
+# The "uniquerifier" (ixuniq) makes a tag string uniquer for indexing,
+# improving search precision when a user clicks on a tag.  The ixuniq
+# string is prepended to a user-defined tag during storage normalization
+# and stripped out during display normalization.
+
+ixuniq = '#'
 ixqlen = len(ixuniq)
 
 def _token_ref_norm(m):
-  """ Promote simple "#ref" into curly "#{t: ref} or, if ref
+  """ Promote simple "&ref" into curly "#{t: ref} or, if ref
   begins with "#", into "#{g: ref}".
 
   :param string: The input string. 
@@ -152,7 +157,7 @@ def _token_ref_norm(m):
   sigil = m.group(1)
   token = m.group(2)
   if sigil == '#':
-    return '#{g: #' + token + '}'
+    return '#{g: ' + ixuniq + token + '}'
   elif sigil == '&':
     return '#{t: ' + token + '}'
   else:
@@ -260,8 +265,9 @@ def _ref_norm(db_con, m, force=False):
     return '#{%s: %s}' % (reftype, humstring)
 
   # If we get here, we're going to do the lookup.
-  if reftype == 'g' and not humstring.startswith('#'):
-    humstring = '#' + humstring		# add # before lookup and storing
+  #if reftype == 'g' and not humstring.startswith('#'):
+  if reftype == 'g':
+    humstring = ixuniq + humstring	# add uniquerifier before storing
   n, term = db_con.getTermByTermString(humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
@@ -332,8 +338,9 @@ def _printRefAsHTML(db_con, m):
   term_def = "Def: " + (term['definition'] if term else "(undefined)")
   # yyy can we improve poor search for '#tag' query?
   if reftype == 'g':
-    if humstring.startswith('#'):	# store index "uniquerifier" string
-      humstring = humstring[ixqlen:]	# but remove uniquerifier on display
+    # yyy in theory don't need to check before removing uniquerifier string
+    if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
+      humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
     #if humstring.startswith('#'):	# store as '#tag' for indexing
     #  humstring = humstring[1:]		# but remove '#' on display
     return gtag_string.format(

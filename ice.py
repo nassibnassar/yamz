@@ -482,8 +482,8 @@ def returnQuery():
 @app.route("/tag/<tag>")
 def getTag(tag = None): 
   g.db = app.dbPool.getScoped()
-  # yyy we try, but adding '#' doesn't currently improve search precision
-  terms = g.db.search('#' + tag)
+  #terms = g.db.search('#' + tag)
+  terms = g.db.search(tag)
   if len(terms) == 0: 
     return render_template("tag.html", user_name = l.current_user.name, 
                                           term_string = tag)
