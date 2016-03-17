@@ -267,9 +267,12 @@ def _ref_norm(db_con, m, force=False):
 
   # If we get here, we're going to do the lookup.
   #if reftype == 'g' and not humstring.startswith('#'):
-  #if reftype == 'g':
-  #  humstring = ixuniq + humstring	# add uniquerifier before storing
-  n, term = db_con.getTermByTermString(humstring)
+  if reftype == 'g':
+    searchstring = '#{g: %s | %s}' % (humstring, IDstring)
+  else:
+    searchstring = humstring
+  n, term = db_con.getTermByTermString(searchstring)
+  #n, term = db_con.getTermByTermString(humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
   elif n == 0:
