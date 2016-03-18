@@ -204,8 +204,8 @@ def refs_norm(db_con, string, force=False):
 
   # xxx temporary transitional hack
   # convert old xterm_tag_regex and xtag_regex matches
-  #string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(db_con, m), string)
-  string = _xtag_regex.sub(lambda m: _xtag_norm(db_con, m), string)
+  string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(db_con, m), string)
+  #string = _xtag_regex.sub(lambda m: _xtag_norm(db_con, m), string)
 
   string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
   #string = token_ref_regex.sub('#{t: \\1}', string)
@@ -408,8 +408,8 @@ def processTagsAsHTML(db_con, string, tagAsTerm = False):
 
   # xxx transitional code to support old style tags along with new style tags
   # xxx problemmatic!
-  string = _xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
-  #string = _xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
+  #string = _xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
+  string = _xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
 
   string = ref_regex.sub(lambda m: printRefAsHTML(db_con, m, tagAsTerm), string)
   string = string.replace("##", "#")	# escape mechanism
@@ -481,7 +481,7 @@ def getPrettyParagraph(db_con, text, leftMargin=8, width=60):
       fella += word + " " 
       lineLength += len(word) + 1
     else:
-      fella += "\n" + (" " * (leftMargin-1))
+      fella += word + "\n" + (" " * (leftMargin-1))
       lineLength = 0
   return fella
 
