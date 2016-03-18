@@ -839,7 +839,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
           row['concept_id'],
           colorOf[row['class']],
           printPrettyDate(row['modified']),
-	  processRefsAsText(row['definition'], tagAsText=True))
+	  processRefsAsText(row['definition'], tagAsTerm=True))
   string += "</table>"
   return string
 
