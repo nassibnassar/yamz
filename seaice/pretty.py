@@ -353,7 +353,63 @@ def printRefAsHTML(db_con, m, tagAsTerm):
       humstring = '#' + humstring	# pointing to definition, not search
   return ref_string.format(IDstring, humstring, term_def)
 
-def _printTagAsHTML(db_con, m): 
+# xxx not using db_con or tagAsTerm -- remove?
+def printRefAsText(db_con, m, tagAsTerm): 
+  """ Input a regular expression match and output the reference as Text.
+  
+  A DB connector is required to resolve the tag string by ID. 
+  A reference has the form #{ reftype: humstring [ | IDstring ] }
+  - reftype is one of
+    t (term), g (tag), s (section), m (mtype), k (link)
+    #t (term), g (tag), e (element), v (value), m (mtype), k (link)
+  - humstring is the human-readable equivalent of IDstring
+  - IDstring is a machine-readable string, either a concept_id or,
+    in the case of "k" link, a URL.
+  - Note that the reference should have been normalized before being
+    stored in the database. (xxx check if that's true for API uploading)
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
+
+  (rp) = m.groups()	# rp = ref parts, the part between #{ and }
+                        # we want subexpressions 1, 2, and 4
+  reftype, humstring, IDstring = rp[1], rp[2], rp[4]
+  if not reftype:
+    reftype = 't'		# apply default reftype
+  if not humstring and not IDstring:		# when empty
+    return ''
+  if reftype == 'k':		# an external link (URL)
+    if humstring and not IDstring:	# assume the caller
+      IDstring = humstring		# mixed up the order
+    if not humstring:		# if no humanstring
+      humstring = IDstring	# use link text instead
+    if not IDstring.startswith('http:'):
+      IDstring = 'http://' + IDstring
+    return '%s (%s)' % (humstring, IDstring)
+
+  if humstring.startswith('---'):	# EndRefs
+    if humstring.startswith('---e'):
+      return '\nElements: '
+    if humstring.startswith('---v'):
+      return '\nValues: '
+    if humstring.startswith('---t'):
+      return '\n '
+    
+  # If we get here, reftype is not k, and IDstring (concept_id)
+  # is expected to reference a term in the dictionary.
+  # 
+  if reftype == 'g':
+    # yyy in theory don't need to check before removing uniquerifier string
+    #     as all normalized tag ids will start with it
+    if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
+      humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
+    return '#' + humstring
+  return humstring
+
+def printTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
   
   A DB connector is required to resolve the tag string by ID. 
@@ -366,7 +422,7 @@ def _printTagAsHTML(db_con, m):
   (tag,) = m.groups()
   return tag_string.format(string.lower(tag), tag)
 
-def _printTermTagAsHTML(db_con, m): 
+def printTermTagAsHTML(db_con, m): 
   """ Input a regular expression match and output the tag as HTML.
   
   A DB connector is required to resolve the term string by ID. 
@@ -385,10 +441,44 @@ def _printTermTagAsHTML(db_con, m):
     term = db_con.getTermByConceptId(term_concept_id)
     term_string = term['term_string'] if term else term_concept_id
     # xxx isn't this the same code as printRefAsHTML? should consolidate
-    term_def = "Def: " + (term['definition'] if term else "(undefined)")
+    term_def = "Def: " + (
+      processRefsAsText(term['definition'], tagAsTerm=True)
+      if term else "(undefined)")
     return term_tag_string.format(term_concept_id, term_def, term_string)
     #if term_string:
       #return term_tag_string.format(term_concept_id, desc, term_string)
+  except: pass
+  return m.group(0)
+
+def printTagAsText(db_con, m): 
+  """ Input a regular expression match and output the tag as Text.
+  
+  A DB connector is required to resolve the tag string by ID. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
+  (tag,) = m.groups()
+  return '#' + tag
+
+def printTermTagAsText(db_con, m): 
+  """ Input a regular expression match and output the tag as Text.
+  
+  A DB connector is required to resolve the term string by ID. 
+  If there are syntax errors, simply return the raw tag. 
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  :param m: Regular expression match. 
+  :type m: re.MatchObject
+  """
+  (term_concept_id, desc) = m.groups()
+  try:
+    term = db_con.getTermByConceptId(term_concept_id)
+    term_string = term['term_string'] if term else term_concept_id
+    return term_string
   except: pass
   return m.group(0)
 
@@ -408,10 +498,26 @@ def processTagsAsHTML(db_con, string, tagAsTerm = False):
 
   # xxx transitional code to support old style tags along with new style tags
   # xxx problemmatic!
-  #string = _xtag_regex.sub(lambda m: _printTagAsHTML(db_con, m), string)
-  string = _xterm_tag_regex.sub(lambda m: _printTermTagAsHTML(db_con, m), string)
+  string = _xtag_regex.sub(lambda m: printTagAsHTML(db_con, m), string)
+  string = _xterm_tag_regex.sub(lambda m: printTermTagAsHTML(db_con, m), string)
 
   string = ref_regex.sub(lambda m: printRefAsHTML(db_con, m, tagAsTerm), string)
+  string = string.replace("##", "#")	# escape mechanism
+  string = string.replace("&&", "&")
+  return string
+
+def processRefsAsText(string, tagAsTerm = False): 
+  """  Render references in DB text entries into plain text. 
+
+  :param string: The input string. 
+  :returns: tag-neutralized string.
+  """
+
+  # XXXXXXX define next two routines
+  string = _xtag_regex.sub(lambda m: printTagAsText(db_con, m), string)
+  string = _xterm_tag_regex.sub(lambda m: printTermTagAsText(db_con, m), string)
+
+  string = ref_regex.sub(lambda m: printRefAsText(db_con, m, tagAsTerm), string)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
   return string
@@ -733,7 +839,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
           row['concept_id'],
           colorOf[row['class']],
           printPrettyDate(row['modified']),
-	  row['definition'])
+	  processRefsAsText(row['definition'], tagAsText=True))
   string += "</table>"
   return string
 
