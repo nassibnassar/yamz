@@ -445,8 +445,6 @@ def printTermTagAsHTML(db_con, m):
       processRefsAsText(db_con, term['definition'], tagAsTerm=True)
       if term else "(undefined)")
     return term_tag_string.format(term_concept_id, term_def, term_string)
-    #if term_string:
-      #return term_tag_string.format(term_concept_id, desc, term_string)
   except: pass
   return m.group(0)
 
@@ -839,7 +837,8 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
           row['concept_id'],
           colorOf[row['class']],
           printPrettyDate(row['modified']),
-	  processRefsAsText(db_con, row['definition'], tagAsTerm=True))
+	  processRefsAsText(db_con, row['definition'],
+	    tagAsTerm=True).replace('"', '&quot;')
   string += "</table>"
   return string
 
