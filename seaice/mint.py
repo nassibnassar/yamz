@@ -151,11 +151,7 @@ def create_persistent_id (prod_mode):
   arkId = mintArkIdentifier(prod_mode)
   return ark2pid(arkId)
 
-# xxx drop db_con argument once all data uses new style tags
-def bind_persistent_id (db_con, prod_mode, arkId, who, what, peek):
-  bindArkIdentifier(arkId, prod_mode,
-    seaice.pretty.processRefsAsText(db_con, who),
-    seaice.pretty.processRefsAsText(db_con, what),
-    seaice.pretty.processRefsAsText(db_con, peek))
+def bind_persistent_id (prod_mode, arkId, who, what, peek):
+  bindArkIdentifier(arkId, prod_mode, who, what, peek)
   return ark2pid(arkId)
 

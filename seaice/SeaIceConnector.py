@@ -432,7 +432,10 @@ class SeaIceConnector:
         persistent_id = mint.create_persistent_id(prod_mode)
         arkId = mint.pid2ark(persistent_id)	# removes URL hostname
         mint.bind_persistent_id(self, prod_mode, arkId,
-          defTerm['term_string'], defTerm['definition'], defTerm['examples'])
+	  # xxx drop self arg when terms all converted to new style
+          pretty.processRefsAsText(self, defTerm['term_string']),
+	  pretty.processRefsAsText(self, defTerm['definition']),
+	  pretty.processRefsAsText(self, defTerm['examples']))
 
       if not persistent_id:		# if that didn't work, bail
           print >>sys.stderr, "warning: aborting insert for id=%s -- no persistent_id" % defTerm['id']
@@ -727,7 +730,10 @@ class SeaIceConnector:
         (term['term_string'], term['definition'], term['examples'], id))
     # update persistent ID for term
     mint.bind_persistent_id(self, prod_mode, mint.pid2ark(pid),
-      term['term_string'], term['definition'], term['examples'])
+      # xxx drop self arg when terms all converted to new style
+      pretty.processRefsAsText(self, defTerm['term_string']),
+      pretty.processRefsAsText(self, defTerm['definition']),
+      pretty.processRefsAsText(self, defTerm['examples']))
 
     ## User queries ##
 
