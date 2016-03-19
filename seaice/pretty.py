@@ -442,7 +442,7 @@ def printTermTagAsHTML(db_con, m):
     term_string = term['term_string'] if term else term_concept_id
     # xxx isn't this the same code as printRefAsHTML? should consolidate
     term_def = "Def: " + (
-      processRefsAsText(term['definition'], tagAsTerm=True)
+      processRefsAsText(db_con, term['definition'], tagAsTerm=True)
       if term else "(undefined)")
     return term_tag_string.format(term_concept_id, term_def, term_string)
     #if term_string:
@@ -506,7 +506,7 @@ def processTagsAsHTML(db_con, string, tagAsTerm = False):
   string = string.replace("&&", "&")
   return string
 
-def processRefsAsText(string, tagAsTerm = False): 
+def processRefsAsText(db_con, string, tagAsTerm = False): 
   """  Render references in DB text entries into plain text. 
 
   :param string: The input string. 
@@ -839,7 +839,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
           row['concept_id'],
           colorOf[row['class']],
           printPrettyDate(row['modified']),
-	  processRefsAsText(row['definition'], tagAsTerm=True))
+	  processRefsAsText(db_con, row['definition'], tagAsTerm=True))
   string += "</table>"
   return string
 
