@@ -431,7 +431,7 @@ class SeaIceConnector:
       if not persistent_id:
         persistent_id = mint.create_persistent_id(prod_mode)
         arkId = mint.pid2ark(persistent_id)	# removes URL hostname
-        mint.bind_persistent_id(prod_mode, arkId,
+        mint.bind_persistent_id(self, prod_mode, arkId,
           defTerm['term_string'], defTerm['definition'], defTerm['examples'])
 
       if not persistent_id:		# if that didn't work, bail
@@ -726,7 +726,7 @@ class SeaIceConnector:
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
     # update persistent ID for term
-    mint.bind_persistent_id(prod_mode, mint.pid2ark(pid),
+    mint.bind_persistent_id(self, prod_mode, mint.pid2ark(pid),
       term['term_string'], term['definition'], term['examples'])
 
     ## User queries ##
