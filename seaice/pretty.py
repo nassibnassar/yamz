@@ -838,7 +838,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
           colorOf[row['class']],
           printPrettyDate(row['modified']),
 	  processRefsAsText(db_con, row['definition'],
-	    tagAsTerm=True).replace('"', '&quot;')
+	    tagAsTerm=True).replace('"', '&quot;'))
   string += "</table>"
   return string
 
