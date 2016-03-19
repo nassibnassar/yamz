@@ -423,9 +423,8 @@ def browse(listing = None):
  
   if listing == "recent": # Most recently added listing 
     result += seaice.pretty.printTermsAsBriefHTML(g.db, 
-                                           sorted(terms, key=lambda term: term['modified'],
-                                                         reverse=True),
-                                           l.current_user.id)
+      sorted(terms, key=lambda term: term['modified'], reverse=True),
+      l.current_user.id)
   
   elif listing == "score": # Highest consensus
     terms = sorted(terms, key=lambda term: term['consensus'], reverse=True)

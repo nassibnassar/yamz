@@ -419,7 +419,7 @@ def printTagAsHTML(db_con, m):
   :param m: Regular expression match. 
   :type m: re.MatchObject
   """
-  (tag,) = m.groups()
+  (tag,x) = m.groups()
   return tag_string.format(string.lower(tag), tag)
 
 def printTermTagAsHTML(db_con, m): 
@@ -460,7 +460,7 @@ def printTagAsText(db_con, m):
   :param m: Regular expression match. 
   :type m: re.MatchObject
   """
-  (tag,) = m.groups()
+  (tag,x) = m.groups()
   return '#' + tag
 
 def printTermTagAsText(db_con, m): 
