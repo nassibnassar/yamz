@@ -710,7 +710,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
       SELECT id, owner_id, term_string, definition, examples, up, down,
-             created, modified, consensus, class, concept_id, persistent_id,
+             created, modified, consensus, class, concept_id,
              ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank
         FROM SI.Terms, to_tsquery('english', %s) query 
         WHERE query @@ tsv 
