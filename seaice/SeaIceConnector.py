@@ -568,13 +568,13 @@ class SeaIceConnector:
     if sortBy:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
                             modified, created, up, down, consensus, class,
-                            T_stable, T_last, concept_id, persistent_id, concept_id
+                            T_stable, T_last, concept_id, persistent_id
                        FROM SI.Terms 
                       ORDER BY %s""" % sortBy)
     else:
       cur.execute("""SELECT id, owner_id, term_string, definition, examples, 
                             modified, created, up, down, consensus, class,
-                            T_stable, T_last, concept_id, persistent_id, concept_id
+                            T_stable, T_last, concept_id, persistent_id
                        FROM SI.Terms""")
     for row in cur.fetchall():
       yield row
@@ -710,7 +710,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
       SELECT id, owner_id, term_string, definition, examples, up, down,
-             created, modified, consensus, class, concept_id,
+             created, modified, consensus, class, concept_id, persistent_id,
              ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank
         FROM SI.Terms, to_tsquery('english', %s) query 
         WHERE query @@ tsv 
