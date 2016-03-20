@@ -368,12 +368,14 @@ class SeaIceConnector:
     
     ## Term queries ##
 
-  def insertTerm(self, term, prod_mode): 
+  def insertTerm(self, term, prod_mode, rebind=False, remint=False): 
     """ Add a term to the database and return the term's ID. 
 
     :param term: Term row to be inserted. Default values will be used for 
                  omitted columns.
     :type term:  dict
+    :param prod_mode: Whether production mode is in effect.
+    :type prod_mode:  boolean
     :returns: ID of inserted row. If term['id'] isn't assigned, the next
               available ID in the sequence is given. 
     :rtype:   int or None
@@ -427,11 +429,16 @@ class SeaIceConnector:
       persistent_id = defTerm['persistent_id']
       concept_id = defTerm['concept_id']
 
+      if not persistent_id: remint=True		# if none make one
+      if remint: rebind=True			# remint implies (re)bind
+
       # create persistent ID for term if need be
-      if not persistent_id:
+      if not persistent_id or remint:
         persistent_id = mint.create_persistent_id(prod_mode)
-        arkId = mint.pid2ark(persistent_id)	# removes URL hostname
-        mint.bind_persistent_id(prod_mode, arkId,
+
+      if rebind:
+        mint.bind_persistent_id(prod_mode,
+          mint.pid2ark(persistent_id),		# removes URL hostname
 	  # xxx drop self arg when terms all converted to new style
           pretty.processRefsAsText(self, defTerm['term_string']),
 	  pretty.processRefsAsText(self, defTerm['definition']),
@@ -724,6 +731,10 @@ class SeaIceConnector:
     :param term: Dictionary containing at least the keys
             'term_string', 'definition', and 'examples' with string values.
     :type term: dict 
+    :param pid: Persistent identifier
+    :type pid: str
+    :param prod_mode: Whether production mode is in effect.
+    :type prod_mode:  boolean
     """ 
     cur = self.con.cursor()
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
@@ -1396,7 +1407,7 @@ class SeaIceConnector:
     rows = cur.fetchall()
     pretty.printAsJSObject(rows, fd)
 
-  def Import(self, table, prod_mode, inf=None): 
+  def Import(self, table, prod_mode, inf=None, rebind=False, remint=False): 
     """ Import database from JSON formated *inf*.
 
     :param table: Name of table. 
@@ -1419,7 +1430,7 @@ class SeaIceConnector:
       if table == "Users":
         self.insertUser(row)
       elif table == "Terms":
-        self.insertTerm(row, prod_mode)
+        self.insertTerm(row, prod_mode, rebind=rebind, remint=remint)
       elif table == "Comments":
         self.insertComment(row)
       elif table == "Tracking":

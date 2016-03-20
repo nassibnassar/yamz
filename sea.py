@@ -54,7 +54,7 @@ this program; otherwise, visit http://opensource.org/licenses/BSD-3-Clause.
 parser.description = description
 
 parser.add_option("-d", "--dump", action="store_true", dest="dump", default=False,
-                  help="Display the contents of the dictionary in the terminal.")
+                  help="Display dictionary contents on the terminal.")
 
 parser.add_option("--config", dest="config_file", metavar="FILE", 
                   help="User credentials for local PostgreSQL database (defaults to '$HOME/.seaice'). " + 
@@ -66,12 +66,18 @@ parser.add_option("--import", dest="import_table",
                   help="Import JSON-formatted FILE into the dictionary.",
                   metavar="TABLE")
 
+parser.add_option("--rebind", action="store_true", dest="rebind", default=False,
+  help="On import, also bind persistent identifier metadata.")
+
+parser.add_option("--remint", action="store_true", dest="remint", default=False,
+  help="On import, mint a new persistent identifier (implies --rebind).  Normally a new identifier is minted only when a term has none.")
+
 parser.add_option("--export", dest="export_table",
                   help="Export dictionary as JSON-formatted FILE.",
                   metavar="TABLE")
 
 parser.add_option("-f", "--file", dest="file_name", 
-                  help="File from which to import, or file to which to export DB.",
+                  help="File from which to import, or file to which to export.",
                   metavar="FILE")
 
 parser.add_option("-s", "--search", dest="search_term",
@@ -89,7 +95,7 @@ parser.add_option("--classify-terms", action="store_true", dest="classify", defa
                   help="Classify stable terms in the dictionary. This will modify the term's class.")
 
 parser.add_option("--set-reputation", dest="reputation",
-                  help="Set user's reputation. Parameter is a positive integer.",
+                  help="Set user's reputation (to a positive integer).",
                   metavar="INT")
 
 parser.add_option("-u", "--user", dest="user_id", 
@@ -157,7 +163,8 @@ try:
       print >>sys.stderr, "sea: no such user (Id=%s not found)" % options.user_id
 
   if options.import_table:
-    sea.Import(options.import_table, prod_mode, options.file_name)
+    sea.Import(options.import_table, prod_mode, options.file_name,
+      rebind=options.rebind, remint=options.remint)
 
   if options.export_table:
     sea.Export(options.export_table, options.file_name)

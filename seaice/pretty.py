@@ -594,8 +594,8 @@ def getPrettyTerm(db_con, row, leftMargin=5):
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
-  :param rows: Table rows. 
-  :type rows: dict iterator
+  :param row: Table row
+  :type row: dict
   """
   text = ' ' * leftMargin + "TERM: %-26s ID: %-7d created: %s\n" % (
      "%s (%d)" % (row['term_string'], row["up"] - row["down"]), row['id'],
