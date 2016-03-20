@@ -449,7 +449,6 @@ class SeaIceConnector:
           cur.execute("ROLLBACK;")
           return None 
 
-      #concept_id = concept_id_regex.search(persistent_id).groups(0)[0]
       concept_id = concept_id_regex.search(persistent_id).group(1)
       if not concept_id:
         print >>sys.stderr, "warning: aborting insert for id=%s, persistent_id=%s" % (defTerm['id'], persistent_id)
@@ -461,11 +460,11 @@ class SeaIceConnector:
       cur.execute(sql, data)
 
       return (id, concept_id)
-      # yyy enable re-binding of ids when not minting?
 
-    except pgdb.DatabaseError, e:
+    except pgdb.DatabaseError as e:
       if e.pgcode == '23505': #: Duplicate primary key
-        print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defTerm['id']
+        print >>sys.stderr, "skipping duplicate: ", defTerm['term_string']
+        print >>sys.stderr, e.pgerror
         cur.execute("ROLLBACK;")
         return None 
       raise e
@@ -742,9 +741,9 @@ class SeaIceConnector:
     # update persistent ID for term
     mint.bind_persistent_id(prod_mode, mint.pid2ark(pid),
       # xxx drop self arg when terms all converted to new style
-      pretty.processRefsAsText(self, defTerm['term_string']),
-      pretty.processRefsAsText(self, defTerm['definition']),
-      pretty.processRefsAsText(self, defTerm['examples']))
+      pretty.processRefsAsText(self, term['term_string']),
+      pretty.processRefsAsText(self, term['definition']),
+      pretty.processRefsAsText(self, term['examples']))
 
     ## User queries ##
 
