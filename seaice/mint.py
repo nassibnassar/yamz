@@ -27,10 +27,9 @@ TEST_BINDER_URL = "https://n2t.net/a/yamz_test/b"
 # FIXME Location for minter_password is needlessly hardcoded. 
 deploy = 'heroku' 
 CONFIG = auth.get_config('.seaice_auth')
-if CONFIG.has_option(deploy, 'minter_password'):
-    PASSWORD = CONFIG.get(deploy, 'minter_password')
-else:
-    PASSWORD = os.environ.get('MINTER_PASSWORD')
+PASSWORD = os.environ.get('MINTER_PASSWORD')
+if not PASSWORD and CONFIG.has_option(deploy, 'minter_password'):
+  PASSWORD = CONFIG.get(deploy, 'minter_password')
 
 TARGET_URL_TEMPLATE = "http://yamz.net/term/concept=%s"
 

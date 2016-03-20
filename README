@@ -256,8 +256,8 @@ include a line in ".seaice_auth" for every view:
  
    minter_password = PASS
 
-Comment out that line if you wish the password to be read from the
-MINTER_PASSWORD environment variable.  This password is used again in the
+A password found in the MINTER_PASSWORD environment variable, however, will
+be preferred over the file setting.  This password is used again in the
 API call to store metadata in a YAMZ binder on n2t.net.  The main bit of
 metadata stored is the redirection target URL that supports resolution of
 ARK identifiers for YAMZ terms.
