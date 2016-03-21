@@ -705,21 +705,32 @@ class SeaIceConnector:
     :type string: str
     :rtype: dict list
     """
-    string = string.replace("'", "''")
-    string = ' & '.join(string.split(' ')) # |'s are also allowed, and paranthesis TODO
-    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
-    cur.execute("""
-      SELECT id, owner_id, term_string, definition, examples, up, down,
-             created, modified, consensus, class, concept_id, persistent_id,
-             ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank
-        FROM SI.Terms, to_tsquery('english', %s) query 
-        WHERE query @@ tsv 
-        ORDER BY rank DESC
-     """, (string,))
+    try:
+      string = string.replace("'", "''")
+      string = ' & '.join(string.split(' '))
+      # |'s are also allowed, and paranthesis TODO
+      cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+      # XXXXXXXXXXXXXXXXXXX something very bad happens when foo(undefined)
+      # comes in from search -- affects all further ops on server until
+      # restart
+      cur.execute("""
+        SELECT id, owner_id, term_string, definition, examples, up, down,
+               created, modified, consensus, class, concept_id, persistent_id,
+               ts_rank_cd(tsv, query, 32 /* rank(rank+1) */ ) AS rank
+          FROM SI.Terms, to_tsquery('english', %s) query 
+          WHERE query @@ tsv 
+          ORDER BY rank DESC
+       """, (string,))
+  
+      rows = sorted(cur.fetchall(), key=lambda row: orderOfClass[row['class']])
+      rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
+      return list(rows)
 
-    rows = sorted(cur.fetchall(), key=lambda row: orderOfClass[row['class']])
-    rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
-    return list(rows)
+    except Exception as e:
+      print >>sys.stderr, e.pgerror
+      cur.execute("ROLLBACK;")	# else one error can wedge entire service
+      return None 
+      raise e
 
   def updateTerm(self, id, term, pid, prod_mode): 
     """ Modify a term's term string, definition and examples. 
@@ -786,7 +797,7 @@ class SeaIceConnector:
       else:
         return None
     
-    except pgdb.DatabaseError, e:
+    except pgdb.DatabaseError as e:
       if e.pgcode == '23505': # Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defUser['id']
          cur.execute("ROLLBACK;")
