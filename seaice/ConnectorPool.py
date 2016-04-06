@@ -32,14 +32,14 @@ from threading import Condition
 
 class ScopedSeaIceConnector (SeaIceConnector): 
   """
-    A SeaIce DB Connector which is released to the pool it from whence it 
+    A SeaIce DB Connector which is released to the pool from whence it 
     came when it goes out of scope. This type of connector is produced by 
     :func:`seaice.ConnectorPool.SeaIceConnectorPool.getScoped`
     and should not be used directly. 
 
     :param pool: The pool from which this connector originates. 
                  When the destructor is called, the connection is enqueued 
-                 int to the pool.
+                 into the pool.
 
     :type pool: seaice.ConnectorPool.SeaIceConnectorPool
     :param db_con: The connector. 
@@ -58,7 +58,7 @@ class ScopedSeaIceConnector (SeaIceConnector):
 class ConnectorPool:
   """ A thread-safe connection pool. 
 
-  TODO: Make this an actual queue, not a stack. Nomenclature is imporant
+  TODO: Make this an actual queue, not a stack. Nomenclature is important
   sometimes. 
   """
   

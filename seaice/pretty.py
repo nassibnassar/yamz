@@ -285,8 +285,12 @@ def _ref_norm(db_con, m, force=False):
 
   ## Processing tags in text areas. ##
 
-def printRefAsHTML(db_con, m, tagAsTerm): 
-  """ Input a regular expression match and output the reference as HTML.
+# XXXXXXXX
+# convert term_string (may be #{g: ... })
+
+def printTermLinkAsHTML (db_con, reftype, humstring, IDstring, tagAsTerm):
+  """ Input reftype, human readable string, machine readable string,
+      and output the link as HTML.
   
   A DB connector is required to resolve the tag string by ID. 
   A reference has the form #{ reftype: humstring [ | IDstring ] }
@@ -301,13 +305,80 @@ def printRefAsHTML(db_con, m, tagAsTerm):
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
-  :param m: Regular expression match. 
-  :type m: re.MatchObject
   """
 
-  (rp) = m.groups()	# rp = ref parts, the part between #{ and }
-                        # we want subexpressions 1, 2, and 4
-  reftype, humstring, IDstring = rp[1], rp[2], rp[4]
+  #(rp) = m.groups()	# rp = ref parts, the part between #{ and }
+  #                      # we want subexpressions 1, 2, and 4
+  #reftype, humstring, IDstring = rp[1], rp[2], rp[4]
+
+  if not reftype:
+    reftype = 't'		# apply default reftype
+  if not humstring and not IDstring:		# when empty
+    return '#{}'		# this is all we do for now
+  if reftype == 'k':		# an external link (URL)
+    if humstring and not IDstring:	# assume the caller
+      IDstring = humstring		# mixed up the order
+    if not humstring:		# if no humanstring
+      humstring = IDstring	# use link text instead
+    if not IDstring.startswith('http:'):
+      IDstring = 'http://' + IDstring
+    return '<a href="%s">%s</a>' % (IDstring, humstring)
+
+  if humstring.startswith('---'):	# EndRefs
+    if humstring.startswith('---e'):
+      return '<br>Elements: '
+    if humstring.startswith('---v'):
+      return '<br>Values: '
+    if humstring.startswith('---t'):
+      return '<br> '
+    #if reftype == 'e':
+    #  return '<br>Elements: '
+    #if reftype == 'v':
+    #  return '<br>Values: '
+    #if reftype == 'g':
+    #  return '<br> '
+    
+  # If we get here, reftype is not k, and IDstring (concept_id)
+  # is expected to reference a term in the dictionary.
+  # 
+  term = db_con.getTermByConceptId(IDstring)
+  term_def = "Def: " + (term['definition'] if term else "(undefined)")
+  # yyy can we improve poor search for '#tag' query?
+  if reftype == 'g':
+    # yyy in theory don't need to check before removing uniquerifier string
+    #     as all normalized tag ids will start with it
+    if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
+      humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
+    if not tagAsTerm:
+      return gtag_string.format(
+        string.lower(humstring), humstring, term_def)
+    else:				# if tagAsTerm, format tag like a term
+      humstring = '#' + humstring	# pointing to definition, not search
+  return ref_string.format(IDstring, humstring, term_def)
+
+def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm): 
+  """ Input reftype, human readable string, machine readable string,
+      and output the reference as HTML.
+  
+  A DB connector is required to resolve the tag string by ID. 
+  A reference has the form #{ reftype: humstring [ | IDstring ] }
+  - reftype is one of
+    t (term), g (tag), s (section), m (mtype), k (link)
+    #t (term), g (tag), e (element), v (value), m (mtype), k (link)
+  - humstring is the human-readable equivalent of IDstring
+  - IDstring is a machine-readable string, either a concept_id or,
+    in the case of "k" link, a URL.
+  - Note that the reference should have been normalized before being
+    stored in the database. (xxx check if that's true for API uploading)
+
+  :param db_con: DB connection.
+  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+  """
+
+  #(rp) = m.groups()	# rp = ref parts, the part between #{ and }
+  #                      # we want subexpressions 1, 2, and 4
+  #reftype, humstring, IDstring = rp[1], rp[2], rp[4]
+
   if not reftype:
     reftype = 't'		# apply default reftype
   if not humstring and not IDstring:		# when empty
@@ -499,10 +570,16 @@ def processTagsAsHTML(db_con, string, tagAsTerm = False):
   string = _xtag_regex.sub(lambda m: printTagAsHTML(db_con, m), string)
   string = _xterm_tag_regex.sub(lambda m: printTermTagAsHTML(db_con, m), string)
 
-  string = ref_regex.sub(lambda m: printRefAsHTML(db_con, m, tagAsTerm), string)
+  string = ref_regex.sub(lambda m: printRefReAsHTML(db_con, m, tagAsTerm), string)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
   return string
+
+def printRefReAsHTML(db_con, m, tagAsTerm):
+  (rp) = m.groups()	# rp = ref parts, the part between #{ and }
+                        # we want subexpressions 1, 2, and 4
+  reftype, humstring, IDstring = rp[1], rp[2], rp[4];
+  printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm)
 
 def processRefsAsText(db_con, string, tagAsTerm = False): 
   """  Render references in DB text entries into plain text. 

@@ -244,7 +244,7 @@ def authorized(resp):
   
   g.db = app.dbPool.getScoped()
   user = g.db.getUserByAuth('google', g_user['id'])
-  if not user: 
+  if not user: 		# not seen this person before, so create user
     g_user['authority'] = 'google'
     g_user['auth_id'] = g_user['id']
     g_user['id'] = app.userIdPool.ConsumeId()
@@ -299,17 +299,19 @@ def settings():
     l.current_user.name = request.form['first_name']
     return getUser(str(l.current_user.id))
   
+  # method was GET
   user = g.db.getUser(l.current_user.id)
   app.dbPool.enqueue(g.db)
   return render_template("account.html", user_name = l.current_user.name,
-                                          email = user['email'].decode('utf-8'),
-                                          last_name_edit = user['last_name'].decode('utf-8'),
-                                          first_name_edit = user['first_name'].decode('utf-8'),
-                                          reputation = user['reputation'],
-                                          enotify = 'yes' if user['enotify'] else 'no',
-                                          message = """
-                    Here you can change how your name will appear to other users. 
-                    Navigating away from this page will safely discard any changes.""")
+            email = user['email'].decode('utf-8'),
+            last_name_edit = user['last_name'].decode('utf-8'),
+            first_name_edit = user['first_name'].decode('utf-8'),
+            reputation = user['reputation'] + \
+	                   ' *' if user['super_user'] else '',
+            enotify = 'yes' if user['enotify'] else 'no',
+            message = """
+             Here you can change how your name will appear to other users. 
+             Navigating away from this page will safely discard any changes.""")
 
 @app.route("/user=<int:user_id>")
 def getUser(user_id = None): 
@@ -325,18 +327,22 @@ def getUser(user_id = None):
           <tr><td valign=top>Email:</td><td>{2}</td></td>
           <tr><td valign=top>Reputation:</td><td>{3}</td></td>
           <tr><td valign=top>Receive email notifications:</td><td>{4}</td>
-        </table> """.format(user['first_name'], user['last_name'], user['email'], user['reputation'], 
-                            user['enotify'])
-      return render_template("basic_page.html", user_name = l.current_user.name, 
-                                                title = "User - %s" % user_id, 
-                                                headline = "User", 
-                                                content = Markup(result.decode('utf')))
+        </table> """.format(user['first_name'], user['last_name'],
+	                    user['email'],
+			    user['reputation'] + \
+	                      ' *' if user['super_user'] else '',
+			    user['enotify'])
+      return render_template("basic_page.html",
+               user_name = l.current_user.name, 
+               title = "User - %s" % user_id, 
+               headline = "User", 
+               content = Markup(result.decode('utf')))
   except IndexError: pass
   
   return render_template("basic_page.html", user_name = l.current_user.name, 
-                                            title = "User not found",
-                                            headline = "User", 
-                                            content = Markup("User <strong>#%s</strong> not found!" % user_id))
+      title = "User not found",
+      headline = "User", 
+      content = Markup("User <strong>#%s</strong> not found!" % user_id))
 
 @app.route("/user=<int:user_id>/notif=<int:notif_index>/remove", methods=['GET'])
 @l.login_required
@@ -533,6 +539,7 @@ def editTerm(term_concept_id = None):
   try: 
     g.db = app.dbPool.dequeue()
     term = g.db.getTermByConceptId(term_concept_id)
+    #user = g.db.getUser(l.current_user.id)
     # yyy not checking if term was found?
     assert l.current_user.id and term['owner_id'] == l.current_user.id
     
@@ -584,8 +591,9 @@ def editTerm(term_concept_id = None):
       user_name = l.current_user.name, 
       title = "Term - %s" % term_concept_id, 
       content = 
-      """Error! You may only edit or remove terms and definitions which 
-         you've contributed. However, you may comment or vote on this term.""")
+      """Error! You may only edit or remove terms and definitions that 
+         you've contributed. However, you may comment or vote on this term.
+	 assert term['owner_id'] (%s) == l.current_user.id (%s)""" % (term['owner_id'], l.current_user.id))
 
 
 @app.route("/term=<int:term_id>/remove", methods=["POST"])
@@ -622,7 +630,7 @@ def remTerm(term_id):
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                               title = "Term - %s" % term_id, 
                                               content = 
-              """Error! You may only edit or remove terms and definitions which 
+              """Error! You may only edit or remove terms and definitions that
                  you've contributed. However, you may comment or vote on this term. """)
 
 
@@ -705,7 +713,7 @@ def editComment(comment_id = None):
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                               title = "Term - %s" % term_id, 
                                               content = 
-              """Error! You may only edit or remove terms and definitions which 
+              """Error! You may only edit or remove terms and definitions that
                  you've contributed. However, you may comment or vote on this term. """)
 
 

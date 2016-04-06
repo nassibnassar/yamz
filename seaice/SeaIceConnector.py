@@ -213,6 +213,7 @@ class SeaIceConnector:
           first_name   VARCHAR(64) NOT NULL,
           reputation   INTEGER default 1 NOT NULL,
           enotify      BOOLEAN default true, 
+          super_user   BOOLEAN default false, 
           UNIQUE (email)
         );
       ALTER SEQUENCE SI.Users_id_seq RESTART WITH 1001;"""
@@ -712,7 +713,7 @@ class SeaIceConnector:
       cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
       # XXXXXXXXXXXXXXXXXXX something very bad happens when foo(undefined)
       # comes in from search -- affects all further ops on server until
-      # restart
+      # restart; current remedy is to catch all exceptions and rollback
       cur.execute("""
         SELECT id, owner_id, term_string, definition, examples, up, down,
                created, modified, consensus, class, concept_id, persistent_id,
@@ -782,7 +783,7 @@ class SeaIceConnector:
 
     try:
       cur = self.con.cursor()
-      cur.execute("""INSERT INTO SI.Users(id, email, last_name, first_name, reputation, authority, auth_id) 
+      cur.execute("""INSERT INTO SI.Users(id, email, last_name, first_name, reputation, authority, super_user, auth_id) 
                      VALUES (%s, %s, %s, %s, %s, %s, %s)
                      RETURNING id""",  (defUser['id'],
                                          defUser['email'], 
@@ -814,7 +815,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
         select id, authority, auth_id, email, last_name, first_name,
-               reputation, enotify
+               reputation, enotify, super_user
             from SI.Users where id=%s;
         """ % (id,))
     return cur.fetchone()
@@ -827,7 +828,7 @@ class SeaIceConnector:
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
     cur.execute("""
         select id, authority, auth_id, email, last_name, first_name,
-               reputation, enotify
+               reputation, enotify, super_user
             from SI.Users;
         """)
     for row in cur.fetchall():
@@ -850,6 +851,7 @@ class SeaIceConnector:
     :rtype: int or None
     """
     cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    # yyy no enotify or super_user returned
     cur.execute("""
         select id, authority, auth_id, email, last_name, first_name,
                reputation
