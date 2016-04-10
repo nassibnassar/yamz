@@ -1,3 +1,5 @@
+# xxx catch assert exceptions
+
 # pretty.py - Pretty formatting for db table rows. There are routines defined
 # here for use in a terminal as well as on the web. 
 #
@@ -285,7 +287,6 @@ def _ref_norm(db_con, m, force=False):
 
   ## Processing tags in text areas. ##
 
-# xxx catch assert exceptions
 # XXXXXXXX
 # convert term_string (may be #{g: ... })
 
@@ -307,9 +308,10 @@ def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
         <font size=\"3\"><strong>%s</strong></font></a>''' % (
           term_string, concept_id, term_string)
 
+  # yyy compile these regex's? -- maybe not since execution is rare
   t = re.sub('^#{g:\s*(%s)?' % ixuniq, '', term_string)
   t = re.sub('\s*\|.*', '', t)
-  if not tagAsTerm:		# xxx used?
+  if not tagAsTerm:		# xxx needed?
     return gtag_string.format(
       string.lower(humstring), humstring, term_def)
   else:				# if tagAsTerm, format tag like a term

@@ -448,13 +448,17 @@ def browse(listing = None):
   elif listing == "alphabetical": # Alphabetical listing 
     result += "<table>"
     for term in terms: 
-      # xxx fix this alphabetical listing for first letter '#'
-      if term['term_string'][0].upper() != letter:
+      firstc = term['term_string'][0].upper()
+      if firstc != '#' and firstc != letter:
         letter = term['term_string'][0].upper()
         result += "</td></tr><tr><td width=20% align=center valign=top><h4>{0}</h4></td><td width=80%>".format(letter)
-      result += "<p><a href=\"/term=%s\">%s</a> <i>contributed by %s</i></p>" % (
-        term['concept_id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
-	# xxx normalize #{g:...} term_string for display
+      # xxx drop next two lines
+      #result += "<p><a href=\"/term=%s\">%s</a> <i>contributed by %s</i></p>" % (
+      #  term['concept_id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
+      result += "<p>%s <i>contributed by %s</i></p>" % (
+        seaice.prety.printTermLinkAsHTML(g.db,
+	  term['term_string'], term['concept_id'], tagAsTerm=True),
+	g.db.getUserNameById(term['owner_id']))
     result += "</table>"
 
   else:
@@ -474,8 +478,8 @@ hash2uniquerifier_regex = re.compile('(?<!#)#(\w[\w.-]+)')
 def returnQuery():
   g.db = app.dbPool.getScoped()
   if request.method == "POST": 
-    # XXX whoa -- this use of term_string (in all html forms) is totally
-    #     different from term_string as used in the database!
+    # XXX whoa -- this use of term_string variable name (in all html forms)
+    #     is totally different from term_string as used in the database!
     search_words = hash2uniquerifier_regex.sub(
         seaice.pretty.ixuniq + '\\1',
         request.form['term_string'])
