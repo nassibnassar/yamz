@@ -456,7 +456,7 @@ def browse(listing = None):
       #result += "<p><a href=\"/term=%s\">%s</a> <i>contributed by %s</i></p>" % (
       #  term['concept_id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
       result += "<p>%s <i>contributed by %s</i></p>" % (
-        seaice.prety.printTermLinkAsHTML(g.db,
+        seaice.pretty.printTermLinkAsHTML(g.db,
 	  term['term_string'], term['concept_id'], tagAsTerm=True),
 	g.db.getUserNameById(term['owner_id']))
     result += "</table>"
