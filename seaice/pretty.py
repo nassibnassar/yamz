@@ -285,76 +285,38 @@ def _ref_norm(db_con, m, force=False):
 
   ## Processing tags in text areas. ##
 
+# xxx catch assert exceptions
 # XXXXXXXX
 # convert term_string (may be #{g: ... })
 
-def printTermLinkAsHTML (db_con, reftype, humstring, IDstring, tagAsTerm):
-  """ Input reftype, human readable string, machine readable string,
-      and output the link as HTML.
+def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
+  """ Input ...
   
-  A DB connector is required to resolve the tag string by ID. 
-  A reference has the form #{ reftype: humstring [ | IDstring ] }
-  - reftype is one of
-    t (term), g (tag), s (section), m (mtype), k (link)
-    #t (term), g (tag), e (element), v (value), m (mtype), k (link)
-  - humstring is the human-readable equivalent of IDstring
-  - IDstring is a machine-readable string, either a concept_id or,
-    in the case of "k" link, a URL.
-  - Note that the reference should have been normalized before being
-    stored in the database. (xxx check if that's true for API uploading)
+  A DB connector is required to resolve the term_string by ID. 
+  A term_string is either of the form '#{g: humstring | concept_id}'
+  or a literal string.
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
   """
 
-  #(rp) = m.groups()	# rp = ref parts, the part between #{ and }
-  #                      # we want subexpressions 1, 2, and 4
-  #reftype, humstring, IDstring = rp[1], rp[2], rp[4]
+  if not term_string.startswith('#{g:'):
+    return '''href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
+      <font size=\"3\"><strong>%s</strong></font></a>''' % (
+        term_string, concept_id, term_string)
 
-  if not reftype:
-    reftype = 't'		# apply default reftype
-  if not humstring and not IDstring:		# when empty
-    return '#{}'		# this is all we do for now
-  if reftype == 'k':		# an external link (URL)
-    if humstring and not IDstring:	# assume the caller
-      IDstring = humstring		# mixed up the order
-    if not humstring:		# if no humanstring
-      humstring = IDstring	# use link text instead
-    if not IDstring.startswith('http:'):
-      IDstring = 'http://' + IDstring
-    return '<a href="%s">%s</a>' % (IDstring, humstring)
+  t = re.sub('^#{g:\s*(%s)?' % ixuniq, '', term_string)
+  t = re.sub('\s*\|.*', '', t)
+  if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
+    humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
+  if not tagAsTerm:		# xxx used?
+    return gtag_string.format(
+      string.lower(humstring), humstring, term_def)
+  else:				# if tagAsTerm, format tag like a term
+    t = '#' + t
+  return '''href="#" onclick="CopyToClipboard('%s');">
+    <font size=\"3\"><strong>%s</strong></font></a>''' % (term_string, t)
 
-  if humstring.startswith('---'):	# EndRefs
-    if humstring.startswith('---e'):
-      return '<br>Elements: '
-    if humstring.startswith('---v'):
-      return '<br>Values: '
-    if humstring.startswith('---t'):
-      return '<br> '
-    #if reftype == 'e':
-    #  return '<br>Elements: '
-    #if reftype == 'v':
-    #  return '<br>Values: '
-    #if reftype == 'g':
-    #  return '<br> '
-    
-  # If we get here, reftype is not k, and IDstring (concept_id)
-  # is expected to reference a term in the dictionary.
-  # 
-  term = db_con.getTermByConceptId(IDstring)
-  term_def = "Def: " + (term['definition'] if term else "(undefined)")
-  # yyy can we improve poor search for '#tag' query?
-  if reftype == 'g':
-    # yyy in theory don't need to check before removing uniquerifier string
-    #     as all normalized tag ids will start with it
-    if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
-      humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
-    if not tagAsTerm:
-      return gtag_string.format(
-        string.lower(humstring), humstring, term_def)
-    else:				# if tagAsTerm, format tag like a term
-      humstring = '#' + humstring	# pointing to definition, not search
-  return ref_string.format(IDstring, humstring, term_def)
 
 def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm): 
   """ Input reftype, human readable string, machine readable string,
@@ -769,11 +731,13 @@ def printTermAsHTML(db_con, row, user_id=0):
              ("unstar" if good else "star"), row['id'], 'unwatch' if good else 'watch')
   string += "  </td></tr>"
 
-  termstr = '''<a id="copyLink" title="Click to get a reference link to this term."
-                  href="#" onclick="CopyToClipboard('#{t: %s | %s}');"
-               ><font size=\"3\"><strong>%s</strong></font></a>''' % (
-	         row['term_string'], row['concept_id'],
-                 processTagsAsHTML(db_con, row['term_string'], tagAsTerm=True))
+  termstr = printTermLinkAsHTML(db_con, row['term_string'], row['concept_id'],
+                 tagAsTerm=True)
+  #termstr = '''<a id="copyLink" title="Click to get a reference link to this term."
+  #                href="#" onclick="CopyToClipboard('#{t: %s | %s}');"
+  #             ><font size=\"3\"><strong>%s</strong></font></a>''' % (
+#	         row['term_string'], row['concept_id'],
+#                 processTagsAsHTML(db_con, row['term_string'], tagAsTerm=True))
 
   # Name/Class
   string += "  <tr>"

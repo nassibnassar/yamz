@@ -783,7 +783,7 @@ class SeaIceConnector:
 
     try:
       cur = self.con.cursor()
-      cur.execute("""INSERT INTO SI.Users(id, email, last_name, first_name, reputation, authority, super_user, auth_id) 
+      cur.execute("""INSERT INTO SI.Users(id, email, last_name, first_name, reputation, authority, auth_id) 
                      VALUES (%s, %s, %s, %s, %s, %s, %s)
                      RETURNING id""",  (defUser['id'],
                                          defUser['email'], 

@@ -448,11 +448,13 @@ def browse(listing = None):
   elif listing == "alphabetical": # Alphabetical listing 
     result += "<table>"
     for term in terms: 
+      # xxx fix this alphabetical listing for first letter '#'
       if term['term_string'][0].upper() != letter:
         letter = term['term_string'][0].upper()
         result += "</td></tr><tr><td width=20% align=center valign=top><h4>{0}</h4></td><td width=80%>".format(letter)
       result += "<p><a href=\"/term=%s\">%s</a> <i>contributed by %s</i></p>" % (
         term['concept_id'], term['term_string'], g.db.getUserNameById(term['owner_id']))
+	# xxx normalize #{g:...} term_string for display
     result += "</table>"
 
   else:

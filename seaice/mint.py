@@ -133,6 +133,11 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
     c = _opener.open(_binder + "?-", d)
     r = c.readlines()
     assert len(r) == 2 and r[0] == "egg-status: 0\n"
+
+  except AssertionError as e:
+    print >>sys.stderr, "error: bad binder return: %s" % r[0]
+    raise e
+
   finally:
     if c: c.close()
   return arkId
