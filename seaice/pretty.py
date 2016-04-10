@@ -302,10 +302,10 @@ def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
   """
 
   if not term_string.startswith('#{g:'):
-    return '''<a id="copyLink"
+    return '''<font size=\"3\"><strong><a id="copyLink"
       title="Click to get a reference link to this term."
       href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
-        <font size=\"3\"><strong>%s</strong></font></a>''' % (
+        %s</a></strong></font>''' % (
           term_string, concept_id, term_string)
 
   # yyy compile these regex's? -- maybe not since execution is rare
