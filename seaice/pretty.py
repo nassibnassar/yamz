@@ -302,11 +302,15 @@ def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
   """
 
   if not term_string.startswith('#{g:'):
-    return '''<font size=\"3\"><strong><a id="copyLink"
+    #return '''<font size=\"3\"><strong><a id="copyLink"
+    #  title="Click to get a reference link to this term."
+    #  href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
+    #    %s</a></strong></font>''' % (
+    #      term_string, concept_id, term_string)
+    return '''<a id="copyLink"
       title="Click to get a reference link to this term."
       href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
-        %s</a></strong></font>''' % (
-          term_string, concept_id, term_string)
+        %s</a>''' % (term_string, concept_id, term_string)
 
   # yyy compile these regex's? -- maybe not since execution is rare
   t = re.sub('^#{g:\s*(%s)?' % ixuniq, '', term_string)
@@ -318,9 +322,9 @@ def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
     t = '#' + t
   return '''<a id="copyLink"
     title="Click to get a reference link to this term."
-    href="#" onclick="CopyToClipboard('%s');">
-      <font size=\"3\"><strong>%s</strong></font></a>''' % (term_string, t)
+    href="#" onclick="CopyToClipboard('%s');">%s</a>''' % (term_string, t)
 
+#      <font size=\"3\"><strong>%s</strong></font></a>''' % (term_string, t)
 
 def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm): 
   """ Input reftype, human readable string, machine readable string,
@@ -746,8 +750,8 @@ def printTermAsHTML(db_con, row, user_id=0):
   # Name/Class
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
-  #string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(row['term_string']) 
-  string += "    <td valign=top width=25%>{0}<td>".format(termstr)
+  string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(termstr)
+  #string += "    <td valign=top width=25%>{0}<td>".format(termstr)
   string += "    <td valign=top width=5% rowspan=2>"
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>"
