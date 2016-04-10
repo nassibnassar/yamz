@@ -307,8 +307,6 @@ def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
 
   t = re.sub('^#{g:\s*(%s)?' % ixuniq, '', term_string)
   t = re.sub('\s*\|.*', '', t)
-  if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
-    humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
   if not tagAsTerm:		# xxx used?
     return gtag_string.format(
       string.lower(humstring), humstring, term_def)
