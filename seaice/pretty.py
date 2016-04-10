@@ -48,7 +48,7 @@ js_confirmRemoveTerm = """
 
 js_confirmRemoveComment = """
   function ConfirmRemoveComment(id) {
-    var r=window.confirm("Are you sure you want to your comment?");
+    var r=window.confirm("Are you sure you want to delete your comment?");
     if (r==true) { 
       x=id; 
       var form = document.createElement("form");
@@ -301,9 +301,11 @@ def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
   """
 
   if not term_string.startswith('#{g:'):
-    return '''href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
-      <font size=\"3\"><strong>%s</strong></font></a>''' % (
-        term_string, concept_id, term_string)
+    return '''<a id="copyLink"
+      title="Click to get a reference link to this term."
+      href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
+        <font size=\"3\"><strong>%s</strong></font></a>''' % (
+          term_string, concept_id, term_string)
 
   t = re.sub('^#{g:\s*(%s)?' % ixuniq, '', term_string)
   t = re.sub('\s*\|.*', '', t)
@@ -312,8 +314,10 @@ def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
       string.lower(humstring), humstring, term_def)
   else:				# if tagAsTerm, format tag like a term
     t = '#' + t
-  return '''href="#" onclick="CopyToClipboard('%s');">
-    <font size=\"3\"><strong>%s</strong></font></a>''' % (term_string, t)
+  return '''<a id="copyLink"
+    title="Click to get a reference link to this term."
+    href="#" onclick="CopyToClipboard('%s');">
+      <font size=\"3\"><strong>%s</strong></font></a>''' % (term_string, t)
 
 
 def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm): 
