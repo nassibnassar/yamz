@@ -110,7 +110,8 @@ enc_pat = re.compile("%|[^!-~]")	# encode all non-visible ascii
 def _encode (s):		# ^HH encodes chars (for egg :hx)
   if len(s) == 0:
     return '""'			# empty string must be explicit
-  return enc_pat.sub(lambda c: "^%02X" % ord(c.group(0)), s.encode("UTF-8"))
+  return enc_pat.sub(lambda c: "^%02X" % ord(c.group(0)),
+    s.encode('UTF-8', 'ignore'))
 
 def bindArkIdentifier (arkId, prod_mode, who, what, peek):
   # Returns the identifier passed in as a string.
