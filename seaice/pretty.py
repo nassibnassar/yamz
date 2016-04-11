@@ -354,6 +354,7 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
   #                      # we want subexpressions 1, 2, and 4
   #reftype, humstring, IDstring = rp[1], rp[2], rp[4]
 
+  return "reftype=%s, humstring=%s, IDstring=%s" % (reftype, humstring, IDstring)
   if not reftype:
     reftype = 't'		# apply default reftype
   if not humstring and not IDstring:		# when empty

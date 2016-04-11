@@ -113,6 +113,7 @@ def _encode (s):		# ^HH encodes chars (for egg :hx)
   return enc_pat.sub(lambda c: "^%02X" % ord(c.group(0)), s.encode("UTF-8"))
   # s.encode('UTF-8', 'ignore'))
 
+# XXX redo encoding to use more robust (less prone to shell quotes) @ technique
 def bindArkIdentifier (arkId, prod_mode, who, what, peek):
   # Returns the identifier passed in as a string.
   global _opener, _binder
