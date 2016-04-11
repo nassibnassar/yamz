@@ -641,7 +641,7 @@ class SeaIceConnector:
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
                U_sum, D_sum, T_last, T_stable, tsv, concept_id
-            from SI.Terms where term_string=%s;
+            from SI.Terms where term_string like %%%s%%;
         """, (term_string,))
     row1 = cur.fetchone()
     if not row1:			# no rows
