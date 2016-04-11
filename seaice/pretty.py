@@ -350,10 +350,6 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
   """
 
-  #(rp) = m.groups()	# rp = ref parts, the part between #{ and }
-  #                      # we want subexpressions 1, 2, and 4
-  #reftype, humstring, IDstring = rp[1], rp[2], rp[4]
-
   if not reftype:
     reftype = 't'		# apply default reftype
   if not humstring and not IDstring:		# when empty
@@ -374,13 +370,10 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
       return '<br>Values: '
     if humstring.startswith('---t'):
       return '<br> '
-    #if reftype == 'e':
-    #  return '<br>Elements: '
-    #if reftype == 'v':
-    #  return '<br>Values: '
-    #if reftype == 'g':
-    #  return '<br> '
     
+  # XXXX
+  print >>sys.stderr, "ref: reftype=%s, humstring=%s, IDstring=%s" % (reftype, humstring, IDstring)
+
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
   # 
@@ -554,8 +547,6 @@ def printRefReAsHTML(db_con, m, tagAsTerm):
   (rp) = m.groups()	# rp = ref parts, the part between #{ and }
                         # we want subexpressions 1, 2, and 4
   reftype, humstring, IDstring = rp[1], rp[2], rp[4]
-  # XXXX
-  print >>sys.stderr, "re: reftype=%s, humstring=%s, IDstring=%s" % (reftype, humstring, IDstring)
   printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm)
 
 def processRefsAsText(db_con, string, tagAsTerm = False): 
