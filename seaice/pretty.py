@@ -371,9 +371,6 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
     if humstring.startswith('---t'):
       return '<br> '
     
-  # XXXX
-  #print >>sys.stderr, "ref: reftype=%s, humstring=%s, IDstring=%s" % (reftype, humstring, IDstring)
-
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
   # 
@@ -386,14 +383,10 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
     if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
       humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
     if not tagAsTerm:
-      # XXXX
-      #print >>sys.stderr, "gtag: " + gtag_string.format(string.lower(humstring), humstring, term_def)
       return gtag_string.format(
         string.lower(humstring), humstring, term_def)
     else:				# if tagAsTerm, format tag like a term
       humstring = '#' + humstring	# pointing to definition, not search
-  # XXXX
-  #print >>sys.stderr, "ref_string: " + ref_string.format(IDstring, humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
 
 # xxx not using db_con or tagAsTerm -- remove?

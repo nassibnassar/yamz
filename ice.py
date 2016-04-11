@@ -525,6 +525,15 @@ def addTerm():
       'id' : app.termIdPool.ConsumeId() }
 
     (id, concept_id) = g.db.insertTerm(term, prod_mode)
+
+    # Special handling is needed for brand new tags, which always return
+    # "(undefined/ambiguous)" qualifiers at the moment of definition.
+    #
+    if term['term_string'].startswith('#{g:'):		# if defining a tag
+      term['term_string'] = '#{g: %s | %s}' % (		# correct our initial
+        request.form['term_string'], concept_id)	# guesses and update
+      g.db.updateTerm(term['id'], term, term['persistent_id'], prod_mode)
+
     g.db.commit()
     app.dbPool.enqueue(g.db)
     return getTerm(concept_id,
