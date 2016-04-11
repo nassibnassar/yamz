@@ -274,6 +274,7 @@ def _ref_norm(db_con, m, force=False):
     searchstring = '#{g: %s | %s}' % (humstring, IDstring)
   else:
     searchstring = humstring
+  searchstring = humstring		# xxx drop above if else clause
   n, term = db_con.getTermByTermString(searchstring)
   #n, term = db_con.getTermByTermString(humstring)
   if n == 1:
