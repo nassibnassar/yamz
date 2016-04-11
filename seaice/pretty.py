@@ -317,7 +317,8 @@ def innerAnchor (db_con, term_string, concept_id, definition, tagAsTerm):
         tagAsTerm=True).replace('"', '&quot;'))
   else:
     attribs = 'href="#" title="Click to get a reference link to this term."'
-
+    attribs += ' id="copyLink"'
+ 
   if not term_string.startswith('#{g:'):
     #return '''<font size=\"3\"><strong><a id="copyLink"
     #  title="Click to get a reference link to this term."
@@ -752,7 +753,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += '    <br><a id="star" title="Track this term" href="#star"' + \
             '     onclick="return TermAction({1}, \'{0}\');">[{2}]</a><br> '.format(
              ("unstar" if good else "star"), row['id'], 'unwatch' if good else 'watch')
-  string += "  </td></tr>"
+  string += "  </td></tr>\n"
 
   #termstr = printTermLinkAsHTML(db_con, row['term_string'], row['concept_id'],
   #               doDefn=False, tagAsTerm=True)
@@ -768,14 +769,14 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
   #string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(termstr)
-  string += '    <td valign=top width=25%><a id="copyLink" {0}</a><td>'.format(iAnchor)
+  string += '    <td valign=top width=25%><a {0}</a><td>'.format(iAnchor)
   string += "    <td valign=top width=5% rowspan=2>"
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
-  string += "    </td>"
+  string += "    </td>\n"
   string += "    <td valign=top width=16% rowspan=2>"
   string += '      <nobr><font style="background-color:{2};border-radius:4px;">&nbsp;{0}&nbsp;</font> <i>&nbsp;({1}%)</i></nobr><br>'.format(
               row['class'], int(100 * row['consensus']), colorOf[row['class']])
-  string += "    </td>"
+  string += "    </td>\n"
 
   # Retrieve persistent_id
   term_persistent_id = row['persistent_id']
@@ -797,14 +798,14 @@ def printTermAsHTML(db_con, row, user_id=0):
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
-                   onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>""" % row['id']
+                   onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>\n""" % row['id']
  
   ## Copy reference tag
   #string += '''    <hr><a id="copyLink" title="Click to get a reference link to this term." href="#"
   #                      onclick="CopyToClipboard('#{t: %s | %s}');">Get term link</a>''' % (row['term_string'], row['concept_id'])
 
   string += "    </td>"
-  string += "  </tr>"
+  string += "  </tr>\n"
 
   # Definition/Examples
   string += "  <tr>"
@@ -893,20 +894,22 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
   for row in rows:
     iAnchor = innerAnchor(db_con, row['term_string'], row['concept_id'],
                  row['definition'], tagAsTerm=True)
-    string += '''<tr><td><a title="Def: {8}" href=/term={5}>{0}</a></td><td>{1}</td><td>{2}</td>
-                     <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
-                     <td>{4}</td>
-                     <td>{7}</tr>'''.format(
-          processTagsAsHTML(db_con, row['term_string'], tagAsTerm = True),
+    #string += '''<tr><td><a title="Def: {8}" href=/term={5}>{0}</a></td><td>{1}</td><td>{2}</td>
+    string += "<tr><td><a %s</a></td>" % iAnchor
+    string += '''<td>{0}</td><td>{1}</td>
+                     <td><font style="background-color:{4}">&nbsp;{2}&nbsp;</font></td>
+                     <td>{3}</td>
+                     <td>{5}</tr>'''.format(
+          #processTagsAsHTML(db_con, row['term_string'], tagAsTerm = True),
           row['up'] - row['down'],
           summarizeConsensus(row['consensus']),
           row['class'], 
           db_con.getUserNameById(row['owner_id'], full=True),
-          row['concept_id'],
+          #row['concept_id'],
           colorOf[row['class']],
-          printPrettyDate(row['modified']),
-	  processRefsAsText(db_con, row['definition'],
-	    tagAsTerm=True).replace('"', '&quot;'))
+          printPrettyDate(row['modified']))
+	  #processRefsAsText(db_con, row['definition'],
+	  #  tagAsTerm=True).replace('"', '&quot;'))
   string += "</table>"
   return string
 
