@@ -290,12 +290,21 @@ def _ref_norm(db_con, m, force=False):
 # XXXXXXXX
 # convert term_string (may be #{g: ... })
 
-def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
+# xxx call inner_anchor to define title, href, and text missing from
+#     <a id=... Inner_Anchor ... </a>
+# The returned Inner_Anchor will be of the form
+#    [ onclick="CopyToClipboard('#{X: %s | %s}');" ]
+#    href='...' title='...'>...
+# Yes, that's an isolated, unmatched ">" in the return string.
+
+def InnerAnchor (db_con, term_string, concept_id, doDefn, tagAsTerm):
   """ Input ...
   
-  A DB connector is required to resolve the term_string by ID. 
-  A term_string is either of the form '#{g: humstring | concept_id}'
-  or a literal string.
+  A DB connector is required to resolve the concept_id to a definition.
+  A term_string is either a literal string or of the form
+    '#{g: humstring | concept_id}'.
+  Returns an HTML anchor with href and title defined either for a term
+  page (where one term is central to the page) or for search/browse results.
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
@@ -307,24 +316,20 @@ def printTermLinkAsHTML (db_con, term_string, concept_id, tagAsTerm):
     #  href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
     #    %s</a></strong></font>''' % (
     #      term_string, concept_id, term_string)
-    return '''<a id="copyLink"
-      title="Click to get a reference link to this term."
+    return '''title="Click to get a reference link to this term."
       href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
-        %s</a>''' % (term_string, concept_id, term_string)
+        %s''' % (term_string, concept_id, term_string)
 
   # yyy compile these regex's? -- maybe not since execution is rare
   t = re.sub('^#{g:\s*(%s)?' % ixuniq, '', term_string)
   t = re.sub('\s*\|.*', '', t)
-  if not tagAsTerm:		# xxx needed?
+  if not tagAsTerm:		# XXXXXX bogus clause -- fix or ditch
     return gtag_string.format(
       string.lower(humstring), humstring, term_def)
   else:				# if tagAsTerm, format tag like a term
     t = '#' + t
-  return '''<a id="copyLink"
-    title="Click to get a reference link to this term."
-    href="#" onclick="CopyToClipboard('%s');">%s</a>''' % (term_string, t)
-
-#      <font size=\"3\"><strong>%s</strong></font></a>''' % (term_string, t)
+  return '''title="Click to get a reference link to this term."
+    href="#" onclick="CopyToClipboard('%s');">%s''' % (term_string, t)
 
 def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm): 
   """ Input reftype, human readable string, machine readable string,
@@ -739,8 +744,10 @@ def printTermAsHTML(db_con, row, user_id=0):
              ("unstar" if good else "star"), row['id'], 'unwatch' if good else 'watch')
   string += "  </td></tr>"
 
-  termstr = printTermLinkAsHTML(db_con, row['term_string'], row['concept_id'],
-                 tagAsTerm=True)
+  innerAnchor = InnerAnchor(db_con, row['term_string'], row['concept_id'],
+                 doDefn=False, tagAsTerm=True)
+  #termstr = printTermLinkAsHTML(db_con, row['term_string'], row['concept_id'],
+  #               doDefn=False, tagAsTerm=True)
   #termstr = '''<a id="copyLink" title="Click to get a reference link to this term."
   #                href="#" onclick="CopyToClipboard('#{t: %s | %s}');"
   #             ><font size=\"3\"><strong>%s</strong></font></a>''' % (
@@ -751,7 +758,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
   string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(termstr)
-  #string += "    <td valign=top width=25%>{0}<td>".format(termstr)
+  #string += "    <td valign=top width=25%><a id="copyLink" {0}><td>".format(innerAnchor)
   string += "    <td valign=top width=5% rowspan=2>"
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>"
