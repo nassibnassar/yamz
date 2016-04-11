@@ -274,9 +274,11 @@ def _ref_norm(db_con, m, force=False):
     searchstring = '#{g: %s | %s}' % (humstring, IDstring)
   else:
     searchstring = humstring
-  searchstring = humstring		# xxx drop above if else clause
-  n, term = db_con.getTermByTermString(searchstring)
-  #n, term = db_con.getTermByTermString(humstring)
+  #n, term = db_con.getTermByTermString(searchstring)
+  # xxx drop from here back to 'if'
+  n, term = db_con.getTermByTermString(humstring)
+  # XXXX
+  print >>sys.stderr, "n=%s, humstring=%s" % (n, humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
   elif n == 0:
