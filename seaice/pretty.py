@@ -387,8 +387,7 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
       humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
     if not tagAsTerm:
       # XXXX
-      #print >>sys.stderr, "gtag: " + gtag_string.format(
-        string.lower(humstring), humstring, term_def)
+      #print >>sys.stderr, "gtag: " + gtag_string.format(string.lower(humstring), humstring, term_def)
       return gtag_string.format(
         string.lower(humstring), humstring, term_def)
     else:				# if tagAsTerm, format tag like a term
