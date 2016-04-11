@@ -518,7 +518,7 @@ class SeaIceConnector:
             from SI.Terms where concept_id=%s;
         """, (concept_id,))
     return cur.fetchone()
-  
+
   def getTermString(self, id): 
     """ Get term string by ID.
 
@@ -531,7 +531,20 @@ class SeaIceConnector:
     res = cur.fetchone()
     if res: return res[0]
     else:   return None
-    
+
+  def getPID(self, id): 
+    """ Get persistent_id by ID.
+
+    :param id: Term ID.
+    :type id: int
+    :rtype: str or None
+    """
+    cur = self.con.cursor()
+    cur.execute("SELECT persistent_id FROM SI.Terms WHERE id=%s", (id,))
+    res = cur.fetchone()
+    if res: return res[0]
+    else:   return None
+
   def getTermConceptId(self, id): 
     """ Get term string by ID.
 
@@ -750,7 +763,9 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("UPDATE SI.Terms SET term_string=%s, definition=%s, examples=%s WHERE id=%s",
         (term['term_string'], term['definition'], term['examples'], id))
-    # update persistent ID for term
+    if not pid:
+      pid = self.getPID(id)
+    # update external binder for term
     mint.bind_persistent_id(prod_mode, mint.pid2ark(pid),
       # xxx drop self arg when terms all converted to new style
       pretty.processRefsAsText(self, term['term_string']),

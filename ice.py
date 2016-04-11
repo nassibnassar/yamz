@@ -532,7 +532,7 @@ def addTerm():
     if term['term_string'].startswith('#{g:'):		# if defining a tag
       term['term_string'] = '#{g: %s | %s}' % (		# correct our initial
         request.form['term_string'], concept_id)	# guesses and update
-      g.db.updateTerm(term['id'], term, term['persistent_id'], prod_mode)
+      g.db.updateTerm(term['id'], term, None, prod_mode)
 
     g.db.commit()
     app.dbPool.enqueue(g.db)
