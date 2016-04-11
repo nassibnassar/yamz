@@ -372,7 +372,7 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
       return '<br> '
     
   # XXXX
-  print >>sys.stderr, "ref: reftype=%s, humstring=%s, IDstring=%s" % (reftype, humstring, IDstring)
+  #print >>sys.stderr, "ref: reftype=%s, humstring=%s, IDstring=%s" % (reftype, humstring, IDstring)
 
   # If we get here, reftype is not k, and IDstring (concept_id)
   # is expected to reference a term in the dictionary.
@@ -387,14 +387,14 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
       humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
     if not tagAsTerm:
       # XXXX
-      print >>sys.stderr, "gtag: " + gtag_string.format(
+      #print >>sys.stderr, "gtag: " + gtag_string.format(
         string.lower(humstring), humstring, term_def)
       return gtag_string.format(
         string.lower(humstring), humstring, term_def)
     else:				# if tagAsTerm, format tag like a term
       humstring = '#' + humstring	# pointing to definition, not search
   # XXXX
-  print >>sys.stderr, "ref_string: " + ref_string.format(IDstring, humstring, term_def)
+  #print >>sys.stderr, "ref_string: " + ref_string.format(IDstring, humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
 
 # xxx not using db_con or tagAsTerm -- remove?
@@ -552,7 +552,7 @@ def printRefReAsHTML(db_con, m, tagAsTerm):
   (rp) = m.groups()	# rp = ref parts, the part between #{ and }
                         # we want subexpressions 1, 2, and 4
   reftype, humstring, IDstring = rp[1], rp[2], rp[4]
-  printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm)
+  return printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm)
 
 def processRefsAsText(db_con, string, tagAsTerm = False): 
   """  Render references in DB text entries into plain text. 
