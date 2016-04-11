@@ -386,10 +386,15 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
     if humstring.startswith(ixuniq):	# stored index "uniquerifier" string
       humstring = humstring[ixqlen:]	# but remove "uniquerifier" on display
     if not tagAsTerm:
+      # XXXX
+      print >>sys.stderr, "gtag: " + gtag_string.format(
+        string.lower(humstring), humstring, term_def)
       return gtag_string.format(
         string.lower(humstring), humstring, term_def)
     else:				# if tagAsTerm, format tag like a term
       humstring = '#' + humstring	# pointing to definition, not search
+  # XXXX
+  print >>sys.stderr, "ref_string: " + ref_string.format(IDstring, humstring, term_def)
   return ref_string.format(IDstring, humstring, term_def)
 
 # xxx not using db_con or tagAsTerm -- remove?
