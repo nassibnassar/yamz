@@ -1,4 +1,5 @@
 # xxx catch assert exceptions
+# xxx alpha ordering of tags is wrong
 
 # pretty.py - Pretty formatting for db table rows. There are routines defined
 # here for use in a terminal as well as on the web. 
@@ -287,17 +288,6 @@ def _ref_norm(db_con, m, force=False):
 
   ## Processing tags in text areas. ##
 
-# XXXXXXXX
-# convert term_string (may be #{g: ... })
-
-# xxx call inner_anchor to define title, href, and text missing from
-#     <a id=... Inner_Anchor ... </a>
-# The returned Inner_Anchor will be of the form
-#    [ onclick="CopyToClipboard('#{X: %s | %s}');" ]
-#    href='...' title='...'>...
-# Yes, that's an isolated, unmatched ">" in the return string.
-# The onclick attrib will be included if doDefn is False.
-
 def innerAnchor (db_con, term_string, concept_id, definition, tagAsTerm):
   """ Input ...
   
@@ -306,6 +296,10 @@ def innerAnchor (db_con, term_string, concept_id, definition, tagAsTerm):
     '#{g: humstring | concept_id}'.
   Returns an HTML anchor with href and title defined either for a term
   page (where one term is central to the page) or for search/browse results.
+  The returned Inner_Anchor will be of the form
+     [ id="copyLink" onclick="CopyToClipboard('#{X: %s | %s}');" ]
+     href='...' title='...'>...
+  Yes, that's an isolated, unmatched ">" in the return string.
 
   :param db_con: DB connection.
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
@@ -320,11 +314,6 @@ def innerAnchor (db_con, term_string, concept_id, definition, tagAsTerm):
     attribs += ' id="copyLink"'
  
   if not term_string.startswith('#{g:'):
-    #return '''<font size=\"3\"><strong><a id="copyLink"
-    #  title="Click to get a reference link to this term."
-    #  href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
-    #    %s</a></strong></font>''' % (
-    #      term_string, concept_id, term_string)
     if definition == None:
       attribs += ''' onclick="CopyToClipboard('#{t: %s | %s}');"''' % (
         term_string, concept_id)
@@ -755,21 +744,12 @@ def printTermAsHTML(db_con, row, user_id=0):
              ("unstar" if good else "star"), row['id'], 'unwatch' if good else 'watch')
   string += "  </td></tr>\n"
 
-  #termstr = printTermLinkAsHTML(db_con, row['term_string'], row['concept_id'],
-  #               doDefn=False, tagAsTerm=True)
-  #termstr = '''<a id="copyLink" title="Click to get a reference link to this term."
-  #                href="#" onclick="CopyToClipboard('#{t: %s | %s}');"
-  #             ><font size=\"3\"><strong>%s</strong></font></a>''' % (
-#	         row['term_string'], row['concept_id'],
-#                 processTagsAsHTML(db_con, row['term_string'], tagAsTerm=True))
-
   iAnchor = innerAnchor(db_con, row['term_string'], row['concept_id'],
                  None, tagAsTerm=True)
   # Name/Class
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
   string += "    <td valign=top width=25%><font size=\"3\"><strong><a {0}</a></strong></font><td>".format(iAnchor)
-  #string += '    <td valign=top width=25%><a {0}</a><td>'.format(iAnchor)
   string += "    <td valign=top width=5% rowspan=2>"
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>\n"
