@@ -297,7 +297,7 @@ def _ref_norm(db_con, m, force=False):
 #    href='...' title='...'>...
 # Yes, that's an isolated, unmatched ">" in the return string.
 
-def InnerAnchor (db_con, term_string, concept_id, doDefn, tagAsTerm):
+def innerAnchor (db_con, term_string, concept_id, doDefn, tagAsTerm):
   """ Input ...
   
   A DB connector is required to resolve the concept_id to a definition.
@@ -744,7 +744,7 @@ def printTermAsHTML(db_con, row, user_id=0):
              ("unstar" if good else "star"), row['id'], 'unwatch' if good else 'watch')
   string += "  </td></tr>"
 
-  innerAnchor = InnerAnchor(db_con, row['term_string'], row['concept_id'],
+  iAnchor = innerAnchor(db_con, row['term_string'], row['concept_id'],
                  doDefn=False, tagAsTerm=True)
   #termstr = printTermLinkAsHTML(db_con, row['term_string'], row['concept_id'],
   #               doDefn=False, tagAsTerm=True)
@@ -757,8 +757,8 @@ def printTermAsHTML(db_con, row, user_id=0):
   # Name/Class
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
-  string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(termstr)
-  #string += "    <td valign=top width=25%><a id="copyLink" {0}><td>".format(innerAnchor)
+  #string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(termstr)
+  string += "    <td valign=top width=25%><a id="copyLink" {0}><td>".format(iAnchor)
   string += "    <td valign=top width=5% rowspan=2>"
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>"
