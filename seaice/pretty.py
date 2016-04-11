@@ -276,6 +276,7 @@ def _ref_norm(db_con, m, force=False):
     searchstring = humstring
   #n, term = db_con.getTermByTermString(searchstring)
   # xxx drop from here back to 'if'
+  print >>sys.stderr, "humstring=%s" % (humstring)
   n, term = db_con.getTermByTermString(humstring)
   # XXXX
   print >>sys.stderr, "n=%s, humstring=%s" % (n, humstring)
