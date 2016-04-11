@@ -296,8 +296,9 @@ def _ref_norm(db_con, m, force=False):
 #    [ onclick="CopyToClipboard('#{X: %s | %s}');" ]
 #    href='...' title='...'>...
 # Yes, that's an isolated, unmatched ">" in the return string.
+# The onclick attrib will be included if doDefn is False.
 
-def innerAnchor (db_con, term_string, concept_id, doDefn, tagAsTerm):
+def innerAnchor (db_con, term_string, concept_id, definition, tagAsTerm):
   """ Input ...
   
   A DB connector is required to resolve the concept_id to a definition.
@@ -310,26 +311,35 @@ def innerAnchor (db_con, term_string, concept_id, doDefn, tagAsTerm):
   :type db_con: seaice.SeaIceConnector.SeaIceConnector
   """
 
+  if definition != None:
+    attribs = 'href="/term=%s" title="%s"' % (concept_id,
+      processRefsAsText(db_con, definition,
+        tagAsTerm=True).replace('"', '&quot;'))
+  else:
+    attribs = 'href="#" title="Click to get a reference link to this term."'
+
   if not term_string.startswith('#{g:'):
     #return '''<font size=\"3\"><strong><a id="copyLink"
     #  title="Click to get a reference link to this term."
     #  href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
     #    %s</a></strong></font>''' % (
     #      term_string, concept_id, term_string)
-    return '''title="Click to get a reference link to this term."
-      href="#" onclick="CopyToClipboard('#{t: %s | %s}');">
-        %s''' % (term_string, concept_id, term_string)
+    if definition == None:
+      attribs += ''' onclick="CopyToClipboard('#{t: %s | %s}');"''' % (
+        term_string, concept_id)
+    return attribs + '>' + term_string
 
   # yyy compile these regex's? -- maybe not since execution is rare
   t = re.sub('^#{g:\s*(%s)?' % ixuniq, '', term_string)
-  t = re.sub('\s*\|.*', '', t)
-  if not tagAsTerm:		# XXXXXX bogus clause -- fix or ditch
-    return gtag_string.format(
-      string.lower(humstring), humstring, term_def)
-  else:				# if tagAsTerm, format tag like a term
-    t = '#' + t
-  return '''title="Click to get a reference link to this term."
-    href="#" onclick="CopyToClipboard('%s');">%s''' % (term_string, t)
+  t = '#' + re.sub('\s*\|.*', '', t)
+  #if not tagAsTerm:		# XXXXXX bogus clause -- fix or ditch
+  #  return gtag_string.format(
+  #    string.lower(humstring), humstring, term_def)
+  #else:				# if tagAsTerm, format tag like a term
+  #  t = '#' + t
+  if definition == None:
+    attribs += ''' onclick="CopyToClipboard('%s');"''' % term_string
+  return attribs + '>' + t
 
 def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm): 
   """ Input reftype, human readable string, machine readable string,
@@ -744,8 +754,6 @@ def printTermAsHTML(db_con, row, user_id=0):
              ("unstar" if good else "star"), row['id'], 'unwatch' if good else 'watch')
   string += "  </td></tr>"
 
-  iAnchor = innerAnchor(db_con, row['term_string'], row['concept_id'],
-                 doDefn=False, tagAsTerm=True)
   #termstr = printTermLinkAsHTML(db_con, row['term_string'], row['concept_id'],
   #               doDefn=False, tagAsTerm=True)
   #termstr = '''<a id="copyLink" title="Click to get a reference link to this term."
@@ -754,11 +762,13 @@ def printTermAsHTML(db_con, row, user_id=0):
 #	         row['term_string'], row['concept_id'],
 #                 processTagsAsHTML(db_con, row['term_string'], tagAsTerm=True))
 
+  iAnchor = innerAnchor(db_con, row['term_string'], row['concept_id'],
+                 None, tagAsTerm=True)
   # Name/Class
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
   #string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(termstr)
-  string += '    <td valign=top width=25%><a id="copyLink" {0}><td>'.format(iAnchor)
+  string += '    <td valign=top width=25%><a id="copyLink" {0}</a><td>'.format(iAnchor)
   string += "    <td valign=top width=5% rowspan=2>"
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>"
@@ -881,6 +891,8 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
                   <td>Score</td><td>Consensus</td><td>Class</td><td>Contributed by</td>
                   <td>Last modified</td></tr>'''
   for row in rows:
+    iAnchor = innerAnchor(db_con, row['term_string'], row['concept_id'],
+                 row['definition'], tagAsTerm=True)
     string += '''<tr><td><a title="Def: {8}" href=/term={5}>{0}</a></td><td>{1}</td><td>{2}</td>
                      <td><font style="background-color:{6}">&nbsp;{3}&nbsp;</font></td>
                      <td>{4}</td>
