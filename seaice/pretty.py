@@ -269,25 +269,28 @@ def _ref_norm(db_con, m, force=False):
     return '#{%s: %s}' % (reftype, humstring)
 
   # If we get here, we're going to do the lookup.
-  #if reftype == 'g' and not humstring.startswith('#'):
-  if reftype == 'g':
-    searchstring = '#{g: %s | %s}' % (humstring, IDstring)
-  else:
-    searchstring = humstring
-  #n, term = db_con.getTermByTermString(searchstring)
-  # xxx drop from here back to 'if'
-  print >>sys.stderr, "humstring=%s" % (humstring)
+  ##if reftype == 'g' and not humstring.startswith('#'):
+  #if reftype == 'g':
+  #  searchstring = '#{g: %s | %s}' % (humstring, IDstring)
+  #else:
+  #  searchstring = humstring
+  ##n, term = db_con.getTermByTermString(searchstring)
+  ## xxx drop from here back to 'if'
+  ##print >>sys.stderr, "humstring=%s" % (humstring)
   n, term = db_con.getTermByTermString(humstring)
-  # XXXX
-  print >>sys.stderr, "n=%s, humstring=%s" % (n, humstring)
+  ## XXXX
+  ##print >>sys.stderr, "n=%s, humstring=%s" % (n, humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
   elif n == 0:
     term_string, concept_id = (humstring + '(undefined)'), '-'
   elif n == 2:
     term_string, concept_id = (humstring + '(ambiguous)'), '-'
-  return '#{%s: %s | %s}' % (reftype, term_string, concept_id)
-  # this space ^ is relied on by a (fixed width) lookbehind regex
+  if reftype == 'g':
+    return term_string		# already in returnable form
+  else:
+    return '#{%s: %s | %s}' % (reftype, term_string, concept_id)
+    # this space ^ is relied on by a (fixed width) lookbehind regex
 
 
   ## Processing tags in text areas. ##
