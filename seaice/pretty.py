@@ -354,7 +354,7 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
   #                      # we want subexpressions 1, 2, and 4
   #reftype, humstring, IDstring = rp[1], rp[2], rp[4]
 
-  return "reftype=%s, humstring=%s, IDstring=%s" % (reftype, humstring, IDstring)
+  #return "reftype=%s, humstring=%s, IDstring=%s" % (reftype, humstring, IDstring)
   if not reftype:
     reftype = 't'		# apply default reftype
   if not humstring and not IDstring:		# when empty
@@ -546,6 +546,7 @@ def processTagsAsHTML(db_con, string, tagAsTerm = False):
   string = _xtag_regex.sub(lambda m: printTagAsHTML(db_con, m), string)
   string = _xterm_tag_regex.sub(lambda m: printTermTagAsHTML(db_con, m), string)
 
+  print >>sys.stderr, "string=" + string	# XXXX
   string = ref_regex.sub(lambda m: printRefReAsHTML(db_con, m, tagAsTerm), string)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
@@ -554,7 +555,7 @@ def processTagsAsHTML(db_con, string, tagAsTerm = False):
 def printRefReAsHTML(db_con, m, tagAsTerm):
   (rp) = m.groups()	# rp = ref parts, the part between #{ and }
                         # we want subexpressions 1, 2, and 4
-  reftype, humstring, IDstring = rp[1], rp[2], rp[4];
+  reftype, humstring, IDstring = rp[1], rp[2], rp[4]
   printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm)
 
 def processRefsAsText(db_con, string, tagAsTerm = False): 
