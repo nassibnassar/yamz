@@ -758,7 +758,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   string += "  <tr>"
   string += "    <td valign=top width=8%><i>Term:</i></td>"
   #string += "    <td valign=top width=25%><font size=\"3\"><strong>{0}</strong></font><td>".format(termstr)
-  string += "    <td valign=top width=25%><a id="copyLink" {0}><td>".format(iAnchor)
+  string += '    <td valign=top width=25%><a id="copyLink" {0}><td>'.format(iAnchor)
   string += "    <td valign=top width=5% rowspan=2>"
   string += "      <nobr><i>Class:&nbsp;&nbsp;</i></nobr><br>"
   string += "    </td>"
