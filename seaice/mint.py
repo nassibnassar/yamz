@@ -106,7 +106,8 @@ def mintArkIdentifier (prod_mode):
     if c: c.close()
   return arkId
  
-enc_pat = re.compile("[%']|[^!-~]")	# encode quotes and non-visible ascii
+# encode quotes and non-visible ascii
+enc_pat = re.compile("""[%'"\\]|[^!-~]""")
 def _encode (s):		# ^HH encodes chars (for egg :hx)
   if len(s) == 0:
     return '""'			# empty string must be explicit
