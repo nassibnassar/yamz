@@ -145,6 +145,7 @@ permalink_regex = re.compile("^http://(.*)$")
 
 ixuniq = 'xq'
 ixqlen = len(ixuniq)
+tagstart = '#{g: '		# note: final space is important
 
 def _token_ref_norm(m):
   """ Promote simple "&ref" into curly "#{t: ref} or, if ref
@@ -160,7 +161,8 @@ def _token_ref_norm(m):
   sigil = m.group(1)
   token = m.group(2)
   if sigil == '#':
-    return '#{g: ' + ixuniq + token + '}'
+    return tagstart + ixuniq + token + '}'
+    #return '#{g: ' + ixuniq + token + '}'
   elif sigil == '&':
     return '#{t: ' + token + '}'
   else:
@@ -269,17 +271,7 @@ def _ref_norm(db_con, m, force=False):
     return '#{%s: %s}' % (reftype, humstring)
 
   # If we get here, we're going to do the lookup.
-  ##if reftype == 'g' and not humstring.startswith('#'):
-  #if reftype == 'g':
-  #  searchstring = '#{g: %s | %s}' % (humstring, IDstring)
-  #else:
-  #  searchstring = humstring
-  ##n, term = db_con.getTermByTermString(searchstring)
-  ## xxx drop from here back to 'if'
-  ##print >>sys.stderr, "humstring=%s" % (humstring)
-  n, term = db_con.getTermByTermString(humstring)
-  ## XXXX
-  ##print >>sys.stderr, "n=%s, humstring=%s" % (n, humstring)
+  n, term = db_con.getTermByInitialTermString(tagstart + humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
     if reftype == 'g':

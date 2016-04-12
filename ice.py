@@ -531,7 +531,9 @@ def addTerm():
     # "(undefined/ambiguous)" qualifiers at the moment of definition.
     #
     if term['term_string'].startswith('#{g:'):		# if defining a tag
-      term['term_string'] = '#{g: %s | %s}' % (		# correct our initial
+      #term['term_string'] = '#{g: %s | %s}' % (		# correct our initial
+      term['term_string'] = '%s%s | %s}' % (		# correct our initial
+        seaice.pretty.tagstart,
         seaice.pretty.ixuniq + request.form['term_string'][1:],
 	concept_id)					# guesses and update
       g.db.updateTerm(term['id'], term, None, prod_mode)

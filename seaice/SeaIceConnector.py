@@ -606,7 +606,6 @@ class SeaIceConnector:
     for row in cur.fetchall():
       yield row
 
-  # yyy rename getTermByTermstring?
   def getByTerm(self, term_string): 
     """ Search table by term string and return an iterator over the matches.
 
@@ -625,8 +624,8 @@ class SeaIceConnector:
     for row in cur.fetchall():
       yield row
 
-  # yyy hack? reuse getByTerm?
-  def getTermByTermString(self, term_string): 
+  #def getTermByTermString(self, term_string): 
+  def getTermByInitialTermString(self, term_string): 
     """ Search by term string and return (n, term) where n=0 for
     no matches, n=1 for one match, and n=2 for more than one match
 
@@ -641,8 +640,9 @@ class SeaIceConnector:
         select id, owner_id, created, modified, term_string,
                definition, examples, up, down, consensus, class,
                U_sum, D_sum, T_last, T_stable, tsv, concept_id
-            from SI.Terms where term_string like '%%' || %s || '%%';
+            from SI.Terms where term_string like %s || '%%';
         """, (term_string,))
+    #        from SI.Terms where term_string like '%%' || %s || '%%';
     row1 = cur.fetchone()
     if not row1:			# no rows
       return 0, None
