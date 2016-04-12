@@ -282,15 +282,15 @@ def _ref_norm(db_con, m, force=False):
   ##print >>sys.stderr, "n=%s, humstring=%s" % (n, humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
-  elif n == 0:
+    if reftype == 'g':
+      return term_string	# if found, it's already in returnable form
+  if n == 0:
     term_string, concept_id = (humstring + '(undefined)'), '-'
   elif n == 2:
     term_string, concept_id = (humstring + '(ambiguous)'), '-'
-  if reftype == 'g':
-    return term_string		# already in returnable form
-  else:
-    return '#{%s: %s | %s}' % (reftype, term_string, concept_id)
-    # this space ^ is relied on by a (fixed width) lookbehind regex
+  #print >>sys.stderr, "n=%s, humstring=%s, term_string" % (n, humstring, term_string)
+  return '#{%s: %s | %s}' % (reftype, term_string, concept_id)
+  # this space ^ is relied on by a (fixed width) lookbehind regex
 
 
   ## Processing tags in text areas. ##
