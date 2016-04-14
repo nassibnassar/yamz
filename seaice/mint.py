@@ -44,24 +44,6 @@ def minderOpener (prod_mode):
   ctxt.check_hostname = False
   ctxt.verify_mode = ssl.CERT_NONE
 
-#  try:
-#    ctxt = ssl.create_default_context()
-#  except AttributeError:
-#    # Legacy Python that doesn't verify HTTPS certificates by default
-#    pass
-#  else:
-#    ctxt.check_hostname = False
-#    ctxt.verify_mode = ssl.CERT_NONE
-#
-#  try:
-#    _create_unverified_https_context = ssl._create_unverified_context
-#  except AttributeError:
-#    # Legacy Python that doesn't verify HTTPS certificates by default
-#    pass
-#  else:
-#    # Handle target environment that doesn't support HTTPS verification
-#    ssl._create_default_https_context = _create_unverified_https_context
-
   # Note that exceptions are not handled here but passed to the caller.
   global _opener, _minter, _binder
   if not _minter:
@@ -79,13 +61,6 @@ def minderOpener (prod_mode):
       urllib2.HTTPSHandler(debuglevel=0, context=ctxt),
       urllib2.HTTPBasicAuthHandler(m))
 
-#    if ctxt:
-#      _opener = urllib2.build_opener(
-#        urllib2.HTTPSHandler(debuglevel=0, context=ctxt),
-#        urllib2.HTTPBasicAuthHandler(m))
-#    else:
-#      _opener = urllib2.build_opener(
-#        urllib2.HTTPBasicAuthHandler(m))
     _opener.addheaders = [("Content-Type", "text/plain")]
     return _opener
 
@@ -98,6 +73,7 @@ def mintArkIdentifier (prod_mode):
   try:
     c = _opener.open(_minter + "?mint%201")
     r = c.readlines()
+    # xxx catch assert exceptions
     assert len(r) == 3 and r[0].startswith("s:") and r[1] == "nog-status: 0\n"
     arkId = r[0][3:].strip()
     assert re.match("99152/[a-z]+\d+$", arkId)

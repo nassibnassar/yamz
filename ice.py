@@ -426,6 +426,7 @@ def browse(listing = None):
      '<a href="/browse/stable">stable</a>' if listing != "stable" else 'stable',
      '<a href="/browse/alphabetical">alphabetical</a>' if listing != "alphabetical" else 'alphabetical'
     )
+  # xxx alpha ordering of tags is wrong (because they start '#{g: ')
  
   if listing == "recent": # Most recently added listing 
     result += seaice.pretty.printTermsAsBriefHTML(g.db, 

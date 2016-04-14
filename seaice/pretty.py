@@ -1,6 +1,3 @@
-# xxx catch assert exceptions
-# xxx alpha ordering of tags is wrong
-
 # pretty.py - Pretty formatting for db table rows. There are routines defined
 # here for use in a terminal as well as on the web. 
 #
@@ -321,11 +318,6 @@ def innerAnchor (db_con, term_string, concept_id, definition, tagAsTerm):
   # yyy compile these regex's? -- maybe not since execution is rare
   t = re.sub('^#{g:\s*(%s)?' % ixuniq, '', term_string)
   t = '#' + re.sub('\s*\|.*', '', t)
-  #if not tagAsTerm:		# XXXXXX bogus clause -- fix or ditch
-  #  return gtag_string.format(
-  #    string.lower(humstring), humstring, term_def)
-  #else:				# if tagAsTerm, format tag like a term
-  #  t = '#' + t
   if definition == None:
     attribs += ''' onclick="CopyToClipboard('%s');"''' % term_string
   return attribs + '>' + t
