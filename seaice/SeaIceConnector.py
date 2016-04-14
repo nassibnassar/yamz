@@ -736,6 +736,8 @@ class SeaIceConnector:
        """, (string,))
   
     except Exception as e:
+      print >>sys.stderr, e.pgerror
+      cur.execute("ROLLBACK;")	# else one error can wedge entire service
       rows = []
       return list(rows)
 
