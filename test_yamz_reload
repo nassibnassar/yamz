@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+#tydb=yamz
+tydb=tyamz
+me=$( basename $0 )
+[[ "$1" == go ]] || {
+	cat << EOT
+Usage: $me go
+
+Overwrite tyamz (test yamz) tables from ynlists/*.json files.
+Set and export bash MINTER_PASSWORD variable to mint/bind in test binder.
+
+EOT
+	exit
+}
+
+ydb=$( ./whichydb get )
+[[ "$ydb" == $tydb ]] || {
+	echo error: DATABASE_URL not set correctly for $tydb -- run ./whichydb
+	exit 1
+}
+
+echo killing and dropping $ydb tables
+heroku pg:killall -a $ydb
+./sea.py --drop-db --init-db -q
+for t in Users Terms Comments Tracking
+do
+	echo importing $t
+	./sea.py --rebind --import=$t < ynlists/$t.json
+done
+heroku restart -a $ydb
+
+
+#echo "XXX official docs say to use ./sea.py --config=heroku, but it's not"
+#echo "    necessary -- this could lead one into trouble?"
+#echo "XXX 1. install new software"
+#echo "XXX 2. redefine #citsci, #DesignSafeCentrifuge, #permanence"
+#echo "XXX 3. dump and reload terms?"
+#echo "(Make sure Project* terms look ok and can be edited.)"
+#echo "(Finally, comment out old tag processing code and redeploy.)"
+#echo "(Check CVP edit bug, which Jeremy noticed.)"

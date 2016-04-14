@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+me=$( basename $0 )
+instance=tyamz
+
+[[ "$1" == "-p" ]] && {
+	instance=yamz
+	shift
+}
+
+[[ "$1" ]] || {
+	cat << EOT
+
+Usage:  $me [ -p ] [ dump | init | load ]
+
+Dump, init, or load the heroku psql database for the "tyamz" (test yamz)
+instance.  With -p, operate on the production "yamz" database.  If it hangs,
+consider first using pg:killall, eg, "heroku pg:killall --app tyamz".
+
+EOT
+	exit 1
+}
+
+cli='./sea.py --config=heroku'
+which=$( ./whichydb get )
+[[ "$which" == "$instance" ]] || {
+	echo "bailing: DATABASE_URL not set for $instance" 1>&2
+	exit 1
+}
+
+# list order is important on "load"
+tables=( Users Terms Comments Tracking )
+
+[[ "$1" == "dump" ]] && {
+	for t in ${tables[*]}
+	do
+		echo dumping $t
+		$cli --export=$t > $t.json
+	done
+	exit
+}
+
+[[ "$1" == "init" ]] && {
+	echo dropping tables
+	$cli --drop-db --init-db
+	exit
+}
+
+[[ "$1" != "load" ]] && {
+	echo "error: unknown command \"$1\"" 1>&2
+	exit 1
+}
+
+for t in ${tables[*]}
+do
+	echo loading $t
+	$cli --import=$t < $t.json
+done
+exit

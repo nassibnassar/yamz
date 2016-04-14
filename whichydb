@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+me=$( basename $0 )
+
+[[ "$1" ]] || {
+	cat << EOT
+
+Usage:  $me [ get | set_test | set_production ]
+
+Get or set the current heroku yamz DATABASE_URL for use
+with the "sea.py" yamz client.
+
+EOT
+	exit 1
+}
+
+function whichydb {
+	envvar="$1"
+	[[ "$envvar" ]] || {
+		echo "whichydb: empty db setting argument"
+		exit 1
+	}
+	n_v=$( sed -n 's/^\([^=]*\)=\(.*\)$/n="\1" v="\2"/p' \
+		<<< "$envvar" )
+	[[ "$n_v" ]] || {
+		echo "DATABASE_URL ($envvar) malformed"
+		exit 1
+	}
+	eval "$n_v"
+	echo "$v"
+	#echo n_v is $n_v
+	#echo n is $n, v is $v
+}
+
+function getydbfor {		# print setting for instance named by arg
+	heroku config -a "$1" | sed -n 's/^DATABASE_URL: *//p'
+}
+
+function setydbfor {
+	d="$1"
+	db=$( getydbfor $d )
+	echo "($d): copy and paste next line into your shell"
+	echo "  export DATABASE_URL=\"$db\""
+}
+
+[[ "$1" == "get" ]] && {
+	curdb="$DATABASE_URL"			# ok, but is it env var?
+	envdb=$( env | grep '^DATABASE_URL=' )	# both should be non-empty
+	[[ "$curdb" && "$envdb" ]] || {
+		echo "Env var DATABASE_URL not set"
+		exit
+	}
+	settings=( tyamz yamz )
+	for d in ${settings[*]}			# search for match
+	do
+		wouldbe=$( getydbfor $d )
+		[[ "$curdb" == "$wouldbe" ]] && {
+			echo $d
+			exit
+		}
+	done
+	echo "Setting not in: ( ${settings[*]} )"
+	exit 1
+}
+
+[[ "$1" == "set_test" ]] && {
+	echo "set_test $( setydbfor tyamz )"
+	exit
+}
+
+[[ "$1" == "set_production" ]] && {
+	echo "set_production $( setydbfor yamz )"
+	exit
+}
+
+echo "Unknown command: $1"
+exit

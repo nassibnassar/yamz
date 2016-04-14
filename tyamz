@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+sb=master		# starting branch (master?)
+me=$( basename $0 )
+
+[[ "$1" ]] || {
+	cat << EOT
+
+Usage:  $me go
+
+Helps your edit/deploy/test loop when testing directly on a "tyamz"
+dev heroku instance (as opposed to testing locally).  Meant to be
+called from your $sb branch, it automates these steps:
+
+  - switch to deploy_keys branch
+  - merge latest changes from $sb into deploy_keys
+  - push deploy_keys to heroku "tyamz" instance
+  - switch back to $sb branch, ready for subsequent edits
+
+To deploy to production, manually do steps something like this:
+
+    git checkout -q deploy_keys
+    cp warts/yamz/.seaice* .
+    git merge -q -m "lots of bug fixes" master
+    git push -q heroku deploy_keys:master
+    cp warts/tyamz/.seaice* .	# IMPORTANT! so next tyamz deploy won't clobber
+    git checkout -q master
+    chmod 600 .seaice*
+
+EOT
+	exit 1
+}
+
+curbranch=$( git rev-parse --abbrev-ref HEAD )	# glad google knew this
+[[ "$curbranch" == "$sb" ]] || {
+	echo "error: current branch ($curbranch) must be $sb"
+	exit 1
+}
+
+set -x
+git commit -a -q -m fix || {
+	echo "abort: problem committing latest changes to $sb"
+	exit 1
+}
+
+git checkout -q deploy_keys || {
+	echo "abort: error checking out deploy_keys"
+	exit 1
+}
+
+stop=$( cmp warts/tyamz/.seaice_auth .seaice_auth )
+[[ "$stop" ]] && {
+	echo 'error: .seaice_auth appears set for production deploy;' \
+		'you may wish to "cp warts/tyamz/.seaice* ."'
+	echo "$stop"
+	echo "NOTE: current branch is deploy_keys"
+	exit 1
+}
+
+git merge -q -m "update from edited branch prior to deploy" $sb || {
+	echo "abort: couldn't update deploy_keys with latest $sb commits"
+	echo "NOTE: current branch is deploy_keys"
+	exit 1
+}
+git push -q heroku deploy_keys:$sb || {
+	echo "error deploying tyamz to heroku"
+	echo "NOTE: current branch is deploy_keys"
+	exit 1
+}
+git checkout -q $sb || {
+	echo "error re-checking out $sb after deploy"
+	echo "NOTE: current branch is deploy_keys"
+	exit 1
+}
+chmod 600 .seaice*		# because git won't preserve file metadata
+set +x

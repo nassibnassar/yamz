@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+
+me=$( basename $0 )
+#[[ "$1" != test && "$1" != production ]] && {
+[[ "$1" == go ]] || {
+	cat << EOT
+Usage: $me go [ export ]
+
+Download YAMZ production tables into JSON files, and convert references in
+those files from old- to new-style from either the "test" or "production"
+tables.  This script does not itself change any data on either the test or
+production instance -- see the test_yamz_reload script.
+
+EOT
+	exit
+}
+
+if [[ "$2" ]]
+then
+	[[ "$2" != export ]] && {
+		echo "error: unrecognized second argument: $2"
+		echo
+		$0
+		exit 1
+	}
+	export=1
+fi
+
+ydb=$( ./whichydb get )
+[[ $ydb != yamz ]] && {
+	echo 'first do "./whichydb set_production" and follow its instructions'
+	exit 1
+}
+
+# Temporarily put a python script we'll use in the var $python_mload,
+# using a "heredoc" (<<) so we don't have worry about quotes
+# surrounding it. Use the var right afterwards with python
+#
+read -r -d '' python_mload << 'EOT'
+
+# start embedded Python program to normalize old- to new-style refs
+import sys, json
+import seaice
+
+# Establish connection to DATABASE_URL -- we will be readonly with the
+# database as we massage the json files.
+# 
+sea = seaice.SeaIceConnector()
+
+#cur = sea.con.cursor()
+
+#ta = json.load(sys.stdin)
+
+filename='Terms.json'			# process Terms
+with open('yolists/' + filename) as fp:
+  ta = json.load(fp)
+  for t in ta:
+    t['definition'] = seaice.pretty.refs_norm(sea, t['definition'])
+    t['examples'] = seaice.pretty.refs_norm(sea, t['examples'])
+
+with open('ynlists/' + filename, 'w') as np:
+  json.dump(ta, np, sort_keys=True, indent=2, separators=(',', ': '))
+  print >>np				# add final newline
+
+filename='Comments.json'		# process Comments
+with open('yolists/' + filename) as fp:
+  ta = json.load(fp)
+  for t in ta:
+    t['comment_string'] = seaice.pretty.refs_norm(sea, t['comment_string'])
+
+with open('ynlists/' + filename, 'w') as np:
+  json.dump(ta, np, sort_keys=True, indent=2, separators=(',', ': '))
+  print >>np				# add final newline
+
+filename='Users.json'			# process Users
+with open('yolists/' + filename) as fp:
+  ta = json.load(fp)
+  for t in ta:
+    if t['email'] in ('jakkbl@gmail.com', 'nassar@etymon.com',
+        'gregyamz@gmail.com', 'janemrc@gmail.com', 'chrispatton@gmail.com'):
+      t['super_user'] = True
+
+with open('ynlists/' + filename, 'w') as np:
+  json.dump(ta, np, sort_keys=True, indent=2, separators=(',', ': '))
+  print >>np				# add final newline
+
+#json.dump(ta, sys.stdout, sort_keys=True, indent=2, separators=(',', ': '))
+#print >>sys.stdout		# add final newline
+
+# end embedded Python program
+EOT
+
+if [[ $export ]]
+then
+	echo exporting $ydb tables
+	for t in Users Terms Comments Tracking
+	do
+		#--config=heroku 
+		./sea.py --export=$t > $t.json
+		echo -n " " $( grep -c '^  {' $t.json ) $t,
+	done
+	echo " done"
+fi
+
+echo pre-processing $ydb Terms and Comments tables
+for f in Terms Comments
+do
+    perl -p \
+	-e 's/\s*(\\r\\n)*\s*",$/",/;' \
+	-e '/"definition":/ and s/\s*(\\r\\n)*\s*(#({g:[^"]+|\w+)",)$/\\r\\n$2/;' \
+	-e 's/"#ppsr_term *(\\r\\n\\r\\n)?(.*)"/"$2\\r\\n#ppsr_term"/;' \
+	-e 's/#ppsr_term/#citsci/g;' \
+	-e 's/#{(\d\d\d\d)/#{h$1/g;' \
+	-e 's/#(\d+|information)/##$1/ig;' \
+	-e 's/: relates to}/: related to}/g;' \
+	-e 's/: bretter term}/: related to}/g;' \
+	< $f.json > yolists/$f.json
+  #-e 's/ *#DesignSafeCentrifuge(\\r\\n)?"/\\r\\n#DesignSafeCentrifuge"/' \
+    echo -n " " $( grep -c '^  {' $f.json ) $f,
+done
+cp Users.json yolists/
+echo " done"
+
+echo normalizing old- to new-style refs in Terms and Comments JSON files
+echo adding super_user flag for some users
+
+# Call script saved in $python_load, passing values via environment variables.
+env python -c "$python_mload"
+
+for t in Users Terms Comments Tracking
+do
+	echo -n " " $( grep -c '^  {' $t.json ) $t,
+done
+echo " done"
+
+echo "copying finalized files into ynlists/*.json"
+cp Tracking.json ynlists/		# one untouched file
+
+cat << EOT
+
+When done, check that yamz prod has no new terms (if not, re-run).
+Then deploy new code to prod. yamz (use tyamz script for inspiration).
+
+Test prod code a bit (CVP, Project*), then, to correct prod tables:
+  1. vi ynlists/{Terms,Comments}.json
+  2  change ownership of #citsci -> "owner_id": 1053
+  3. correct permanAnce (A->e)
+  4. globally substitute for
+     #citsci, #DesignSafe, #DesignSafeCentrifuge, #permanence
+     as needed; use form: term_string": "#{g: xqcitsci | h1266}",
+       #Concepts (termstring isn't right though) already in yamz:
+       #citsic h1266
+       #permanence h1265
+       #DesignSafeCentrifuge h1268
+       #DesignSafe h1267
+  5. use "./whichydb ..." to set DATABASE_URL for production loading
+  6. edit ./test_yamz_reload to make "tydb=yamz"
+  7. run ./test_yamz_reload go to OVERWRITE production
+XXX official docs say to use ./sea.py --config=heroku, but it's not
+    necessary -- this could lead one into trouble?
+(Finally, comment out old tag processing code and redeploy.)
+EOT
