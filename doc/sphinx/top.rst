@@ -4,9 +4,9 @@
 Top level programs ``sea.py``, ``ice.py``, and ``digest.py``
 ===================================================
 
-Two top-level Python programs that make use of the *SeaIce* API (which
+Several top-level Python programs that use the *SeaIce* API (which
 implements the *YAMZ* metadictionary) are available in the root directory
-of the source distribution. Both share two parameters in common: 
+of the source distribution. They have two parameters in common: 
 
 * ``--config`` -- File that specifies the postgres role for a local database, 
   typically ``.seaice``. (Syntax of this file given below.) If ``heroku``
@@ -15,11 +15,13 @@ of the source distribution. Both share two parameters in common:
   :class:`seaice.SeaIceConnector <seaice.SeaIceConnector.SeaIceConnector>`
   for details.
 
-* ``--deploy`` -- Specifies which deployment scenario to use for credentials. 
-  Here, the existence of a file called ``.seaice_auth`` is implicit. 
-
 * ``--role`` -- Role to use for connection to a local database. The parameter
   value must appear in the DB config file. 
+
+The ``ice.py`` program has a special option:
+
+* ``--deploy`` -- Specifies which deployment scenario to use for credentials. 
+  Here, the existence of a file called ``.seaice_auth`` is implicit. 
 
 =======
 ``sea.py``
@@ -96,7 +98,7 @@ standard output:
     }
        ... 
   ]
-  $ ./sea.py --set-retpuation=400 --user=1032
+  $ ./sea.py --set-reputation=400 --user=1032
 
 
 **Score terms manually**. When a vote is cast, the new consensus score of a term is 

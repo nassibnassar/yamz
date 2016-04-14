@@ -430,8 +430,8 @@ class SeaIceConnector:
       persistent_id = defTerm['persistent_id']
       concept_id = defTerm['concept_id']
 
-      if not persistent_id: remint=True		# if none make one
-      if remint: rebind=True			# remint implies (re)bind
+      if not persistent_id: remint=True		# if no pid, make one
+      if remint: rebind=True			# (re)mint implies (re)bind
 
       # create persistent ID for term if need be
       if not persistent_id or remint:
@@ -735,15 +735,19 @@ class SeaIceConnector:
           ORDER BY rank DESC
        """, (string,))
   
-      rows = sorted(cur.fetchall(), key=lambda row: orderOfClass[row['class']])
-      rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
+    except Exception as e:
+      rows = []
       return list(rows)
 
-    except Exception as e:
-      print >>sys.stderr, e.pgerror
-      cur.execute("ROLLBACK;")	# else one error can wedge entire service
-      return None 
-      raise e
+    rows = sorted(cur.fetchall(), key=lambda row: orderOfClass[row['class']])
+    rows = sorted(rows, key=lambda row: row['consensus'], reverse=True)
+    return list(rows)
+
+    #except Exception as e:
+    #  print >>sys.stderr, e.pgerror
+    #  cur.execute("ROLLBACK;")	# else one error can wedge entire service
+    #  return None 
+    #  raise e
 
   def updateTerm(self, id, term, pid, prod_mode): 
     """ Modify a term's term string, definition and examples. 
