@@ -303,15 +303,14 @@ def settings():
   user = g.db.getUser(l.current_user.id)
   app.dbPool.enqueue(g.db)
   return render_template("account.html", user_name = l.current_user.name,
-            email = user['email'].decode('utf-8'),
-            last_name_edit = user['last_name'].decode('utf-8'),
-            first_name_edit = user['first_name'].decode('utf-8'),
-            reputation = user['reputation'] + \
-	                   ' *' if user['super_user'] else '',
-            enotify = 'yes' if user['enotify'] else 'no',
-            message = """
-             Here you can change how your name will appear to other users. 
-             Navigating away from this page will safely discard any changes.""")
+       email = user['email'].decode('utf-8'),
+       last_name_edit = user['last_name'].decode('utf-8'),
+       first_name_edit = user['first_name'].decode('utf-8'),
+       reputation = user['reputation'] + ' *' if user['super_user'] else ' _',
+       enotify = 'yes' if user['enotify'] else 'no',
+       message = """
+         Here you can change how your name will appear to other users. 
+         Navigating away from this page will safely discard any changes.""")
 
 @app.route("/user=<int:user_id>")
 def getUser(user_id = None): 
@@ -463,7 +462,7 @@ def browse(listing = None):
     return redirect("/browse/recent")
 
   return render_template("browse.html", user_name = l.current_user.name, 
-                                        title = "Browse.", 
+                                        title = "Browse", 
                                         headline = "Browse dictionary",
                                         content = Markup(result.decode('utf-8')))
 
