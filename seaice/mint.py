@@ -2,7 +2,6 @@
 
 # XXX TODO Delete persistent identifier on removal of term. 
 
-
 import re
 import os
 import urllib

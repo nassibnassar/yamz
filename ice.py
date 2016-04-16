@@ -463,7 +463,7 @@ def browse(listing = None):
     return redirect("/browse/recent")
 
   return render_template("browse.html", user_name = l.current_user.name, 
-                                        title = "Browse", 
+                                        title = "Browse.", 
                                         headline = "Browse dictionary",
                                         content = Markup(result.decode('utf-8')))
 

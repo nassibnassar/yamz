@@ -128,11 +128,12 @@ token_ref_regex = re.compile("(?<!#\{g: )([#&]+)([\w.-]+)")
 #ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
 # subexpr start positions:    01                  2        3         4
-#endrefs_regex = re.compile("#\{\s*([gve])\s*:\s*---\s*}\s*")
-_xtag_regex = re.compile('#(([a-zA-Z][a-zA-Z0-9_\-\.]*)_term)')	# hack!
+
+#_xtag_regex = re.compile('#(([a-zA-Z][a-zA-Z0-9_\-\.]*)_term)')	# hack!
 #tag_regex = re.compile("#([a-zA-Z][a-zA-Z0-9_\-\.]*[a-zA-Z0-9])")
-_xterm_tag_regex = re.compile('#\{\s*([a-zA-Z0-9]+)\s*:\s*(relate. to[^\{\}]*)\}')	# hack!
+#_xterm_tag_regex = re.compile('#\{\s*([a-zA-Z0-9]+)\s*:\s*(relate. to[^\{\}]*)\}')	# hack!
 #term_tag_regex = re.compile("#\{\s*([a-zA-Z0-9]+)\s*:\s*([^\{\}]*)\}")
+
 permalink_regex = re.compile("^http://(.*)$")
 
 # The "uniquerifier" (ixuniq) makes a tag string uniquer for indexing,
@@ -165,20 +166,6 @@ def _token_ref_norm(m):
   else:
     return sigil + token	# return untouched if doubled
 
-def _xtag_norm(db_con, m):
-  """ Promote old style "#xxx_term" into new style "#{g: #xxx | hNNNN }".
-  """
-  subtag = m.group(2)	# xxx hack, should match "ppsr" in "ppsr_term"
-  return '#' + subtag
-  #n, term = db_con.getTermByTermString(subtag)
-  #if n == 1:
-  #  term_string, concept_id = term['term_string'], term['concept_id']
-  #elif n == 0:
-  #  term_string, concept_id = (subtag + '(undefined)'), '-'
-  #elif n == 2:
-  #  term_string, concept_id = (subtag + '(ambiguous)'), '-'
-  #return '#{g: #%s | %s }' % (term_string, concept_id)
-
 def _xterm_tag_norm(db_con, m):
   """ Promote old style "#{hNNNN : relate[ds] to}" into new style
   "#{t: term string | hNNNN }".
@@ -206,8 +193,7 @@ def refs_norm(db_con, string, force=False):
 
   # xxx temporary transitional hack
   # convert old xterm_tag_regex and xtag_regex matches
-  string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(db_con, m), string)
-  #string = _xtag_regex.sub(lambda m: _xtag_norm(db_con, m), string)
+  #string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(db_con, m), string)
 
   string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
   #string = token_ref_regex.sub('#{t: \\1}', string)
@@ -436,76 +422,76 @@ def printRefAsText(db_con, m, tagAsTerm):
     return '#' + humstring
   return humstring
 
-def printTagAsHTML(db_con, m): 
-  """ Input a regular expression match and output the tag as HTML.
-  
-  A DB connector is required to resolve the tag string by ID. 
-
-  :param db_con: DB connection.
-  :type db_con: seaice.SeaIceConnector.SeaIceConnector
-  :param m: Regular expression match. 
-  :type m: re.MatchObject
-  """
-  (tag,x) = m.groups()
-  return tag_string.format(string.lower(tag), tag)
-
-def printTermTagAsHTML(db_con, m): 
-  """ Input a regular expression match and output the tag as HTML.
-  
-  A DB connector is required to resolve the term string by ID. 
-  If there are syntax errors, simply return the raw tag. 
-
-  :param db_con: DB connection.
-  :type db_con: seaice.SeaIceConnector.SeaIceConnector
-  :param m: Regular expression match. 
-  :type m: re.MatchObject
-  """
-  (term_concept_id, desc) = m.groups()
-  # xxx desc unused
-  try:
-    #desc = desc.strip().replace('"', '&#34;')
-    #term_string = db_con.getTermStringByConceptId(term_concept_id)
-    term = db_con.getTermByConceptId(term_concept_id)
-    term_string = term['term_string'] if term else term_concept_id
-    # xxx isn't this the same code as printRefAsHTML? should consolidate
-    term_def = "Def: " + (
-      processRefsAsText(db_con, term['definition'], tagAsTerm=True)
-      if term else "(undefined)")
-    return term_tag_string.format(term_concept_id, term_def, term_string)
-  except: pass
-  return m.group(0)
-
-def printTagAsText(db_con, m): 
-  """ Input a regular expression match and output the tag as Text.
-  
-  A DB connector is required to resolve the tag string by ID. 
-
-  :param db_con: DB connection.
-  :type db_con: seaice.SeaIceConnector.SeaIceConnector
-  :param m: Regular expression match. 
-  :type m: re.MatchObject
-  """
-  (tag,x) = m.groups()
-  return '#' + tag
-
-def printTermTagAsText(db_con, m): 
-  """ Input a regular expression match and output the tag as Text.
-  
-  A DB connector is required to resolve the term string by ID. 
-  If there are syntax errors, simply return the raw tag. 
-
-  :param db_con: DB connection.
-  :type db_con: seaice.SeaIceConnector.SeaIceConnector
-  :param m: Regular expression match. 
-  :type m: re.MatchObject
-  """
-  (term_concept_id, desc) = m.groups()
-  try:
-    term = db_con.getTermByConceptId(term_concept_id)
-    term_string = term['term_string'] if term else term_concept_id
-    return term_string
-  except: pass
-  return m.group(0)
+#def printTagAsHTML(db_con, m): 
+#  """ Input a regular expression match and output the tag as HTML.
+#  
+#  A DB connector is required to resolve the tag string by ID. 
+#
+#  :param db_con: DB connection.
+#  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+#  :param m: Regular expression match. 
+#  :type m: re.MatchObject
+#  """
+#  (tag,x) = m.groups()
+#  return tag_string.format(string.lower(tag), tag)
+#
+#def printTermTagAsHTML(db_con, m): 
+#  """ Input a regular expression match and output the tag as HTML.
+#  
+#  A DB connector is required to resolve the term string by ID. 
+#  If there are syntax errors, simply return the raw tag. 
+#
+#  :param db_con: DB connection.
+#  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+#  :param m: Regular expression match. 
+#  :type m: re.MatchObject
+#  """
+#  (term_concept_id, desc) = m.groups()
+#  # xxx desc unused
+#  try:
+#    #desc = desc.strip().replace('"', '&#34;')
+#    #term_string = db_con.getTermStringByConceptId(term_concept_id)
+#    term = db_con.getTermByConceptId(term_concept_id)
+#    term_string = term['term_string'] if term else term_concept_id
+#    # xxx isn't this the same code as printRefAsHTML? should consolidate
+#    term_def = "Def: " + (
+#      processRefsAsText(db_con, term['definition'], tagAsTerm=True)
+#      if term else "(undefined)")
+#    return term_tag_string.format(term_concept_id, term_def, term_string)
+#  except: pass
+#  return m.group(0)
+#
+#def printTagAsText(db_con, m): 
+#  """ Input a regular expression match and output the tag as Text.
+#  
+#  A DB connector is required to resolve the tag string by ID. 
+#
+#  :param db_con: DB connection.
+#  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+#  :param m: Regular expression match. 
+#  :type m: re.MatchObject
+#  """
+#  (tag,x) = m.groups()
+#  return '#' + tag
+#
+#def printTermTagAsText(db_con, m): 
+#  """ Input a regular expression match and output the tag as Text.
+#  
+#  A DB connector is required to resolve the term string by ID. 
+#  If there are syntax errors, simply return the raw tag. 
+#
+#  :param db_con: DB connection.
+#  :type db_con: seaice.SeaIceConnector.SeaIceConnector
+#  :param m: Regular expression match. 
+#  :type m: re.MatchObject
+#  """
+#  (term_concept_id, desc) = m.groups()
+#  try:
+#    term = db_con.getTermByConceptId(term_concept_id)
+#    term_string = term['term_string'] if term else term_concept_id
+#    return term_string
+#  except: pass
+#  return m.group(0)
 
 
 def processTagsAsHTML(db_con, string, tagAsTerm = False): 
@@ -523,8 +509,8 @@ def processTagsAsHTML(db_con, string, tagAsTerm = False):
 
   # xxx transitional code to support old style tags along with new style tags
   # xxx problemmatic!
-  string = _xtag_regex.sub(lambda m: printTagAsHTML(db_con, m), string)
-  string = _xterm_tag_regex.sub(lambda m: printTermTagAsHTML(db_con, m), string)
+  #string = _xtag_regex.sub(lambda m: printTagAsHTML(db_con, m), string)
+  #string = _xterm_tag_regex.sub(lambda m: printTermTagAsHTML(db_con, m), string)
 
   string = ref_regex.sub(lambda m: printRefReAsHTML(db_con, m, tagAsTerm), string)
   string = string.replace("##", "#")	# escape mechanism
@@ -544,9 +530,8 @@ def processRefsAsText(db_con, string, tagAsTerm = False):
   :returns: tag-neutralized string.
   """
 
-  # XXXXXXX define next two routines
-  string = _xtag_regex.sub(lambda m: printTagAsText(db_con, m), string)
-  string = _xterm_tag_regex.sub(lambda m: printTermTagAsText(db_con, m), string)
+  #string = _xtag_regex.sub(lambda m: printTagAsText(db_con, m), string)
+  #string = _xterm_tag_regex.sub(lambda m: printTermTagAsText(db_con, m), string)
 
   string = ref_regex.sub(lambda m: printRefAsText(db_con, m, tagAsTerm), string)
   string = string.replace("##", "#")	# escape mechanism

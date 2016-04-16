@@ -21,9 +21,12 @@ To deploy to production, manually do steps something like this:
 
     git checkout -q deploy_keys
     cp warts/yamz/.seaice* .
+    git commit -a -m "key swap"	# IMPORTANT! so production keys are pushed
+    				# test keys by logging out then back in
     git merge -q -m "lots of bug fixes" master
-    git push -q heroku deploy_keys:master
-    cp warts/tyamz/.seaice* .	# IMPORTANT! so next tyamz deploy won't clobber
+    git push -q heroku_production deploy_keys:master
+    cp warts/tyamz/.seaice* .
+    git commit -a -m "re-swap"	# IMPORTANT! revert to test keys in future
     git checkout -q master
     chmod 600 .seaice*
 
