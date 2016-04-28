@@ -168,19 +168,22 @@ def pageNotFound(e):
                                               headline = "404",
                                               content = "The page you requested doesn't exist."), 404
 
+# home page XXX add "motd" option
 @app.route("/")
 def index():
   if l.current_user.id:
     g.db = app.dbPool.getScoped()
       # TODO Store these values in class User in order to prevent
       # these queries every time the homepage is accessed.  
-    my = seaice.pretty.printTermsAsLinks(g.db.getTermsByUser(l.current_user.id))
-    star = seaice.pretty.printTermsAsLinks(g.db.getTermsByTracking(l.current_user.id))
+    my = seaice.pretty.printTermsAsLinks(g.db,
+             g.db.getTermsByUser(l.current_user.id))
+    star = seaice.pretty.printTermsAsLinks(g.db,
+             g.db.getTermsByTracking(l.current_user.id))
     notify = l.current_user.getNotificationsAsHTML(g.db)
     return render_template("index.html", user_name = l.current_user.name,
-                                         my = Markup(my.decode('utf-8')) if my else None,
-                                         star = Markup(star.decode('utf-8')) if star else None, 
-                                         notify = Markup(notify.decode('utf-8')) if notify else None)
+                   my = Markup(my.decode('utf-8')) if my else None,
+                   star = Markup(star.decode('utf-8')) if star else None, 
+                   notify = Markup(notify.decode('utf-8')) if notify else None)
 
   return render_template("index.html", user_name = l.current_user.name)
 

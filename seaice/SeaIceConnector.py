@@ -44,7 +44,6 @@ import mint
 stabilityError = 0.10  
 
 stabilityFactor = 3600 #: Convert seconds (datetime.timedelta.seconds) to hours. 
-
 #: Interval (in hours) for which a term must
 #: be stable in order to be classified. 
 stabilityInterval = 1
@@ -1433,6 +1432,19 @@ class SeaIceConnector:
     cur.execute("SELECT * FROM SI.%s" % table)
     rows = cur.fetchall()
     pretty.printAsJSObject(rows, fd)
+
+  def Truncate(self, table):
+    """ Truncate database table.
+
+    :param table: Name of table.
+    :type table: str
+    """
+    if table not in ['Users', 'Terms', 'Comments', 'Tracking']:
+      print >>sys.stderr, "error (truncate): table '%s' is not defined in the db schema" % table
+      return
+
+    cur = self.con.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur.execute("TRUNCATE SI.%s" % table)
 
   def Import(self, table, prod_mode, inf=None, rebind=False, remint=False): 
     """ Import database from JSON formated *inf*.

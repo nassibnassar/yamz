@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # 
-# sea - console frontend to the SeaIce metadictionary. 
+# sea - console frontend to the SeaIce metadictionary
 #
 # Copyright (c) 2013, Christopher Patton, all rights reserved.
 # 
@@ -61,6 +61,10 @@ parser.add_option("--config", dest="config_file", metavar="FILE",
                        "If 'heroku' is given, then a connection to a foreign host specified by " + 
                        "DATABASE_URL is established.",
                   default='heroku')
+
+parser.add_option("--truncate", dest="truncate_table",
+                  help="Delete all rows in dictionary table; if used with --import, this option should precede it.")
+                  #metavar="TABLE")
 
 parser.add_option("--import", dest="import_table",
                   help="Import JSON-formatted FILE into the dictionary.",
@@ -161,6 +165,9 @@ try:
       print >>sys.stderr, "sea: must specify user Id" 
     elif not sea.updateUserReputation(int(options.user_id), int(options.reputation)):
       print >>sys.stderr, "sea: no such user (Id=%s not found)" % options.user_id
+
+  if options.truncate_table:
+    sea.Truncate(options.truncate_table)
 
   if options.import_table:
     sea.Import(options.import_table, prod_mode, options.file_name,

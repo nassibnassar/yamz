@@ -122,7 +122,7 @@ term_tag_string = '<a href=/term={0} title="{1}">{2}</a>'
 # Regular expressions for string matches.
 token_ref_regex = re.compile("(?<!#\{g: )([#&]+)([\w.-]+)")
 # Caution: exactly one space here -----^
-# The "lookbehind" regex relies on _ref_norm using just one space.
+# The "lookbehind" regex relies on ref_norm using just one space.
 # We use it to match #foo NOT inside a #{g:... construct.
 
 #ref_regex = re.compile("#\{\s*(([gstkm])\s*:+)?\s*#*([^}|]*?)(\s*\|+\s*([^}]*?))?\s*\}")
@@ -145,9 +145,8 @@ ixuniq = 'xq'
 ixqlen = len(ixuniq)
 tagstart = '#{g: '		# note: final space is important
 
-def _token_ref_norm(m):
-  """ Promote simple "&ref" into curly "#{t: ref} or, if ref
-  begins with "#", into "#{g: ref}".
+def token_ref_norm(m):
+  """ Promote "&ref" to "#{t: ref} and promote "#ref" to "#{g: ref}".
 
   :param string: The input string. 
   :returns: Modified plain text string.
@@ -166,18 +165,18 @@ def _token_ref_norm(m):
   else:
     return sigil + token	# return untouched if doubled
 
-def _xterm_tag_norm(db_con, m):
-  """ Promote old style "#{hNNNN : relate[ds] to}" into new style
-  "#{t: term string | hNNNN }".
-  """
-  concept_id = m.group(1)
-  term = db_con.getTermByConceptId(concept_id)
-  if term:
-    term_string = term['term_string']
-  else:
-    term_string = concept_id + '(undefined)'
-
-  return '#{t: %s | %s }' % (term_string, concept_id)
+#def _xterm_tag_norm(db_con, m):
+#  """ Promote old style "#{hNNNN : relate[ds] to}" into new style
+#  "#{t: term string | hNNNN }".
+#  """
+#  concept_id = m.group(1)
+#  term = db_con.getTermByConceptId(concept_id)
+#  if term:
+#    term_string = term['term_string']
+#  else:
+#    term_string = concept_id + '(undefined)'
+#
+#  return '#{t: %s | %s }' % (term_string, concept_id)
 
 
 def refs_norm(db_con, string, force=False): 
@@ -195,15 +194,15 @@ def refs_norm(db_con, string, force=False):
   # convert old xterm_tag_regex and xtag_regex matches
   #string = _xterm_tag_regex.sub(lambda m: _xterm_tag_norm(db_con, m), string)
 
-  string = token_ref_regex.sub(lambda m: _token_ref_norm(m), string)
+  string = token_ref_regex.sub(lambda m: token_ref_norm(m), string)
   #string = token_ref_regex.sub('#{t: \\1}', string)
   # now convert each curly "#{reference}
-  string = ref_regex.sub(lambda m: _ref_norm(db_con, m, force), string)
+  string = ref_regex.sub(lambda m: ref_norm(db_con, m, force), string)
   return string
     
 
 # looks a lot like printRefAsHTML, but is about how we _store_ things
-def _ref_norm(db_con, m, force=False): 
+def ref_norm(db_con, m, force=False): 
   """ Input a regular expression match and output a normalized reference.
   
   A DB connector is required to resolve the tag string by ID. 
@@ -254,7 +253,8 @@ def _ref_norm(db_con, m, force=False):
     return '#{%s: %s}' % (reftype, humstring)
 
   # If we get here, we're going to do the lookup.
-  n, term = db_con.getTermByInitialTermString(tagstart + humstring)
+  prefix = tagstart if reftype == 'g' else ''
+  n, term = db_con.getTermByInitialTermString(prefix + humstring)
   if n == 1:
     term_string, concept_id = term['term_string'], term['concept_id']
     if reftype == 'g':
@@ -654,7 +654,7 @@ def printTermsPretty(db_con, rows):
 
 
 
-def printTermsAsLinks(rows):
+def printTermsAsLinks(db_con, rows):
   """ Print terms as a link list (pun intended). 
 
   :param rows: Table rows. 
@@ -663,7 +663,8 @@ def printTermsAsLinks(rows):
   """
   string = ""
   for row in rows: 
-    string += '<li><a href="/term=%s">%s</a></li>' % (row['concept_id'], row['term_string'])
+    #string += '<li><a href="/term=%s">%s</a></li>' % (row['concept_id'], row['term_string'])
+    string += '<li><a %s</a></li>' % innerAnchor(db_con, row['term_string'], row['concept_id'], row['definition'], tagAsTerm=True)
   return string
 
 def printTermAsHTML(db_con, row, user_id=0):
@@ -887,3 +888,4 @@ def printCommentsAsHTML(db_con, rows, user_id=0):
     string += "</tr><tr height=16><td></td></tr>"
   string += "</table>"
   return string
+
