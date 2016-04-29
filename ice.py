@@ -645,7 +645,7 @@ def remTerm(term_id):
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Remove term",
                                             content = Markup(
-                 "Successfully removed term <b>#%s</b> from the metadictionary." % request.form['id'].decode('utf-8')))
+                 "Successfully removed term <b>%s (%s)</b> from the metadictionary." % (term['term_string'], term['concept_id'])))
 
   except AssertionError:
     return render_template("basic_page.html", user_name = l.current_user.name, 
