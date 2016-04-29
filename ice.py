@@ -168,7 +168,7 @@ def pageNotFound(e):
                                               headline = "404",
                                               content = "The page you requested doesn't exist."), 404
 
-# home page XXX add "motd" option
+# home page
 @app.route("/")
 def index():
   if l.current_user.id:
@@ -624,10 +624,12 @@ def remTerm(term_id):
     g.db = app.dbPool.getScoped()
     term = g.db.getTerm(int(request.form['id']))
     assert term and term['owner_id'] == l.current_user.id
+    assert term['class'] == 'vernacularx'
     
     tracking_users = g.db.getTrackingByTerm(term_id)
 
     # xxx remove binder data; (recycle id?)
+    # xxx only allow remove if class is vernacular
     id = g.db.removeTerm(int(request.form['id']))
     app.termIdPool.ReleaseId(id)
       
@@ -635,23 +637,23 @@ def remTerm(term_id):
     notify_removed = seaice.notify.TermRemoved(l.current_user.id, 
                                                term['term_string'], 
                                                g.db.getTime())
-      
+
     for user_id in tracking_users:
       app.SeaIceUsers[user_id].notify(notify_removed, g.db)
-    
+
     g.db.commit()
   
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                             title = "Remove term",
                                             content = Markup(
                  "Successfully removed term <b>#%s</b> from the metadictionary." % request.form['id'].decode('utf-8')))
-  
+
   except AssertionError:
     return render_template("basic_page.html", user_name = l.current_user.name, 
                                               title = "Term - %s" % term_id, 
                                               content = 
-              """Error! You may only edit or remove terms and definitions that
-                 you've contributed. However, you may comment or vote on this term. """)
+              """Error! You may only remove terms that are in the vernacular class and
+                 that you've contributed. However, you may comment or vote on this term. """)
 
 
   ## Comments ##

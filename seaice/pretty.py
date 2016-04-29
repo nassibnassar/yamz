@@ -31,8 +31,8 @@ from dateutil import tz
   ## Some JavaScripts that are embedded into some of the outputs. ##
 
 js_confirmRemoveTerm = """
-  function ConfirmRemoveTerm(id) {
-    var r=window.confirm("Are you sure you want to delete term #" + id + "?");
+  function ConfirmRemoveTerm(id, concept_id) {
+    var r=window.confirm("Are you sure you want to delete term '" + concept_id + "'?");
     if (r==true) { 
       x=id; 
       var form = document.createElement("form");
@@ -789,7 +789,7 @@ def printTermsAsHTML(db_con, rows, user_id=0):
     if user_id == row['owner_id']:
       string += "    <a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
       string += """  <a id="removeTerm" title="Click to delete term" href="#"
-                     onclick="return ConfirmRemoveTerm(%s);">[remove]</a>""" % row['id']
+                     onclick="return ConfirmRemoveTerm(%s, %s);">[remove]</a>""" % (row['id'], row['concept_id'])
     string += '      &nbsp;<i>Class:</i>&nbsp;<font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp;({1}%)</i>'.format(
                  row['class'], int(100 * row['consensus']), colorOf[row['class']])
     string += "    </td>" 
