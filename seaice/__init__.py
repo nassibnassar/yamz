@@ -32,5 +32,5 @@ from SeaIceFlask import *
 from SeaIceConnector import *
 from ConnectorPool import *
 from IdPool import *
-import notify, user, auth, pretty, mint
+import notify, user, auth, pretty, eggnog
 

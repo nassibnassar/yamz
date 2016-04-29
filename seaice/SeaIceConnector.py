@@ -33,7 +33,7 @@ import psycopg2.extras
 import pretty
 import auth
 import notify
-import mint
+import eggnog
 
 """
   Some constants for stability calculation. 
