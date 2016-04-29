@@ -628,8 +628,8 @@ def remTerm(term_id):
     
     tracking_users = g.db.getTrackingByTerm(term_id)
 
-    # xxx remove binder data; (recycle id?)
-    id = g.db.removeTerm(int(request.form['id']))
+    id = g.db.removeTerm(int(request.form['id']),
+            term['persistent_id'], prod_mode)
     app.termIdPool.ReleaseId(id)
       
     # Notify tracking users

@@ -469,17 +469,24 @@ class SeaIceConnector:
         return None 
       raise e
 
-  def removeTerm(self, id):
+  def removeTerm(self, id, persistent_id, prod_mode):
     """ Remove term row from the database.
 
     :param id: Term Id.
     :type id: int
+    :param persistent_id: Persistent identifier.
+    :type persistent_id: str
+    :param prod_mode: Whether production mode is in effect.
+    :type prod_mode:  boolean
     :returns: ID of removed term. 
     :rtype: int or None
     """
+
     cur = self.con.cursor()
     cur.execute("DELETE FROM SI.Terms WHERE id=%s RETURNING id", (id,))
     res = cur.fetchone()
+    remove_persistent_id(prod_mode, persistent_id)	# xxx exceptions?
+
     if res: return res[0]
     else:   return None
 

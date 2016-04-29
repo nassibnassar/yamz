@@ -153,6 +153,7 @@ def bind_persistent_id (prod_mode, arkId, who, what, peek):
   bindArkIdentifier(arkId, prod_mode, who, what, peek)
   return ark2pid(arkId)
 
+# yyy recyle id after suitable waiting period? 
 def remove_persistent_id (prod_mode, arkId):
   arkId = removeArkIdentifier(arkId, prod_mode)
   return ark2pid(arkId)			# yyy better return value?
