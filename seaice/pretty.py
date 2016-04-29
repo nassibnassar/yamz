@@ -32,7 +32,7 @@ from dateutil import tz
 
 js_confirmRemoveTerm = """
   function ConfirmRemoveTerm(id, concept_id) {
-    var r=window.confirm("Are you sure you want to delete term " + concept_id + "?");
+    var r=window.confirm("Are you sure you want to delete term '" + concept_id + "'?");
     if (r==true) { 
       x=id; 
       var form = document.createElement("form");
@@ -653,7 +653,6 @@ def printTermsPretty(db_con, rows):
     print getPrettyTerm(db_con, row) 
 
 
-
 def printTermsAsLinks(db_con, rows):
   """ Print terms as a link list (pun intended). 
 
@@ -666,6 +665,7 @@ def printTermsAsLinks(db_con, rows):
     #string += '<li><a href="/term=%s">%s</a></li>' % (row['concept_id'], row['term_string'])
     string += '<li><a %s</a></li>' % innerAnchor(db_con, row['term_string'], row['concept_id'], row['definition'], tagAsTerm=True)
   return string
+
 
 def printTermAsHTML(db_con, row, user_id=0):
   """ Format a term for the term page, e.g. `this <http://seaice.herokuapp.com/term=1001>`_.
@@ -745,7 +745,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
-                   onclick="return ConfirmRemoveTerm(%s, %s);">[remove]</a><br>\n""" % (row['id'], row['concept_id'])
+                   onclick="return ConfirmRemoveTerm(%s, '%s');">[remove]</a><br>\n""" % (row['id'], row['concept_id'])
  
   ## Copy reference tag
   #string += '''    <hr><a id="copyLink" title="Click to get a reference link to this term." href="#"
@@ -789,7 +789,7 @@ def printTermsAsHTML(db_con, rows, user_id=0):
     if user_id == row['owner_id']:
       string += "    <a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
       string += """  <a id="removeTerm" title="Click to delete term" href="#"
-                     onclick="return ConfirmRemoveTerm(%s, %s);">[remove]</a>""" % (row['id'], row['concept_id'])
+                     onclick="return ConfirmRemoveTerm(%s, '%s');">[remove]</a>""" % (row['id'], row['concept_id'])
     string += '      &nbsp;<i>Class:</i>&nbsp;<font style="background-color:{2}">&nbsp;{0}&nbsp;</font> <i>&nbsp;({1}%)</i>'.format(
                  row['class'], int(100 * row['consensus']), colorOf[row['class']])
     string += "    </td>" 
