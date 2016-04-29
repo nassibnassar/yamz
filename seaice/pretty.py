@@ -32,7 +32,7 @@ from dateutil import tz
 
 js_confirmRemoveTerm = """
   function ConfirmRemoveTerm(id, concept_id) {
-    var r=window.confirm("Are you sure you want to delete term '" + concept_id + "'?");
+    var r=window.confirm("Are you sure you want to delete term " + concept_id + "?");
     if (r==true) { 
       x=id; 
       var form = document.createElement("form");
