@@ -745,7 +745,7 @@ def printTermAsHTML(db_con, row, user_id=0):
   if user_id == row['owner_id']:
     string += "    <br><a href=\"/term=%s/edit\">[edit]</a>" % row['concept_id']
     string += """  <a id="removeTerm" title="Click to delete term" href="#"
-                   onclick="return ConfirmRemoveTerm(%s);">[remove]</a><br>\n""" % row['id']
+                   onclick="return ConfirmRemoveTerm(%s, %s);">[remove]</a><br>\n""" % (row['id'], row['concept_id'])
  
   ## Copy reference tag
   #string += '''    <hr><a id="copyLink" title="Click to get a reference link to this term." href="#"
