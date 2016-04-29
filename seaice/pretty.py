@@ -289,8 +289,7 @@ def innerAnchor (db_con, term_string, concept_id, definition, tagAsTerm):
 
   if definition != None:
     attribs = 'href="/term=%s" title="%s"' % (concept_id,
-      processRefsAsText(db_con, definition,
-        tagAsTerm=True).replace('"', '&quot;'))
+      processRefsAsText(definition, tagAsTerm=True).replace('"', '&quot;'))
   else:
     attribs = 'href="#" title="Click to get a reference link to this term."'
     attribs += ' id="copyLink"'
@@ -366,11 +365,10 @@ def printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm):
       humstring = '#' + humstring	# pointing to definition, not search
   return ref_string.format(IDstring, humstring, term_def)
 
-# xxx not using db_con or tagAsTerm -- remove?
-def printRefAsText(db_con, m, tagAsTerm): 
-  """ Input a regular expression match and output the reference as Text.
+# xxx not using tagAsTerm -- remove?
+def printRefAsText(m, tagAsTerm): 
+  """ Input a regular expression match and return the reference as Text.
   
-  A DB connector is required to resolve the tag string by ID. 
   A reference has the form #{ reftype: humstring [ | IDstring ] }
   - reftype is one of
     t (term), g (tag), s (section), m (mtype), k (link)
@@ -381,8 +379,6 @@ def printRefAsText(db_con, m, tagAsTerm):
   - Note that the reference should have been normalized before being
     stored in the database. (xxx check if that's true for API uploading)
 
-  :param db_con: DB connection.
-  :type db_con: seaice.SeaIceConnector.SeaIceConnector
   :param m: Regular expression match. 
   :type m: re.MatchObject
   """
@@ -523,7 +519,7 @@ def printRefReAsHTML(db_con, m, tagAsTerm):
   reftype, humstring, IDstring = rp[1], rp[2], rp[4]
   return printRefAsHTML(db_con, reftype, humstring, IDstring, tagAsTerm)
 
-def processRefsAsText(db_con, string, tagAsTerm = False): 
+def processRefsAsText(string, tagAsTerm = False): 
   """  Render references in DB text entries into plain text. 
 
   :param string: The input string. 
@@ -533,7 +529,7 @@ def processRefsAsText(db_con, string, tagAsTerm = False):
   #string = _xtag_regex.sub(lambda m: printTagAsText(db_con, m), string)
   #string = _xterm_tag_regex.sub(lambda m: printTermTagAsText(db_con, m), string)
 
-  string = ref_regex.sub(lambda m: printRefAsText(db_con, m, tagAsTerm), string)
+  string = ref_regex.sub(lambda m: printRefAsText(m, tagAsTerm), string)
   string = string.replace("##", "#")	# escape mechanism
   string = string.replace("&&", "&")
   return string
@@ -855,8 +851,6 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
           #row['concept_id'],
           colorOf[row['class']],
           printPrettyDate(row['modified']))
-	  #processRefsAsText(db_con, row['definition'],
-	  #  tagAsTerm=True).replace('"', '&quot;'))
   string += "</table>"
   return string
 

@@ -434,11 +434,11 @@ class SeaIceConnector:
 
       # create persistent ID for term if need be
       if not persistent_id or remint:
-        persistent_id = mint.create_persistent_id(prod_mode)
+        persistent_id = eggnog.create_persistent_id(prod_mode)
 
       if rebind:
-        mint.bind_persistent_id(prod_mode,
-          mint.pid2ark(persistent_id),		# removes URL hostname
+        eggnog.bind_persistent_id(prod_mode,
+          eggnog.pid2ark(persistent_id),		# removes URL hostname
 	  # xxx drop self arg when terms all converted to new style
           pretty.processRefsAsText(self, defTerm['term_string']),
 	  pretty.processRefsAsText(self, defTerm['definition']),
@@ -486,7 +486,7 @@ class SeaIceConnector:
     cur.execute("DELETE FROM SI.Terms WHERE id=%s RETURNING id", (id,))
     res = cur.fetchone()
     # xxx catch exceptions?
-    mint.remove_persistent_id(prod_mode, mint.pid2ark(persistent_id))
+    eggnog.remove_persistent_id(prod_mode, eggnog.pid2ark(persistent_id))
 
     if res: return res[0]
     else:   return None
@@ -773,8 +773,10 @@ class SeaIceConnector:
     if not pid:
       pid = self.getPID(id)
     # update external binder for term
-    mint.bind_persistent_id(prod_mode, mint.pid2ark(pid),
+    eggnog.bind_persistent_id(prod_mode, eggnog.pid2ark(pid),
       # xxx drop self arg when terms all converted to new style
+      # yyy NL encoded, but CR not encoded, which is easy to mistake
+      #     (when printing) for missing or truncated bound data
       pretty.processRefsAsText(self, term['term_string']),
       pretty.processRefsAsText(self, term['definition']),
       pretty.processRefsAsText(self, term['examples']))
