@@ -485,7 +485,7 @@ class SeaIceConnector:
     cur = self.con.cursor()
     cur.execute("DELETE FROM SI.Terms WHERE id=%s RETURNING id", (id,))
     res = cur.fetchone()
-    remove_persistent_id(prod_mode, persistent_id)	# xxx exceptions?
+    mint.remove_persistent_id(prod_mode, persistent_id)	# xxx exceptions?
 
     if res: return res[0]
     else:   return None
