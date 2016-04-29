@@ -99,7 +99,7 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
   when = time.strftime("%Y.%m.%d_%H:%M:%S", time.gmtime())	# TEMPER-style
   c = None
   try:
-    concept_id = arkId.split('/')[-1]
+    concept_id = arkId.split('/')[-1]		# xxx why concept_id here?
     op = ':hx ' + arkId + '.set'	# all our bind operations start this way
     d = ("%s _t " + TARGET_URL_TEMPLATE + "\n") % (op, concept_id)
     d += "%s how %s\n" % (op, "term")		# metadata/resource type
@@ -112,6 +112,24 @@ def bindArkIdentifier (arkId, prod_mode, who, what, peek):
     r = c.readlines()
     if len(r) != 2 or r[0] != "egg-status: 0\n":
       print >>sys.stderr, "error: bad binder return (%s), input=%s" % (
+        r[0], d)
+
+  finally:
+    if c: c.close()
+  return arkId
+
+def removeArkIdentifier (arkId, prod_mode):
+  # Returns the identifier passed in as a string.
+  global _opener, _binder
+  if not _opener: 
+    _opener = minderOpener(prod_mode)
+  c = None
+  try:
+    d = ':hx ' + arkId + ".purge\n"
+    c = _opener.open(_binder + "?-", d)
+    r = c.readlines()
+    if len(r) != 2 or r[0] != "egg-status: 0\n":
+      print >>sys.stderr, "error: purge: bad binder return (%s), input=%s" % (
         r[0], d)
 
   finally:
@@ -134,4 +152,8 @@ def create_persistent_id (prod_mode):
 def bind_persistent_id (prod_mode, arkId, who, what, peek):
   bindArkIdentifier(arkId, prod_mode, who, what, peek)
   return ark2pid(arkId)
+
+def remove_persistent_id (prod_mode, arkId):
+  arkId = removeArkIdentifier(arkId, prod_mode)
+  return ark2pid(arkId)			# yyy better return value?
 

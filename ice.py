@@ -624,12 +624,11 @@ def remTerm(term_id):
     g.db = app.dbPool.getScoped()
     term = g.db.getTerm(int(request.form['id']))
     assert term and term['owner_id'] == l.current_user.id
-    assert term['class'] == 'vernacularx'
+    assert term['class'] == 'vernacular'
     
     tracking_users = g.db.getTrackingByTerm(term_id)
 
     # xxx remove binder data; (recycle id?)
-    # xxx only allow remove if class is vernacular
     id = g.db.removeTerm(int(request.form['id']))
     app.termIdPool.ReleaseId(id)
       
