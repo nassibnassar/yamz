@@ -1,7 +1,5 @@
 # Contributed by Greg Janee
 
-# XXX TODO Delete persistent identifier on removal of term. 
-
 import re
 import os
 import urllib
@@ -19,6 +17,8 @@ USERNAME = "yamz"
 REAL_MINTER_URL = "https://n2t.net/a/yamz/m/ark/99152/h"
 REAL_BINDER_URL = "https://n2t.net/a/yamz/b"
 
+# yyy to do: should we have a test mode in production (ids not meant to
+#     be persistent)
 # The identifiers created with these URLs are meant to be thrown away.
 TEST_MINTER_URL = "https://n2t.net/a/yamz/m/ark/99152/fk2"
 TEST_BINDER_URL = "https://n2t.net/a/yamz_test/b"

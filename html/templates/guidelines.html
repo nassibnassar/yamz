@@ -80,61 +80,6 @@
 
       <hr>
 
-<h3>Background</h3>
-<h4>Metadata and data</h4>
-<p>
-Metadata is structured information for describing things we care about.
-It looks like text with extra punctuation to mark different regions,
-and elements and values within those regions.  That structure makes the
-information readable by software, which in turn helps us organize,
-manage, analyze, and discover things we care about.
-</p>
-<p>
-Real computational power comes when there is wide agreement on metadata
-terms, such as element names and the values they take on.  The goal of
-YAMZ is to support finding, creating, and achieving community accord on
-high-quality terms.  These are the terms that you and others will use
-to create high-quality metadata. Unlike a regular dictionary, the
-metadictionary is about terms used to create <i>structured</i>
-(machine-readable) information.
-</p>
-<p>
-The metadictionary supports data too.  Like metadata, data is structured
-information, but with a shift in emphasis away from being <i>about</i> a
-particular thing.  Some people claim there's no important difference
-between data and metadata.
-</p>
-
-<h4>Assertions about things</h4>
-<p>
-Metadata looks like a group of assertions about a particular thing, such
-as a document.  For example, metadata may assert that a given document's
-title is X, it's author Y, and it's publication date Z.
-</p>
-<p>
-Term definitions often refer to the thing being described with a word
-like "thing", "resource", or "object", eg, a title could be "A name given
-to the resource".  Which exact thing is being referred to cannot be found
-in a term definition.  Instead it is revealed in metadata values or by
-context; for example, metadata inside an image file often describes the
-image elsewhere in the same file.
-</p>
-
-<h4>Elements and values</h4>
-<p>
-Lots of terms define metadata/data elements, which are small categories
-of information, such as "title", "author", or "response".  An element
-might also be a structured statement that itself contains other elements;
-for example, a "location" that contains "latitude" and "longitude".
-Other elements are meant to take on metadata/data values, for example,
-pieces of text or personal names.
-</p>
-<p>
-Terms also help with metadata/data values, especially when they are
-limited in some way.  For example, a "response" element might be one of
-"yes", "no", or "maybe".  A "count" element might take an infinite number
-of values, but always restricted to "integer".
-</p>
 <h3>The metadictionary</h4>
 <h4>What it is for</h4>
 <p>
@@ -250,6 +195,7 @@ below.  As in definitions, newlines (line breaks) are preserved on display.
 In term definitions, examples, and comments you can create actionable
 links to words and concepts defined in YAMZ and elsewhere.
 </p>
+
 <h5>Term references</h5>
 <p>
 When you create or edit text, a construct like
@@ -275,27 +221,39 @@ term, and when your mouse hovers over it that term's definition should
 appear.  Term references can be used liberally inside definitions,
 examples, and comments.
 </p>
+
 <h5>Tag references</h5>
 <p>
 Tag references are like term references, but are meant to appear only in
-definitions, where a group of one or more tags should be separated from
-the end of the definition by a single newline.  A tag identifies a
-sub-community, such as a working group trying to focus on a subset of
-terms in YAMZ for the duration of its work.  On editing, a tag looks
-like:
+definitions of terms being tagged.  A group of one or more tags (no
+commas between them) is to be separated from the end of the definition by
+a single newline. A tag is not an integral part of a definition, but only
+an annotation identifying a sub-community, such as a working group trying
+to focus on a subset of terms in YAMZ for the duration of its work. On
+display, a tag reference looks like a link embedded in a little tile.
+When you hover over it a definition appears, and when you click on it
+YAMZ performs a search for all terms bearing that tag.
 <p>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-#{g: <i>tag string</i>}<br>
-or<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 #<i>tag</i>
 </p>
 <p>
-On display this tag will look like a link inside a tile.  When you hover
-over it a definition should appear (yes, a tag takes a definition, just
-like a term), and when you click on it YAMZ performs a search for all
-terms bearing that tag.
+On editing, you can enter a tag by putting a '#' in front of it or using
+the internal form to which it will be converted.  The internal form (in
+the current software release) is slightly different from the displayed
+form to make it more unique as a search string.  For example, the tag
+"#foo" becomes
+<p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#{g: xqfoo | h<i>NNNN</i>}<br>
 </p>
+<p>
+where "hNNNN" is the concept identifier assigned to it.  In a list of
+terms or in its own definition, a tag’s term string appears with a '#' in
+front of it.
+</p>
+
 <h5>External links</h5>
 <p>
 If needed, you can also add general links to external content using

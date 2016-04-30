@@ -498,6 +498,7 @@ def returnQuery():
     return render_template("search.html", user_name = l.current_user.name)
 
 
+# yyy to do: display tag definition at top of search results
 # when user clicks on community tag (searches for all terms bearing the tag)
 @app.route("/tag/<tag>")
 def getTag(tag = None): 
