@@ -439,10 +439,9 @@ class SeaIceConnector:
       if rebind:
         eggnog.bind_persistent_id(prod_mode,
           eggnog.pid2ark(persistent_id),		# removes URL hostname
-	  # xxx drop self arg when terms all converted to new style
-          pretty.processRefsAsText(self, defTerm['term_string']),
-	  pretty.processRefsAsText(self, defTerm['definition']),
-	  pretty.processRefsAsText(self, defTerm['examples']))
+          pretty.processRefsAsText(defTerm['term_string']),
+	  pretty.processRefsAsText(defTerm['definition']),
+	  pretty.processRefsAsText(defTerm['examples']))
 
       if not persistent_id:		# if that didn't work, bail
           print >>sys.stderr, "warning: aborting insert for id=%s -- no persistent_id" % defTerm['id']
@@ -777,9 +776,9 @@ class SeaIceConnector:
       # xxx drop self arg when terms all converted to new style
       # yyy NL encoded, but CR not encoded, which is easy to mistake
       #     (when printing) for missing or truncated bound data
-      pretty.processRefsAsText(self, term['term_string']),
-      pretty.processRefsAsText(self, term['definition']),
-      pretty.processRefsAsText(self, term['examples']))
+      pretty.processRefsAsText(term['term_string']),
+      pretty.processRefsAsText(term['definition']),
+      pretty.processRefsAsText(term['examples']))
 
     ## User queries ##
 
