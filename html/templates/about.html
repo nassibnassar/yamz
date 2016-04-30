@@ -166,7 +166,9 @@
             <li>archival terms have links such as "ObsoletedBy: term X"</li>
       </p>
 
+      <p>
       <a id="more"></a>
+      </p>
       <h3>Some background</h3>
 
 <h4>Metadata and data</h4>
@@ -197,16 +199,17 @@ between data and metadata.
 <p>
 Metadata looks like a group of assertions about a particular thing, such
 as a document.  For example, metadata may assert that a given document's
-title is X, its author Y, and its publication date Z.  It is not always
-obvious what an assertion is about.
+title is X, its author Y, and its publication date Z.
 </p>
 <p>
+It's not always obvious what thing a metadata assertion is about.
 Term definitions often refer to it with a word like "thing", "resource",
-or "object", eg, a title could be "a name given to the resource".  Which
-exact thing is being referred to cannot be found in a term definition.
-Instead it is revealed elsewhere in the metadata or by context.
-For example, metadata embedded inside an image file is usually
-assumed to describe the image contained in the same file.
+or "object".  Thus a "title" element might be defined as "a name given
+to the resource".  Which exact "resource" won't be found in a term
+definition but is revealed elsewhere in the metadata or by context.
+For example, metadata embedded in a JPEG file is usually assumed to
+describe an image embedded in the same file, and a metadata record often
+has a special place to hold an identifier for the object being described.
 </p>
 
 <h4>Elements and values</h4>
