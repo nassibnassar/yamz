@@ -86,42 +86,45 @@
       <p>
 	  The YAMZ Metadictionary is an open vocabulary of metadata terms
 	  from all domains and from all parts of "metadata speech".  That
-	  will be exciting
-	  <a href="#more">more about metadata</a> that you know.
+	  will be exciting the
+	  <a href="#more">more about metadata</a> you know.
       </p>
 
       <p>
 	  In brief, with no login required, anyone can search for and link
-	  to term definitions.  Login to create and edit your terms, with
-	  help from our <a href="/guidelines">community guidelines</a>.
-          The metadictionary aims to be a high-quality cross-domain metadata 
+	  to terms.  Login to create and edit your terms, and to comment on
+	  others' terms.  
+	  <a href="/guidelines">Community guidelines</a> help make
+          the metadictionary a high-quality cross-domain metadata 
 	  lexicon that is directly connected to evolving user needs.
       </p>
 
       <h4>From specialized projects</h4>
       <p>
-	  Almost every software project needs controlled vocabularies to
-	  interact with users.  Any design effort that goes into selecting
-	  terms for a search interface, a dropdown pick list, data entry
+	  Almost every software project needs controlled vocabularies for
+	  interacting with users.  Design effort that goes into selecting
+	  terms for a search interface, dropdown pick list, data entry
 	  instructions, etc. has to researched and recorded.  YAMZ provides
 	  a platform for you to take advantage of prior work and to share
-	  your own new or divergent work with others, whether you're one
+	  your own new or divergent work with others, whether you are one
 	  developer making UI design choices or a large working group
-	  creating an ontology for an API.
+	  creating an ontology to drive an API.
       </p>
 
       <h4>To international standards</h4>
       <p>
 	  Maintaining and developing international standards is normally
-	  extremely expensive, inefficient, and unsatisfactory.  With the
-	  metadictionary change will be rapid and affordable, with no need
-	  for panels of experts to convene and deliberate to improve it.
-	  We expect dramatic simplification of vocabulary evolution
-	  compared to traditional methods that have created an
-	  overwhelming number of vocabularies (ontologies) to choose
-	  from.  YAMZ is not the first crowdsourced metadata dictionary,
-	  but as a shelter for living, changing machine-readable
-	  terminology, it is not unlike Yet Another Metadata Zoo.
+	  an expensive, inefficient, design-by-committee process producing
+	  results that are out-of-date as soon as they are published.
+	  With the metadictionary change will be rapid and affordable,
+	  driven by practitioners and active testers.  There will be no
+	  need for panels of busy experts to convene and deliberate.  We
+	  expect dramatic simplification of vocabulary evolution compared
+	  to traditional methods that have created an overwhelming number
+	  of overlapping, conflicting vocabularies to choose from.  YAMZ
+	  is not the first crowdsourced metadata dictionary, but as a
+	  shelter for living, changing machine-readable terminology, it
+	  is not unlike Yet Another Metadata Zoo.
       </p>
 
       <p>
@@ -180,13 +183,13 @@ terms, such as element names and the values they take on.  The goal of
 YAMZ is to support finding, creating, and achieving community accord on
 high-quality terms.  These are the terms that you and others will use
 to create high-quality metadata. Unlike a regular dictionary, the
-metadictionary is about terms used to create <i>structured</i>
+metadictionary is therefore about terms used to create <i>structured</i>
 (machine-readable) information.
 </p>
 <p>
 The metadictionary supports data too.  Like metadata, data is structured
 information, but with a shift in emphasis away from being <i>about</i> a
-particular thing.  Some people claim there's no important difference
+particular thing.  Some people say there's no important difference
 between data and metadata.
 </p>
 
@@ -194,28 +197,29 @@ between data and metadata.
 <p>
 Metadata looks like a group of assertions about a particular thing, such
 as a document.  For example, metadata may assert that a given document's
-title is X, its author Y, and its publication date Z.
+title is X, its author Y, and its publication date Z.  It is not always
+obvious what an assertion is about.
 </p>
 <p>
-Term definitions often refer to the thing being described with a word
-like "thing", "resource", or "object", eg, a title could be "A name given
-to the resource".  Which exact thing is being referred to cannot be found
-in a term definition.  Instead it is revealed in metadata values or by
-context; for example, metadata inside an image file often describes the
-image elsewhere in the same file.
+Term definitions often refer to it with a word like "thing", "resource",
+or "object", eg, a title could be "a name given to the resource".  Which
+exact thing is being referred to cannot be found in a term definition.
+Instead it is revealed elsewhere in the metadata or by context.
+For example, metadata embedded inside an image file is usually
+assumed to describe the image contained in the same file.
 </p>
 
 <h4>Elements and values</h4>
 <p>
 Lots of terms define metadata/data elements, which are small categories
 of information, such as "title", "author", or "response".  An element
-might also be a structured statement that itself contains other elements;
-for example, a "location" that contains "latitude" and "longitude".
+might also be a structured statement that itself contains other elements.
+A "location" element might contain "latitude" and "longitude" elements.
 Other elements are meant to take on metadata/data values, for example,
 pieces of text or personal names.
 </p>
 <p>
-Terms also help with metadata/data values, especially when they are
+Terms help identify metadata/data values, especially when they are
 limited in some way.  For example, a "response" element might be one of
 "yes", "no", or "maybe".  A "count" element might take an infinite number
 of values, but always restricted to "integer".
