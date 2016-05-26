@@ -768,7 +768,7 @@ def printTermsAsBriefHTML(db_con, rows, user_id=0):
           db_con.getUserNameById(row['owner_id'], full=True),
           #row['concept_id'],
           colorOf[row['class']],
-          printPrettyDate(row['modified'], brief=True))
+          printPrettyDate(row['modified']))
   string += "</table>"
   return string
 
