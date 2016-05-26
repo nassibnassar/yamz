@@ -131,9 +131,11 @@ A term string (or label) is one or more words that communicate the
 concept being defined.
 
 <ul>
-<li>A term string should contain only letters, digits, hyphens, and
-    underscores.  If it has more than one word, exactly one space
-    separates each word.
+<li>A term string should contain only letters, digits, hyphens, space,
+    and underscores.  If the string has more than one word, exactly one
+    space separates each word, and it cannot begin or end with a space
+    or hyphen.  (These restrictions make it easier to express terms
+    precisely and in a variety of metadata formats.)
 </li>
 <li>Although definitions are in English, the term string may be derived
     from any natural language.  Whatever its origin, consideration should
@@ -227,12 +229,12 @@ examples, and comments.
 Tag references are like term references, but are meant to appear only in
 definitions of terms being tagged.  A group of one or more tags (no
 commas between them) is to be separated from the end of the definition by
-a single newline. A tag is not an integral or permanent part of a
-definition, but only an annotation identifying a sub-community, such as a
-working group trying to focus on a term subset for the duration of its
-work. On display, a tag reference looks like a link embedded in a little
-tile.  When you hover over it a definition appears, and when you click on
-it YAMZ performs a search for all terms bearing that tag.
+a single newline. While terms are meant to be understandable without tags,
+a tag definition can explain some context (intent, origin, sub-community,
+working group, etc.) for a set of terms.  On display, a tag reference
+looks like a link embedded in a little tile.  When you hover over it a
+definition appears, and when you click on it YAMZ performs a search for
+all terms bearing that tag.
 <p>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

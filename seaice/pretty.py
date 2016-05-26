@@ -452,7 +452,7 @@ def processRefsAsText(string, tagAsTerm = False):
 
   ## Pretty prints. ##
 
-def printPrettyDate(T):
+def printPrettyDate(T, brief=False):
   """ Format output of a timestamp. 
 
     If a small amount of time has elapsed between *T_now* 
@@ -478,7 +478,10 @@ def printPrettyDate(T):
   elif T_elapsed < datetime.timedelta(days=7): 
     return "%s day%s ago" % (T_elapsed.days, '' if T_elapsed.days == 1 else 's')
   else: 
-    return "%s %s %s" % (T.day, monthOf[T.month-1], T.year)
+    mth = monthOf[T.month-1]
+    if brief:
+      mth = mth[0:3]
+    return "%s %s %s" % (T.day, mth, T.year)
 
 def printAsJSObject(rows, fd = sys.stdout):
   """ Print table rows as JSON-formatted object. 
