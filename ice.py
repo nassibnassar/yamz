@@ -451,8 +451,9 @@ def browse(listing = None):
   elif listing == "alphabetical": # Alphabetical listing 
     result += "<table>"
     for term in terms: 
-      # skip if term is empty yyy no message diagnostic?
+      # skip if term is empty
       if not term['term_string']:
+        print >>sys.stderr, "error: empty term string in alpha listing" 
         continue
       #firstc = term['term_string'][0].upper()
       firstc = term['term_string'][0].upper() if term['term_string'] else ' '
@@ -465,6 +466,7 @@ def browse(listing = None):
 	tagAsTerm=True)
       result += " <i>contributed by %s</i></p>" % g.db.getUserNameById(term['owner_id'])
     result += "</table>"
+    print >>sys.stderr, "note: end alpha listing" 
 
   else:
     return redirect("/browse/recent")
