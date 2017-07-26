@@ -451,9 +451,14 @@ def browse(listing = None):
   elif listing == "alphabetical": # Alphabetical listing 
     result += "<table>"
     for term in terms: 
-      firstc = term['term_string'][0].upper()
+      # skip if term is empty yyy no message diagnostic?
+      if not term['term_string']:
+        continue
+      #firstc = term['term_string'][0].upper()
+      firstc = term['term_string'][0].upper() if term['term_string'] else ' '
       if firstc != '#' and firstc != letter:
-        letter = term['term_string'][0].upper()
+        #letter = term['term_string'][0].upper()
+        letter = firstc
         result += "</td></tr><tr><td width=20% align=center valign=top><h4>{0}</h4></td><td width=80%>".format(letter)
       result += "<p><a %s</a>" % seaice.pretty.innerAnchor(
         g.db, term['term_string'], term['concept_id'], term['definition'],
@@ -521,6 +526,9 @@ def addTerm():
 
   if request.method == "POST": 
     g.db = app.dbPool.dequeue()
+    # xxx add check for non-empty term_string before consuming new 'id'
+    # xxx add check for temporary, test term_string and then only consume
+    #     a test 'id'
     term = {
       #'term_string' : request.form['term_string'],
       'term_string' : seaice.pretty.refs_norm(g.db, request.form['term_string']),
