@@ -466,6 +466,7 @@ def browse(listing = None):
 	tagAsTerm=True)
       result += " <i>contributed by %s</i></p>" % g.db.getUserNameById(term['owner_id'])
     result += "</table>"
+    # yyy temporary proof that this code is running
     print >>sys.stderr, "note: end alpha listing" 
 
   else:
