@@ -24,10 +24,10 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from flask import Flask
-from ConnectorPool import * 
-from IdPool import *
-import notify
-import user
+from . import ConnectorPool
+from . import IdPool
+from . import notify
+from . import user
 
 #: The number of DB connections that will be instantiated. 
 MAX_CONNECTIONS = 18
@@ -46,8 +46,7 @@ class SeaIceFlask (Flask):
   :type password: str
   :param db: Name of database. 
   :type db: str
-  """
-  
+  """  
   def __init__(self, import_name, static_path=None, static_url_path=None,
                      static_folder='html/static', template_folder='html/templates',
                      instance_path=None, instance_relative_config=False,
@@ -58,14 +57,14 @@ class SeaIceFlask (Flask):
                          instance_path, instance_relative_config)
 
     #: DB connector pool.
-    self.dbPool = SeaIceConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
+    self.dbPool = ConnectorPool.SeaIceConnectorPool(MAX_CONNECTIONS, db_user, db_password, db_name)
 
     # Id pools.
     db_con = self.dbPool.getScoped()
     
-    self.userIdPool = IdPool(db_con, "Users") #: Pool for user surrogate IDs. 
-    self.termIdPool = IdPool(db_con, "Terms") #: Pool for term surrogate IDs. 
-    self.commentIdPool = IdPool(db_con, "Comments") #: Pool for comment surrogate IDs.
+    self.userIdPool = IdPool.IdPool(db_con, "Users") #: Pool for user surrogate IDs. 
+    self.termIdPool = IdPool.IdPool(db_con, "Terms") #: Pool for term surrogate IDs. 
+    self.commentIdPool = IdPool.IdPool(db_con, "Comments") #: Pool for comment surrogate IDs.
      
     #: Live User data structures. This includes storage of notifications. 
     self.SeaIceUsers = {}
@@ -88,9 +87,3 @@ class SeaIceFlask (Flask):
         notif = notify.TermRemoved(from_user_id, term_string, T_notify) 
         
       self.SeaIceUsers[user_id].notify(notif)
-      
-    
-
-    
-
-

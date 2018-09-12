@@ -64,7 +64,7 @@ Classes and modules
 ===================
 
 In this index, you can find documentation of the various 
-thingys that comprise the package. 
+components which comprise the package. 
 
 .. toctree::
    :maxdepth: 2

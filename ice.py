@@ -26,14 +26,18 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import seaice
-import ConfigParser
+from seaice import auth
+from seaice import pretty
+from seaice import SeaIceFlask
+import configparser
 from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash
 from flask import request, session, g
-from flask.ext import login as l
+import flask_login as l
 
-from urllib2 import Request, urlopen, URLError
+from urllib.request import urlopen, Request
+from urllib.error import URLError 
 import os, sys, optparse, re
 import json, psycopg2 as pgdb
 
@@ -79,7 +83,7 @@ parser.add_option("--role", dest="db_role", metavar="USER",
 (options, args) = parser.parse_args()
 
 # Figure out if we're in production mode.  Look in 'heroku' section only.
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read('.seaice_auth')
 if config.has_option('heroku', 'prod_mode'):
   prod_mode = config.getboolean('heroku', 'prod_mode')
@@ -87,30 +91,31 @@ else:
   prod_mode = False		# default
 
 ## Setup flask application ##
-print "ice: starting ..."
+print("ice: starting ...")
 
 db_config = None
 
 try:
 
   if options.config_file == "heroku": 
-    app = seaice.SeaIceFlask(__name__)
+    app = SeaIceFlask.SeaIceFlask(__name__)
 
   else: 
-    db_config = seaice.auth.get_config(options.config_file)
-    app = seaice.SeaIceFlask(__name__, db_user = db_config.get(options.db_role, 'user'),
+    db_config = auth.get_config(options.config_file)
+    app = SeaIceFlask.SeaIceFlask(__name__, db_user = db_config.get(options.db_role, 'user'),
                                        db_password = db_config.get(options.db_role, 'password'),
-                                       db_name = db_config.get(options.db_role, 'dbname'))
+                                       db_name = db_config.get(options.db_role, 'dbname')
+                                       )
 
-except pgdb.DatabaseError, e:
-  print >>sys.stderr, "error: %s" % e 
+except pgdb.DatabaseError as e:
+  print("error: %s" % (e), file=sys.stderr)
   sys.exit(1)
 
 
 try: 
-  credentials = seaice.auth.get_config(options.credentials_file)
+  credentials = auth.get_config(options.credentials_file)
 
-  google = seaice.auth.get_google_auth(credentials.get(options.deployment_mode, 'google_client_id'), 
+  google = auth.get_google_auth(credentials.get(options.deployment_mode, 'google_client_id'), 
                                        credentials.get(options.deployment_mode, 'google_client_secret'))
 
 except OSError: 
@@ -140,9 +145,7 @@ login_manager.anonymous_user = seaice.user.AnonymousUser
 
 
 
-print "ice: setup complete."
-
-
+print("ice: setup complete.")
 
 @login_manager.user_loader
 def load_user(id):
@@ -175,9 +178,9 @@ def index():
     g.db = app.dbPool.getScoped()
       # TODO Store these values in class User in order to prevent
       # these queries every time the homepage is accessed.  
-    my = seaice.pretty.printTermsAsLinks(g.db,
+    my = pretty.printTermsAsLinks(g.db,
              g.db.getTermsByUser(l.current_user.id))
-    star = seaice.pretty.printTermsAsLinks(g.db,
+    star = pretty.printTermsAsLinks(g.db,
              g.db.getTermsByTracking(l.current_user.id))
     notify = l.current_user.getNotificationsAsHTML(g.db)
     return render_template("index.html", user_name = l.current_user.name,
@@ -229,7 +232,7 @@ def login_google():
   callback=url_for('authorized', _external=True)
   return google.authorize(callback=callback)
 
-@app.route(seaice.auth.REDIRECT_URI)
+@app.route(auth.REDIRECT_URI)
 @google.authorized_handler
 def authorized(resp):
   access_token = resp['access_token']
@@ -239,7 +242,7 @@ def authorized(resp):
   req = Request('https://www.googleapis.com/oauth2/v1/userinfo', None, headers)
   try:
     res = urlopen(req)
-  except URLError, e:
+  except URLError as e:
     if e.code == 401: # Unauthorized - bad token
       session.pop('access_token', None)
       return 'l'
@@ -790,7 +793,7 @@ def voteOnTerm(term_id):
   else:
     g.db.castVote(l.current_user.id, term_id, 0)
   g.db.commit()
-  print "User #%d voted %s term #%d" % (l.current_user.id, request.form['action'], term_id)
+  print("User #%d voted %s term #%d" % (l.current_user.id, request.form['action'], term_id))
   return redirect("/term=%s" % g.db.getTermConceptId(term_id))
 
 @app.route("/term=<int:term_id>/track", methods=['POST'])
@@ -802,7 +805,7 @@ def trackTerm(term_id):
   else:
     g.db.untrackTerm(l.current_user.id, term_id)
   g.db.commit()
-  print "User #%d %sed term #%d" % (l.current_user.id, request.form['action'], term_id)
+  print("User #%d %sed term #%d" % (l.current_user.id, request.form['action'], term_id))
   return redirect("/term=%s" % g.db.getTermConceptId(term_id))
 
 ## Start HTTP server. (Not relevant on Heroku.) ##

@@ -27,10 +27,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from SeaIceConnector import *
+from . import SeaIceConnector
 from threading import Condition
 
-class ScopedSeaIceConnector (SeaIceConnector): 
+class ScopedSeaIceConnector (SeaIceConnector.SeaIceConnector): 
   """
     A SeaIce DB Connector which is released to the pool from whence it 
     came when it goes out of scope. This type of connector is produced by 
@@ -63,7 +63,7 @@ class ConnectorPool:
   """
   
   def __init__(self, Connector, count=20, user=None, password=None, db=None):
-    self.pool = [ Connector(user, password, db) for _ in range(count) ]
+    self.pool = [ SeaIceConnector.SeaIceConnector(user, password, db) for _ in range(count) ]
     self.C_pool = Condition()
       
   def dequeue(self):

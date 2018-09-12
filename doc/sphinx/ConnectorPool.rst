@@ -26,7 +26,7 @@ which is should be used in practice.
 
 .. inheritance-diagram:: 
       seaice.SeaIceConnector
-      seaice.ScopedSeaIceConnector
+      seaice.ConnectorPool.ScopedSeaIceConnector
 
 .. autoclass:: seaice.ConnectorPool.ScopedSeaIceConnector
    :noindex:
