@@ -34,6 +34,7 @@ from flask import Markup
 from flask import render_template, render_template_string
 from flask import url_for, redirect, flash
 from flask import request, session, g
+from flask_dance.contrib.google import google
 import flask_login as l
 
 from urllib.request import urlopen, Request
@@ -82,7 +83,7 @@ parser.add_option("--role", dest="db_role", metavar="USER",
 
 (options, args) = parser.parse_args()
 
-# Figure out if we're in production mode.  Look in 'heroku' section only.
+# Figure out if we're in production mode. Look in 'heroku' section only.
 config = configparser.ConfigParser()
 config.read('.seaice_auth')
 if config.has_option('heroku', 'prod_mode'):
@@ -99,7 +100,6 @@ try:
 
   if options.config_file == "heroku": 
     app = SeaIceFlask.SeaIceFlask(__name__)
-
   else: 
     db_config = auth.get_config(options.config_file)
     app = SeaIceFlask.SeaIceFlask(__name__, db_user = db_config.get(options.db_role, 'user'),
@@ -111,39 +111,24 @@ except pgdb.DatabaseError as e:
   print("error: %s" % (e), file=sys.stderr)
   sys.exit(1)
 
-
 try: 
   credentials = auth.get_config(options.credentials_file)
-
-  google = auth.get_google_auth(credentials.get(options.deployment_mode, 'google_client_id'), 
+  blueprint = auth.get_google_blueprint(credentials.get(options.deployment_mode, 'google_client_id'), 
                                        credentials.get(options.deployment_mode, 'google_client_secret'))
-
+  app.register_blueprint(blueprint, url_prefix="/login")
 except OSError: 
   print >>sys.stderr, "error: config file '%s' not found" % options.config_file
   sys.exit(1)
-
 
 app.debug = True
 app.use_reloader = True
 app.secret_key = credentials.get(options.deployment_mode, 'app_secret')
 
-  ## Session logins ##
+## Session logins ##
 
 login_manager = l.LoginManager()
 login_manager.init_app(app)
 login_manager.anonymous_user = seaice.user.AnonymousUser
-
-  ## Prescore terms ##
-  # This will be used to check for consistency errors in live scoring
-  # and isn't needed until I implement O(1) scoring. 
-
-#print "ice: checking term score consistnency (dev)" TODO
-#for term in db_con.getAllTerms():
-#  if not db_con.checkTermConsistency(term['id']):
-#    print "warning: corrected inconsistent consensus score for term %d" % term['id']
-#  db_con.commit()
-
-
 
 print("ice: setup complete.")
 
@@ -151,7 +136,7 @@ print("ice: setup complete.")
 def load_user(id):
   return app.SeaIceUsers.get(int(id))
 
-  ## Request wrappers (may have use for these later) ##
+## Request wrappers (may have use for these later) ##
 
 @app.before_request
 def before_request():
@@ -166,14 +151,18 @@ def teardown_request(exception):
 
 @app.errorhandler(404)
 def pageNotFound(e):
-    return render_template('basic_page.html', user_name = l.current_user.name, 
-                                              title = "Oops! - 404",
-                                              headline = "404",
-                                              content = "The page you requested doesn't exist."), 404
+    return render_template(
+        'basic_page.html', 
+        user_name = l.current_user.name, 
+        title = "Oops! - 404",
+        headline = "404",
+        content = "The page you requested doesn't exist."), 404
 
 # home page
 @app.route("/")
 def index():
+  if not google.authorized:
+    return redirect(url_for("google.login"))
   if l.current_user.id:
     g.db = app.dbPool.getScoped()
       # TODO Store these values in class User in order to prevent
@@ -183,10 +172,12 @@ def index():
     star = pretty.printTermsAsLinks(g.db,
              g.db.getTermsByTracking(l.current_user.id))
     notify = l.current_user.getNotificationsAsHTML(g.db)
-    return render_template("index.html", user_name = l.current_user.name,
-                   my = Markup(my.decode('utf-8')) if my else None,
-                   star = Markup(star.decode('utf-8')) if star else None, 
-                   notify = Markup(notify.decode('utf-8')) if notify else None)
+    return render_template(
+        "index.html", 
+        user_name = l.current_user.name,      
+        my = Markup(my.decode('utf-8')) if my else None,
+        star = Markup(star.decode('utf-8')) if star else None, 
+        notify = Markup(notify.decode('utf-8')) if notify else None)
 
   return render_template("index.html", user_name = l.current_user.name)
 
@@ -207,7 +198,7 @@ def contact():
   return render_template("contact.html", user_name = l.current_user.name)
 
 
-  ## Login and logout ##
+## Login and logout ##
 
 @app.route("/login")
 def login():
@@ -229,11 +220,11 @@ def login():
 
 @app.route("/login/google")
 def login_google():
-  callback=url_for('authorized', _external=True)
-  return google.authorize(callback=callback)
+  resp = google.get("/oauth2/v2/userinfo")
+  assert resp.ok, resp.text
+  return "You are {email} on Google".format(email=resp.json()["email"])
 
 @app.route(auth.REDIRECT_URI)
-@google.authorized_handler
 def authorized(resp):
   access_token = resp['access_token']
   session['access_token'] = access_token, ''
@@ -273,8 +264,6 @@ def authorized(resp):
   flash("Logged in successfully")
   return redirect(url_for('index'))
 
-
-@google.tokengetter
 def get_access_token():
   return session.get('access_token')
 
@@ -289,7 +278,7 @@ def unauthorized():
   return redirect(url_for('login'))
 
 
-  ## Users ##
+## Users ##
 
 @app.route("/account", methods = ['POST', 'GET'])
 @l.login_required
@@ -369,7 +358,7 @@ def remNotification(user_id, notif_index):
                                             
 
 
-  ## Look up terms ##
+## Look up terms ##
 
 @app.route("/term/concept=<term_concept_id>")
 @app.route("/term=<term_concept_id>")
@@ -670,7 +659,7 @@ def remTerm(term_id):
                  that you've contributed. However, you may comment or vote on this term. """)
 
 
-  ## Comments ##
+## Comments ##
 
 @app.route("/term=<int:term_id>/comment", methods=['POST'])
 @l.login_required
@@ -773,7 +762,7 @@ def remComment(comment_id):
               """Error! You may only edit or remove your own comments.""")
 
 
-  ## Voting! ##
+## Voting! ##
 
 @app.route("/term=<int:term_id>/vote", methods=['POST'])
 @l.login_required

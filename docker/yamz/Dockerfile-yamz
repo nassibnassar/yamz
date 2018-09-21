@@ -13,9 +13,6 @@ RUN apk update && \
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-#This is because flask-oauth support for Python 3 has not yet been released.
-RUN pip install git+https://github.com/mitsuhiko/flask-oauth
-
 COPY . /usr/src/app
 
 EXPOSE 5000

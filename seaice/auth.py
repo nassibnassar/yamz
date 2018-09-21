@@ -25,10 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from flask_oauth import OAuth
 import os, stat, configparser, sys
-
-  ## Local PostgreSQL server configuration ## 
+from flask_dance.contrib.google import make_google_blueprint
 
 def accessible_by_group_or_world(file):
   """ Verify the permissions of configuration file. 
@@ -54,18 +52,12 @@ def get_config(config_file = '.seaice'):
   config = configparser.RawConfigParser()
   if os.path.isfile(config_file):
       if accessible_by_group_or_world(config_file):
-        print ('error: config file ' + config_file +
+        print('error: config file ' + config_file +
           ' has group or world ' +
           'access; permissions should be set to u=rw')
         sys.exit(1)
       config.read(config_file)
   return config
-
-  ## Google authentication. ##
-
-#: Google authentication (OAuth)
-#: **TODO**: Change to *google_oauth*.
-oauth = OAuth()
 
 #: Variable prescribed by the Google OAuth API. 
 #: **TODO:** To accomadate other authentication 
@@ -73,20 +65,22 @@ oauth = OAuth()
 #: (also on code.google.com/apis/console).
 REDIRECT_URI = '/authorized' 
 
-#: Get Google authentication. Client ID and secrets are drawn from a 
-#: config file which may contain multiple values for various 
-#: deplo9yments. NOTE The client ID **should** never be published
-#: and the secret **must** never be published. 
-def get_google_auth(client_id, client_secret):
-  google = oauth.remote_app('google',
-        base_url='https://www.google.com/accounts/',
-        authorize_url='https://accounts.google.com/o/oauth2/auth',
-        request_token_url=None,
-        request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email',
-                              'response_type': 'code'},
-        access_token_url='https://accounts.google.com/o/oauth2/token',
-        access_token_method='POST',
-        access_token_params={'grant_type': 'authorization_code'},
-        consumer_key=client_id, 
-        consumer_secret=client_secret)
-  return google
+def get_google_blueprint(client_id, client_secret):
+  """ Get Google authentication. Client ID and secrets are drawn from either 
+    '' and '' keys found within the the '.seaice' configuration file which are
+    subsequently passed to this constructor, or make sure that the SeaIceFlask 
+    application config defines them using the variables GOOGLE_OAUTH_CLIENT_ID 
+    and GOOGLE_OAUTH_CLIENT_SECRET. NOTE The client ID **should** never be published
+    and the secret **must** never be published. More information on 
+    flask-dance OAuth authentication via Google can be found at
+    https://flask-dance.readthedocs.io/en/latest/quickstarts/google.html
+  """
+  blueprint = make_google_blueprint(
+    client_id=client_id,
+    client_secret=client_secret,
+    scope=[
+        "https://www.googleapis.com/auth/plus.me",
+        "https://www.googleapis.com/auth/userinfo.email",
+    ]
+  )
+  return blueprint

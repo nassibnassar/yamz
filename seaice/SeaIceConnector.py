@@ -29,10 +29,10 @@
 import os, sys, re
 import configparser
 from urllib.parse import urlparse
+from urllib import parse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
 from . import pretty
-from . import auth
 from . import notify
 from . import eggnog
 
@@ -163,8 +163,8 @@ class SeaIceConnector:
   
     if not user: 
 
-      urlparse.uses_netloc.append("postgres")
-      url = urlparse.urlparse(os.environ["DATABASE_URL"])
+      #urlparse.uses_netloc.append("postgres")
+      url = urlparse(os.environ["DATABASE_URL"])
 
       #: The PostgreSQL database connector provided 
       #: by the psycopg2 package. 
@@ -177,11 +177,11 @@ class SeaIceConnector:
       )
       
     else:
-      self.con = pgdb.connect(database=db, user=user, password=password, host='postgres', port='5432')
+      self.con = pgdb.connect(database=db, user=user, password=password, host='0.0.0.0', port='5432')
   
   def __del__(self):
-    self.con.close()
-
+    if hasattr(self, 'con'):
+      self.con.close()
 
   def createSchema(self):
     """ 

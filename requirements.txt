@@ -1,22 +1,17 @@
-Flask
-flask-login
-
-#Once flask-oauth support for Python 3 has been released uncomment 
-# and remove corresponding entry in docker/yamz/Dockerfile-yamz
-#Flask-OAuth
-
-flask-caching
-flask-swagger-ui
-Jinja2
-MarkupSafe
-Werkzeug
 argparse
 configparser
+Flask
+flask-caching
+Flask-Dance
+flask-login
 gunicorn
 httplib2
 itsdangerous
+Jinja2
+MarkupSafe
 oauth2
 psycopg2
 python-dateutil
 python-postmark
 requests
+Werkzeug
