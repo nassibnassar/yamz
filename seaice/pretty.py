@@ -564,7 +564,7 @@ def printTermsPretty(db_con, rows):
   :type rows: dict iterator
   """
   for row in rows:
-    print getPrettyTerm(db_con, row) 
+    print(getPrettyTerm(db_con, row))
 
 
 def printTermsAsLinks(db_con, rows):
@@ -732,7 +732,7 @@ def summarizeConsensus(consensus):
     elif cons >= 30:
         return 'medium'
     else:
-	return 'low'
+        return 'low'
 
 def printTermsAsBriefHTML(db_con, rows, user_id=0): 
   """ Format table rows as abbreviated HTML table, e.g. 

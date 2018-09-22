@@ -1,0 +1,37 @@
+# Note we are using version 2 because there is no requirement 
+# to deploy with docker swarm at this stage.
+version: '2.4'
+services:
+  postgres:
+    build:
+      context: ./
+      dockerfile: ./docker/postgres/Dockerfile-postgres
+    ports:
+      - 5432
+    expose:
+      - "5432"
+  yamz:
+    build:
+      context: ./
+      dockerfile: ./docker/yamz/Dockerfile-yamz
+    ports:
+      - "5000:5000"
+    links:
+      - postgres
+    mem_limit: 4000m
+    depends_on:
+      - postgres
+  pgadmin4:
+    build:
+      context: ./
+      dockerfile: ./docker/pgadmin4/Dockerfile-pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=yamz
+      - PGADMIN_DEFAULT_PASSWORD=yamz
+    depends_on:
+      - postgres
+    ports:
+      - "5433:80"
+    links:
+      - postgres
+

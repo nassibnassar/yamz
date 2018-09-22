@@ -1,6 +1,6 @@
 [dev]
-google_client_id = 000-fella.apps.googleusercontent.com
-google_client_secret = SECRET1
+google_client_id = 929416959032-gvdjqadgomj4eohi1t54p26m2be9evsp.apps.googleusercontent.com
+google_client_secret = iKJAlKAr8TejFDZeBecOnmJ4
 app_secret = SECRET2
 minter_password = SECRET3
 

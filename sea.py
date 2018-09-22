@@ -230,11 +230,3 @@ try:
 except pqdb.DatabaseError, e:
   print 'error: %s' % e    
   sys.exit(1)
-
-# xxx commenting these out makes for better diagnostics?
-#except IOError:
-#  print >>sys.stderr, "error: file not found"
-#  sys.exit(1)
-#
-#except ValueError: 
-#  print >>sys.stderr, "error: incorrect parameter type(s)"

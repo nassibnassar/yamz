@@ -23,7 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from SeaIceConnector import *
+from . import SeaIceConnector
 from threading import Lock
 
 class IdPool:
@@ -63,7 +63,7 @@ class IdPool:
    
     self.next = prev + 1
 
-    print "Table %s pool:" % table, (self.pool, self.next)
+    print("Table %s pool:" % table, (self.pool, self.next))
      
   def ConsumeId(self): 
     """ Consume the next available ID. 
@@ -102,5 +102,3 @@ class IdPool:
     if id < self.next: 
       self.pool.append(id)
     self.L_pool.release()
-      
-

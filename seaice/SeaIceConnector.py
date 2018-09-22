@@ -27,13 +27,14 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os, sys, re
-import configparser, urlparse
+import configparser
+from urllib.parse import urlparse
+from urllib import parse
 import json, psycopg2 as pgdb
 import psycopg2.extras  
-import pretty
-import auth
-import notify
-import eggnog
+from . import pretty
+from . import notify
+from . import eggnog
 
 """
   Some constants for stability calculation. 
@@ -137,6 +138,7 @@ orderOfClass = { 'deprecated' : 2, 'vernacular' : 1, 'canonical' : 0 }
 
 concept_id_regex = re.compile('/([a-zA-Z0-9]+)$')
 
+con = ''
 
 class SeaIceConnector: 
   """ Connection to the PostgreSQL database. 
@@ -161,8 +163,8 @@ class SeaIceConnector:
   
     if not user: 
 
-      urlparse.uses_netloc.append("postgres")
-      url = urlparse.urlparse(os.environ["DATABASE_URL"])
+      #urlparse.uses_netloc.append("postgres")
+      url = urlparse(os.environ["DATABASE_URL"])
 
       #: The PostgreSQL database connector provided 
       #: by the psycopg2 package. 
@@ -174,16 +176,12 @@ class SeaIceConnector:
         port=url.port
       )
       
-    else: 
-        
-      self.con = pgdb.connect(database=db, user=user, password=password)
-
-#    cur = self.con.cursor()
-#    cur.execute("SELECT version(); BEGIN")
+    else:
+      self.con = pgdb.connect(database=db, user=user, password=password, host='0.0.0.0', port='5432')
   
   def __del__(self):
-    self.con.close()
-
+    if hasattr(self, 'con'):
+      self.con.close()
 
   def createSchema(self):
     """ 
@@ -287,7 +285,7 @@ class SeaIceConnector:
         UNIQUE (user_id, term_id),
         FOREIGN KEY (user_id) REFERENCES SI.Users(id) ON DELETE CASCADE, 
         FOREIGN KEY (term_id) REFERENCES SI.Terms(id) ON DELETE CASCADE
-      )"""
+      );"""
     )
     
     #: Create schema and table for notifications.  
@@ -1000,7 +998,7 @@ class SeaIceConnector:
       else:   return None
 
    
-    except pgdb.DatabaseError, e:
+    except pgdb.DatabaseError as e:
       if e.pgcode == '23505': #: Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate primary key Id=%s" % defComment['id']
          cur.execute("ROLLBACK;")
@@ -1087,7 +1085,7 @@ class SeaIceConnector:
                                                      defTracking['vote']))
       return cur.fetchone()
     
-    except pgdb.DatabaseError, e:
+    except pgdb.DatabaseError as e:
       if e.pgcode == '23505': #: Duplicate primary key
          print >>sys.stderr, "warning: skipping duplicate (TermId=%s, UserId=%s)" % (
           defTracking['term_id'], defTracking['user_id'])
@@ -1390,7 +1388,7 @@ class SeaIceConnector:
     :type notif: seaice.notify.BaseNotification
     """
     cur = self.con.cursor()
-    print "Lonestar!"
+    print("Lonestar!")
     if isinstance(notif, notify.Comment):
       cur.execute("""DELETE FROM SI_Notify.Notify
                       WHERE class='Comment' AND user_id=%s AND term_id=%s

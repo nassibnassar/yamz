@@ -1,6 +1,6 @@
 [default]
 dbname = seaice
-user = reader
+user = postgres
 password = PASSWORD1
 
 [contributor]
