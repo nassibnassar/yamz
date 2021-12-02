@@ -6,7 +6,7 @@ MarkupSafe==0.18
 Werkzeug==0.9.1
 argparse==1.2.1
 configparser==3.3.0r2
-gunicorn==0.17.4
+gunicorn==19.5.0
 httplib2==0.8
 itsdangerous==0.21
 oauth2==1.5.211
