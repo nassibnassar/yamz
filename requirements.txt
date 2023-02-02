@@ -3,7 +3,7 @@ Flask-Login==0.2.3
 Flask-OAuth==0.12
 Jinja2==2.7
 MarkupSafe==0.18
-Werkzeug==0.9.1
+Werkzeug==0.15.5
 argparse==1.2.1
 configparser==3.3.0r2
 gunicorn==0.17.4
